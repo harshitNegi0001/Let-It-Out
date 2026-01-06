@@ -34,9 +34,9 @@ class Auth {
           const token = createToken({ id: userId });
           res.cookie('authToken', token, {
             httpOnly: true,
-            secure: false,
             maxAge: 1000 * 60 * 60 * 24 * 7,
-            sameSite: 'lax'
+            sameSite: 'none',
+            secure: process.env.NODE_ENV === 'production'
           });
           return returnRes(res, 200, { message: 'Login Success', userInfo });
         }
@@ -65,12 +65,14 @@ class Auth {
       res.cookie('state', state, {
         httpOnly: true,
         maxAge: 1000 * 60 * 10,
-        sameSite: 'lax'
+        sameSite: 'none',
+        secure: process.env.NODE_ENV === 'production'
       });
       res.cookie('codeVerifier', codeVerifier, {
         httpOnly: true,
         maxAge: 1000 * 60 * 10,
-        sameSite: 'lax'
+        sameSite: 'none',
+        secure: process.env.NODE_ENV === 'production'
       });
 
       return res.redirect(url.toString());
@@ -98,7 +100,7 @@ class Auth {
 
       const userInfo = await axios.get("https://openidconnect.googleapis.com/v1/userinfo", { headers: { Authorization: `Bearer ${token.data.access_token}` } })
       const user = userInfo.data;
-      
+
       await db.query(`
         CREATE TABLE IF NOT EXISTS 
         users 
@@ -134,9 +136,9 @@ class Auth {
         const token = createToken({ id: result.rows[0].id });
         res.cookie('authToken', token, {
           httpOnly: true,
-          secure: false,
-          sameSite: 'lax',
-          maxAge: 1000 * 60 * 60 * 24 * 7
+          sameSite: 'none',
+          maxAge: 1000 * 60 * 60 * 24 * 7,
+          secure: process.env.NODE_ENV === 'production'
         });
         return res.redirect(`${this.frontend_url}`);
       }
@@ -146,14 +148,14 @@ class Auth {
           users (google_uid,name,email,first_name) 
           VALUES($1,$2,$3,$4) 
           RETURNING id`
-          , [user.sub, user.name, user.email,user.given_name]
+          , [user.sub, user.name, user.email, user.given_name]
         );
         const token = createToken({ id: newUser.rows[0].id });
         res.cookie('authToken', token, {
           httpOnly: true,
-          secure: false,
-          sameSite: 'lax',
-          maxAge: 1000 * 60 * 60 * 24 * 7
+          sameSite: 'none',
+          maxAge: 1000 * 60 * 60 * 24 * 7,
+          secure: process.env.NODE_ENV === 'production'
         });
         return res.redirect(`${this.frontend_url}/new-user-setup/`);
 
@@ -216,8 +218,8 @@ class Auth {
       // console.log('user-here')
       res.cookie('authToken', null, {
         httpOnly: true,
-        secure: false,
-        sameSite: 'lax',
+        secure: process.env.NODE_ENV === 'production',
+        sameSite: 'none',
         maxAge: 0
       });
       return returnRes(res, 200, { message: 'Successfully logged out!' });
