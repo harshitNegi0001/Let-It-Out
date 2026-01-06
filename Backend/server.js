@@ -10,7 +10,7 @@ const port = process.env.PORT || 5000;
 const app = express();
 
 app.use(cors({
-    origin:["http://localhost:5173"],
+    origin:["http://localhost:5173","https://let-it-out-omega.vercel.app"],
     credentials:true
 }))
 app.use(express.json());
