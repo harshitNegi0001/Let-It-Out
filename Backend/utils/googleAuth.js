@@ -6,5 +6,5 @@ dotenv.config();
 const clientId = process.env.GOOGLE_OAUTH_ID;
 const clientSecret = process.env.GOOGLE_OAUTH_SECRET;
 
-const redirectURI = 'http://localhost:5000/api/google/fallback';
+const redirectURI = process.env.GOOGLE_REDIRECT_URI;
 export const google = new Google(clientId, clientSecret, redirectURI);
