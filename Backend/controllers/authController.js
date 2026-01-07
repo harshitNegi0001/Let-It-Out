@@ -36,7 +36,7 @@ class Auth {
             httpOnly: true,
             maxAge: 1000 * 60 * 60 * 24 * 7,
             sameSite: 'none',
-            secure: process.env.NODE_ENV === 'production'
+            secure: true
           });
           return returnRes(res, 200, { message: 'Login Success', userInfo });
         }
@@ -66,13 +66,13 @@ class Auth {
         httpOnly: true,
         maxAge: 1000 * 60 * 10,
         sameSite: 'none',
-        secure: process.env.NODE_ENV === 'production'
+        secure:true
       });
       res.cookie('codeVerifier', codeVerifier, {
         httpOnly: true,
         maxAge: 1000 * 60 * 10,
         sameSite: 'none',
-        secure: process.env.NODE_ENV === 'production'
+        secure: true
       });
 
       return res.redirect(url.toString());
@@ -138,7 +138,7 @@ class Auth {
           httpOnly: true,
           sameSite: 'none',
           maxAge: 1000 * 60 * 60 * 24 * 7,
-          secure: process.env.NODE_ENV === 'production'
+          secure:true
         });
         return res.redirect(`${this.frontend_url}`);
       }
@@ -155,7 +155,7 @@ class Auth {
           httpOnly: true,
           sameSite: 'none',
           maxAge: 1000 * 60 * 60 * 24 * 7,
-          secure: process.env.NODE_ENV === 'production'
+          secure:true
         });
         return res.redirect(`${this.frontend_url}/new-user-setup/`);
 
@@ -218,7 +218,7 @@ class Auth {
       // console.log('user-here')
       res.cookie('authToken', null, {
         httpOnly: true,
-        secure: process.env.NODE_ENV === 'production',
+        secure: true,
         sameSite: 'none',
         maxAge: 0
       });
