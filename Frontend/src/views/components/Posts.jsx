@@ -1,20 +1,133 @@
-import { Stack, Typography } from "@mui/material";
+import { Box, Button, Divider, Stack, Typography } from "@mui/material";
 import PostUI from "./PostUI";
+import { useEffect } from "react";
+import { useDispatch } from "react-redux";
+import { setState } from "../../store/authReducer/authReducer";
+import { useState } from "react";
+import axios from "axios";
+import AddIcon from '@mui/icons-material/Add';
+
+const RestrectedPostHandler = {
+    PRIVATE_ACCOUNT: {
+        image: 'https://res.cloudinary.com/dns5lxuvy/image/upload/v1767880329/ffaril9idaw7ln5xqsyg.png',
+        headingMsg: 'This account is Private',
+        detailMsg: 'Follow this account to see their posts.',
+        actionButton:{
+            content:'Follow',
+            icon:<AddIcon/>
+        }
+    },
+    ACCOUNT_DEACTIVATED:{
+        image:'https://res.cloudinary.com/dns5lxuvy/image/upload/v1767884508/nd3lir2au0iijzpxv4wk.png',
+        headingMsg: 'This account has been Temporarily Deactivated',
+        detailMsg: 'This account has been temporarily deactivated by the user, it will restored when the user logs back in.',
+        actionButton:null
+    },
+    ACCOUNT_SUSPENDED:{
+        image:'https://res.cloudinary.com/dns5lxuvy/image/upload/v1767883872/ugawmofhb7scnu4mozws.png',
+        headingMsg: 'This account has been Suspended',
+        detailMsg: 'This account has been Suspended. this could due to violation of our Community Guildlines or other Policies.',
+        actionButton:null
+    }
+}
+
+export default function Posts({ userData }) {
+    const [userPost, setUserPost] = useState([]);
+    const [postOptions, setPostOptions] = useState([]);
+    const [postRestriction, setPostRestriction] = useState({
+        show_posts: true,
+        reason: "",
+        message: ""
+    })
+    const dispatch = useDispatch();
+    const backend_url = import.meta.env.VITE_BACKEND_URL;
+    const [currPage, setCurrPage] = useState(1);
+    // const [hasmore,setHasmore] = useState(true);
+
+    useEffect(() => {
+        if (userData.id) {
+            getPosts();
+        }
+    }, [userData.id]);
+
+
+    const getPosts = async () => {
+
+        try {
+            const result = await axios.get(`${backend_url}/api/post/profile?userId=${userData.id}&&limit=${10}&&currPage=${currPage}`,
+                {
+                    withCredentials: true
+                });
+
+            if (result.data?.restrictions) {
+                setPostRestriction(result.data.restrictions);
+            }
+            else {
+                setUserPost(prev => ([...prev, ...result.data.posts]));
+
+            }
+            // setUserPost(result)
+        } catch (err) {
+            // console.log(err);
+            dispatch(setState({ error: err?.response?.data?.error || "Something Went Wrong!" }));
+        }
+    }
+    return (
+        <>
+            <Stack width={'100%'} spacing={2} mb={'60px'} mt={2}>
+                {userPost.map((p) => <PostUI key={p.id} followed={true} postData={p} userData={userData} />)}
+                {userPost.length == 0 && postRestriction.show_posts &&
+                    <Box width={'100%'} py={4} sx={{ display: 'flex', flexDirection: 'column', gap: 1, alignItems: 'center' }}>
+
+                        <Box width={'90%'} maxWidth={{ xs: "200px", sm: '330px' }} >
+                            <img src="https://res.cloudinary.com/dns5lxuvy/image/upload/v1767880326/rnand3ixnpmb5unpe3zx.png" style={{ width: '100%', objectFit: 'contain' }} alt="" />
+
+                        </Box>
+
+                        <Typography variant="body1" fontSize={{ xs: '18px', sm: '26px' }} fontWeight={600} color="#fff" textAlign={'center'} >
+                            No posts yet.
+                        </Typography>
+                        <Typography variant="body2" fontSize={{ xs: '13px', sm: '16px' }} color="text.primary" textAlign={'center'}>
+                            This user hasn't shared any post yet.
+
+                        </Typography>
+
+                        <Box sx={{ display: 'flex', flexDirection: "column", gap: 1 }} >
+                            <Divider sx={{ width: '100%' }} />
+                            <Typography variant="body2" fontSize={{ xs: '10px', sm: '12px' }} color="text.secondary" textAlign={'center'}>
+                                When they share posts, you'll see them here.
+                            </Typography>
+                        </Box>
+
+                    </Box>}
+                {!postRestriction?.show_posts &&
+                    <Box width={'100%'} py={4} sx={{ display: 'flex', flexDirection: 'column', gap: 1, alignItems: 'center' }}>
+                        <Box width={'90%'} maxWidth={{ xs: "200px", sm: '330px' }} >
+                            <img src={RestrectedPostHandler[postRestriction.reason]?.image} style={{ width: '100%', objectFit: 'contain' }} alt="" />
+
+                        </Box>
+                        <Typography variant="body1" fontSize={{ xs: '18px', sm: '26px' }} fontWeight={600} color="#fff" textAlign={'center'} >
+                            {RestrectedPostHandler[postRestriction.reason]?.headingMsg}
+                        </Typography>
+                        <Typography variant="body2" fontSize={{ xs: '13px', sm: '16px' }} color="text.primary" textAlign={'center'}>
+                            {RestrectedPostHandler[postRestriction.reason].detailMsg}
+                        </Typography>
+                        {RestrectedPostHandler[postRestriction.reason].actionButton&&
+                        <Box pt={3}>
+
+                        <Button variant="contained" color="secondary" onClick={RestrectedPostHandler[postRestriction.reason]?.actionButton?.action} endIcon={RestrectedPostHandler[postRestriction.reason]?.actionButton?.icon}>
+                            {RestrectedPostHandler[postRestriction.reason]?.actionButton?.content}
+                        </Button>
+                        </Box>
+
+                        }
+                    </Box>}
+
+            </Stack>
 
 
 
-export default function Posts() {
 
-return(
-    <>
-        <Stack width={'100%'} spacing={2} mb={'60px'} mt={2}>
-            {[1,2,3,4,5].map(i=><PostUI key={i}followed={true}/>)}
-
-        </Stack>
-
-        
-
-        
-    </>
-)
+        </>
+    )
 }

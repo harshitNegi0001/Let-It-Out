@@ -1,6 +1,8 @@
 import express from 'express';
 import dotenv from 'dotenv';
 import authRoute from './routes/authRoute.js';
+import postRoute from './routes/postRoute.js';
+
 import userProfileRoute from './routes/userProfileRoutes.js';
 import cookieParser from 'cookie-parser';
 import cors from 'cors';
@@ -16,6 +18,8 @@ app.use(cors({
 app.use(express.json());
 app.use(cookieParser())
 app.use('/api',authRoute);
+app.use('/api',postRoute);
+
 app.use('/api',userProfileRoute);
 app.get('/', (req, res) => {
     res.end("Hello World!");

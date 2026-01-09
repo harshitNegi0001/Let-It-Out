@@ -1,18 +1,21 @@
 import { Backdrop, Box, Button, Divider, IconButton, Stack, Switch, Typography } from "@mui/material";
 import LockIcon from "@mui/icons-material/Lock";
 import LockOpenIcon from "@mui/icons-material/LockOpen";
-import { useSelector } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
 import { useEffect, useState } from "react";
 import axios from 'axios';
 import DynamicFeedIcon from '@mui/icons-material/DynamicFeed';
 import AlternateEmailIcon from '@mui/icons-material/AlternateEmail';
 import { useNavigate } from "react-router-dom";
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
+import { getInitialState, setState } from "../../store/authReducer/authReducer";
 
 
 function PrivacySetting() {
     const { userInfo } = useSelector(state => state.auth);
+    const [isLoading,setIsLoading] = useState(false);
     const navigate = useNavigate();
+    const dispatch = useDispatch();
     const [privacy, setPrivacy] = useState(userInfo?.acc_type);
     const backend_url = import.meta.env.VITE_BACKEND_URL;
     const [confirmBackdrop, setConfirmBackdrop] = useState(false);
@@ -31,6 +34,7 @@ function PrivacySetting() {
 
     const changePrivacy = async () => {
         try {
+            setIsLoading(true);
             const result = await axios.post(`${backend_url}/api/change-privacy`,
                 {
                     accountType: privacy
@@ -42,7 +46,12 @@ function PrivacySetting() {
                     }
                 }
             )
+            setIsLoading(false);
+            dispatch(getInitialState());
+            
         } catch (err) {
+            setIsLoading(false);
+            dispatch(setState({error:err?.response?.data?.error|| "Something went wrong!"}));
             // console.log(err);
         }
     }
@@ -104,7 +113,7 @@ function PrivacySetting() {
                                     </Typography>
                                 </Button>
                                 <Divider sx={{ borderBottom: '1px solid #666666ff', width: '100%' }} />
-                                <Button variant="text" fullWidth onClick={() => setConfirmBackdrop(false)} >
+                                <Button loading={isLoading} variant="text" fullWidth onClick={() => setConfirmBackdrop(false)} >
                                     <Typography color="#fff" fontWeight={'400'}>
                                         Cancle
                                     </Typography>
@@ -131,7 +140,7 @@ function PrivacySetting() {
                             <Stack width={'100%'}>
                                 <Divider sx={{ borderBottom: '1px solid #666666ff', width: '100%' }} />
 
-                                <Button variant="text" fullWidth onClick={() => handlePrivacyChange('public')}>
+                                <Button loading={isLoading} variant="text" fullWidth onClick={() => handlePrivacyChange('public')}>
                                     <Typography color="#8176cc" fontWeight={'600'}>
                                         Switch to public
                                     </Typography>

@@ -1,8 +1,8 @@
 import { Avatar, Box, Button, Divider, LinearProgress, Stack, TextField, Typography } from "@mui/material";
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import axios from "axios";
-import { login } from "../../store/authReducer/authReducer";
+import { setState } from "../../store/authReducer/authReducer";
 import { useNavigate } from "react-router-dom";
 
 
@@ -11,17 +11,81 @@ import { useNavigate } from "react-router-dom";
 function NewUserSetup() {
     const { userInfo } = useSelector(state => state.auth);
     const navigate = useNavigate();
+    const [isLoading, setIsLoading] = useState(false);
+    const [username, setUsername] = useState("");
+    const [usernameStatus, setUsernameStatus] = useState({
+        loading: false,
+        available: null, // true | false | null
+        error: ""
+    });
     const [newUserDetail, setNewUserDetail] = useState({
-        username: "",
+
         password: "",
         confirmPass: "",
         fake_name: "",
-        image: ""
+        image: "",
+
     });
     const dispatch = useDispatch();
     const [progressUpload, setProgressUpload] = useState(0);
     const profileRef = useRef();
     const backend_url = import.meta.env.VITE_BACKEND_URL;
+
+
+    useEffect(() => {
+        if (!username) {
+            setUsernameStatus({
+                loading: false,
+                available: null,
+                error: ""
+            });
+            return;
+        }
+        const usernameRegex = /^[a-z][a-z0-9_]{2,19}$/;
+
+        if (!usernameRegex.test(username)) {
+            setUsernameStatus({
+                loading: false,
+                available: null,
+                error: "Only a-z, 0-9, _. Min 3 chars. Must start with letter"
+            });
+            return;
+        }
+
+        let cancelled = false;
+
+        const timer = setTimeout(async () => {
+            try {
+                const res = await axios.post(
+                    `${backend_url}/api/check-username`,
+                    { username },
+                    { withCredentials: true }
+                );
+
+                if (!cancelled) {
+                    setUsernameStatus({
+                        loading: false,
+                        available: res.data.isAvailable,
+                        error: res.data.isAvailable ? "" : "Username not available."
+                    });
+                }
+            } catch (err) {
+                if (!cancelled) {
+                    setUsernameStatus({
+                        loading: false,
+                        available: null,
+                        error: err?.response?.data?.error || "Failed to check username"
+                    });
+                }
+            }
+        }, 2000);
+
+        return () => {
+            cancelled = true;
+            clearTimeout(timer);
+        };
+    }, [username]);
+
     const handleImageChange = async (e) => {
         const file = e.target.files[0];
         const formData = new FormData();
@@ -30,6 +94,7 @@ function NewUserSetup() {
 
         try {
             setProgressUpload(40);
+            setIsLoading(true);
             const result = await axios.post(`${backend_url}/api/upload/image`, formData, {
 
                 withCredentials: true,
@@ -39,34 +104,52 @@ function NewUserSetup() {
                 }
             });
             setProgressUpload(100);
+            setIsLoading(false);
 
             setNewUserDetail(prev => ({ ...prev, image: result.data.imageUrl }));
 
         }
         catch (err) {
+            setProgressUpload(100);
+            setIsLoading(false);
+            // console.log(err?.response?.data?.error);
+            dispatch(setState({ error: err?.response?.data?.error || "Something went wrong!" }));
 
-            console.log(err?.response?.data?.error);
         }
     }
-    const handleSubmit = async(e) => {
+    const handleSubmit = async (e) => {
         e.preventDefault();
+        setIsLoading(true);
         // input validation here
-        const username = newUserDetail?.username;
+
         const password = newUserDetail?.password;
         const confirmPass = newUserDetail?.confirmPass;
         const fakeName = newUserDetail?.fake_name;
         const profileImg = newUserDetail?.image;
+        if (!usernameStatus.available) {
+            dispatch(setState({ error: "Please choose an available username" }));
+            setIsLoading(false);
+            return;
+        }
+        if (password != confirmPass) {
+            dispatch(setState({ error: 'Confirmation password did not matched!' }));
+            setIsLoading(false);
+            return;
+        }
 
         try {
-            const result = await axios.post(`${backend_url}/api/setup/my-profile`,{username,password,fakeName,profileImg},{
-                withCredentials:true,
-                headers:{"Content-Type":"application/json"}
+            const result = await axios.post(`${backend_url}/api/setup/my-profile`, { username, password, fakeName, profileImg }, {
+                withCredentials: true,
+                headers: { "Content-Type": "application/json" }
             });
+            setIsLoading(false);
+            dispatch(setState({ userInfo: result.data.userInfo, success: 'Profile created.' }));
 
-            dispatch(login({userInfo:result.data.userInfo}))
             navigate('/');
         } catch (err) {
-            console.log(err?.response?.data?.error);
+            setIsLoading(false);
+            // console.log(err?.response?.data?.error);
+            dispatch(setState({ error: err?.response?.data?.error || "Something went wrong!" }));
         }
     }
     const handleUserInfoChange = (e) => {
@@ -75,7 +158,7 @@ function NewUserSetup() {
     return (
         <>
             <Stack width={'100vw'} height={'100vh'} sx={{ justifyContent: 'center', position: 'relative', alignItems: 'center' }} >
-                {(progressUpload > 0 && progressUpload < 100) && <LinearProgress color="info" variant='determinate' value={progressUpload}></LinearProgress>}
+                {(progressUpload > 0 && progressUpload < 100) && <LinearProgress color="info" variant='determinate' sx={{ position: 'absolute', top: 0 }} value={progressUpload}></LinearProgress>}
                 <Stack width={'100%'} height={'100%'} overflow={'scroll'} p={2} alignItems={'center'}>
                     <Box width={'100%'} maxWidth={'450px'} mb={3} sx={{ display: 'flex', flexDirection: 'column', alignItems: 'start' }}>
                         <Typography width={'100%'} zIndex={2} variant="h5" fontSize={32} fontWeight={'bold'} textOverflow={'ellipsis'} noWrap component={'div'}>Welcome {userInfo?.first_name || 'User'}!</Typography>
@@ -92,12 +175,12 @@ function NewUserSetup() {
                                 <Stack width={'100%'} maxWidth={'450px'} p={1} spacing={2}>
 
                                     <Typography variant="body1" component={'div'} fontWeight={500} >Create your profile</Typography>
-                                    <TextField value={newUserDetail?.username} autoComplete="lio_username" onChange={handleUserInfoChange} name="username" label="create username" size="small" color="secondary" required helperText="pick a unique username " placeholder="eg. lio@user.001"></TextField>
+                                    <TextField value={username} autoComplete="lio_username" error={Boolean(usernameStatus.error)} onChange={(e) => setUsername(e.target.value.toLowerCase())} name="username" label="create username" size="small" color="secondary" required helperText={usernameStatus.loading ? "Checking availability..." : usernameStatus.error ? usernameStatus.error : usernameStatus.available ? "Username available" : "Pick a unique username"} placeholder="eg. lio@user.001"></TextField>
                                     <Divider />
                                     <TextField value={newUserDetail?.password} autoComplete="current-password" type="password" onChange={handleUserInfoChange} name="password" label="create password" size="small" color="secondary" required ></TextField>
                                     <TextField value={newUserDetail?.confirmPass} autoComplete="confirm-password" type="password" onChange={handleUserInfoChange} name="confirmPass" label="confirm password" size="small" color="secondary" required ></TextField>
                                     <Divider />
-                                    <TextField value={newUserDetail?.fake_name} autoComplete="fake-name"  onChange={handleUserInfoChange} name="fake_name" label="fake name(optional)" size="small" color="secondary" helperText="We prefer not reveal your identity" ></TextField>
+                                    <TextField value={newUserDetail?.fake_name} autoComplete="fake-name" onChange={handleUserInfoChange} name="fake_name" label="fake name(optional)" size="small" color="secondary" helperText="We prefer not reveal your identity" ></TextField>
                                     <Divider />
                                     <Box width={'100%'} gap={2} sx={{ display: 'flex', flexDirection: 'column' }}>
                                         <Typography variant="body2" fontSize={'15px'} fontWeight={'500'} component={'div'}>
@@ -107,11 +190,11 @@ function NewUserSetup() {
                                             <Avatar sx={{ width: '120px', height: '120px' }}>{newUserDetail?.image && <img src={newUserDetail?.image} style={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: '50%' }} alt="" />}</Avatar>
                                             <input type="file" name="" ref={profileRef} id="get-profile" onChange={handleImageChange} style={{ display: 'none' }} />
 
-                                            <Button variant="contained" onClick={() => profileRef.current.click()} sx={{ textTransform: 'none' }} color="secondary" size="small" >Upload Image </Button>
+                                            <Button loading={isLoading} variant="contained" onClick={() => profileRef.current.click()} sx={{ textTransform: 'none' }} color="secondary" size="small" >Upload Image </Button>
                                         </Box>
                                     </Box>
                                     <Divider />
-                                    <Button type="submit" fullWidth color="secondary" sx={{ textTransform: 'none' }} variant="contained">Complete Setup</Button>
+                                    <Button loading={isLoading || usernameStatus.loading || !usernameStatus.available} type="submit" fullWidth color="secondary" sx={{ textTransform: 'none' }} variant="contained">Complete Setup</Button>
                                 </Stack>
                             </form>
                         </Box>

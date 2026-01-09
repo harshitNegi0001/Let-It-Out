@@ -1,20 +1,52 @@
-import { returnRes } from "../utils/returnRes.js";
-import db from '../utils/db.js';
 
+import { returnRes } from "../utils/returnRes.js";
+import db from "../utils/db.js";
+import cloudinary from "../config/cloudinaryConfig.js";
+import streamifier from "streamifier";
 
 class Post {
+    // Controller function for creating post
     createPost = async (req, res) => {
         const userId = req.id;
 
-        // const
-
         try {
+            const { content = "", post_type } = req.body;
+            const files = req.files || [];
+
+            if (!content.trim() && files.length === 0) {
+                return returnRes(res, 400, { error: "Post cannot be empty" });
+            }
+
+            let mediaUrls = [];
+
+            if (files.length > 0) {
+                const uploadPromises = files.map(file => {
+                    return new Promise((resolve, reject) => {
+                        const stream = cloudinary.uploader.upload_stream(
+                            { folder: "posts" },
+                            (error, result) => {
+                                if (error) reject(error);
+                                else resolve(result.secure_url);
+                            }
+                        );
+
+                        streamifier.createReadStream(file.buffer).pipe(stream);
+                    });
+                });
+
+                mediaUrls = await Promise.all(uploadPromises);
+            }
+
+            let finalPostType = "text";
+            if (mediaUrls.length > 0 && content.trim()) finalPostType = "mixed";
+            else if (mediaUrls.length > 0) finalPostType = "image";
+
+
             await db.query(`CREATE TABLE IF NOT EXISTS posts(
 	            id BIGSERIAL PRIMARY KEY,
 	            user_id INT NOT NULL,
-	            content TEXT NOT NULL,
-	            media_url TEXT[],	
-	            visibility VARCHAR(20) NOT NULL DEFAULT 'public',
+	            content TEXT,
+	            media_url TEXT[],
 	            post_type VARCHAR(20) NOT NULL DEFAULT 'text',
 	            likes_count INT NOT NULL DEFAULT 0,
                 comments_count INT NOT NULL DEFAULT 0,
@@ -27,22 +59,163 @@ class Post {
 	            ON DELETE CASCADE,
 	
 	            CONSTRAINT post_type_check
-                    CHECK (post_type IN ('text', 'image', 'mixed')),
+                    CHECK (post_type IN ('text', 'image', 'mixed'))
 
-                CONSTRAINT visibility_check
-                    CHECK (visibility IN ('public', 'followers', 'private'))
-                );`);
+            );`);
 
-            await db.query(`
-                INSERT INTO posts (user_id,content,media_url, visibility, post_type)
-                VALUES ($1,$2,$3,$4,$5)
-                `,[userId,]) 
+            const result = await db.query(
+                `INSERT INTO posts (user_id, content, media_url, post_type)
+                VALUES ($1,$2,$3,$4)
+                RETURNING *`,
+                [
+                    userId,
+                    content.trim() || null,
+                    mediaUrls.length > 0 ? mediaUrls : null,
+                    finalPostType
+                ]
+            );
+
+            return returnRes(res, 201, {
+                message: "Post created successfully",
+                post: result.rows[0]
+            });
+
+        } catch (err) {
+            console.error(err);
+            return returnRes(res, 500, { error: "Internal Server Error!" });
+        }
+    };
+
+    // controller function to get posts of a specific profile
+    getProfilePost = async (req, res) => {
+
+        const visiterId = req.id;
+        const { userId, limit, currPage } = req.query;
+
+        try {
+
+            const user = await db.query(
+                `SELECT 
+                id,
+                fake_name,
+                lio_userid as username,
+                image,
+                first_name,
+                online_status,
+                acc_status,
+                acc_type
+                FROM users
+                WHERE id = $1`,
+                [userId]
+            );
 
 
+            if (user.rows.length == 0) {
+                return returnRes(res, 404, { error: 'User not found.' });
+            }
+
+            const userDetail = user.rows[0];
+
+            if (userDetail.acc_status == 'deactive') {
+                return returnRes(res, 200, {
+                    user: {
+                        id: userDetail.id,
+                        username: userDetail.username,
+                        acc_status: "deactive",
+                        acc_type: userDetail.acc_type
+                    },
+                    restrictions: {
+                        show_posts: false,
+                        reason: "ACCOUNT_DEACTIVATED",
+                        message: "This account is temporarily deactivated"
+                    }
+                });
+            }
+            if (userId == visiterId) {
+                const result = await db.query(
+                    `SELECT 
+                    * FROM posts
+                    WHERE user_id = $1
+                    ORDER BY id DESC
+                    OFFSET $2
+                    LIMIT $3`
+                    , [userId, (limit * (currPage - 1)), limit]
+                );
+
+
+                return returnRes(res, 200, { message: 'Success', posts: result.rows });
+            }
+
+
+            const isPrivate = userDetail.acc_type == 'private';
+            const isFollowing = true;
+            if (isPrivate && !isFollowing) {
+                return returnRes(res, 200, {
+                    user: {
+                        id: userDetail.id,
+                        username: userDetail.username,
+                        acc_status: userDetail.acc_status,
+                        acc_type: userDetail.acc_type
+                    },
+                    restrictions: {
+                        show_posts: false,
+                        reason: "PRIVATE_ACCOUNT",
+                        message: "Follow this account to see their posts"
+                    }
+                });
+            }
+
+            const result = await db.query(
+                `SELECT 
+                * 
+                FROM posts
+                WHERE user_id = $1
+                ORDER BY id DESC
+                OFFSET $2
+                LIMIT $3`
+                , [userId, (limit * (currPage - 1)), limit]
+            );
+
+            return returnRes(res, 200, { mustFollow: false, posts: result.rows });
+
+        } catch (err) {
+            // console.error(err);
+            return returnRes(res, 500, { error: "Internal Server Error!" });
+        }
+
+    }
+    
+    // Controller function to delete user itself post.
+    deleteMyPost = async(req,res)=>{
+
+        const userId = req.id;
+        const {postId} = req.body;
+        try {
+            const post = await db.query(
+                `SELECT 
+                user_id
+                FROM posts
+                WHERE id =$1`,
+                [postId]
+            );
+
+            if(post.rows.length!=0 && post.rows[0].user_id == userId){
+
+                await db.query(
+                    `DELETE
+                    FROM posts
+                    WHERE id = $1`,
+                    [postId]
+                );
+                return returnRes(res,200,{message:'Post Deleted.'});    
+            }
+            return returnRes(res,400,{error:'Something went wrong!'});
 
         } catch (err) {
             // console.log(err);
-            return returnRes(res, 500, { error: 'Internal Server Error!' });
+            return returnRes(res,500,{error:'Internal Server Error!'});
         }
     }
 }
+
+export default new Post();

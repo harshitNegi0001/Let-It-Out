@@ -99,11 +99,43 @@ class UserProfile {
             SET acc_type = $1
             WHERE id = $2
             `, [accountType, userId]);
-            
+
             return returnRes(res, 200, { message: 'Success', accountType: accountType });
         } catch (err) {
             // console.log(err);
 
+            return returnRes(res, 500, { error: 'Internal Server Error!' });
+
+        }
+    }
+
+    // controller function to check availibility of username.
+    checkUsername = async (req, res) => {
+        // const userId = req.id;
+
+        try {
+            const { username } = req.body;
+
+            if (!username || typeof username !== "string") {
+                return returnRes(res, 400, { error: "Invalid username" });
+            }
+
+            const usernameRegex = /^[a-z][a-z0-9_]{2,19}$/;
+            if (!usernameRegex.test(username)) {
+                return returnRes(res, 400, { error: "Invalid username format" });
+            }
+            const result = await db.query(
+                `SELECT 1
+                FROM users
+                WHERE LOWER(lio_userid)  =LOWER($1)`
+                , [username]
+            );
+
+            const isAvailable = result.rows.length == 0;
+            return returnRes(res, 200, { isAvailable, message: `is available : ${isAvailable}` });
+        }
+        catch (err) {
+            // console.log(err);
             return returnRes(res, 500, { error: 'Internal Server Error!' });
 
         }

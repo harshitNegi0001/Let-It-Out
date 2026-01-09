@@ -9,11 +9,12 @@ import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
 import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
 import { DatePicker } from '@mui/x-date-pickers/DatePicker';
 import axios from 'axios'
-import { login } from "../store/authReducer/authReducer";
+import {  setState } from "../store/authReducer/authReducer";
 import { useNavigate } from "react-router-dom";
 
 function EditProfile() {
     const { userInfo } = useSelector(state => state.auth);
+    const [isLoading,setIsLoading] = useState(false);
     const coverImgInput = useRef(null);
     const navigate = useNavigate();
     const dispatch = useDispatch();
@@ -40,6 +41,7 @@ function EditProfile() {
 
         try {
             setProgressUpload(40);
+            setIsLoading(true);
             const result = await axios.post(`${backend_url}/api/upload/image`, formData, {
                 
                 withCredentials:true,
@@ -48,6 +50,7 @@ function EditProfile() {
                     setProgressUpload(precent);
                 }
             });
+            setIsLoading(false);
             setProgressUpload(100);
             if (type == 'cover') {
                 setCoverImage(result.data.imageUrl);
@@ -57,7 +60,8 @@ function EditProfile() {
             }
         }
         catch (err) {
-
+            setIsLoading(false);
+            dispatch(setState({error:err?.response?.data?.error||'Something Went Wrong, please try again.'}));
             console.log(err?.response?.data?.error);
         }
     }
@@ -66,18 +70,23 @@ function EditProfile() {
         //validation and error handling here....
 
         try{
+            setIsLoading(true);
+
             const result = await axios.post(`${backend_url}/api/update/my-profile`,{coverImage,profileImage,userBasicDetail},{
                 withCredentials:true,
                 headers:{"Content-Type":"application/json"}
             });
 
+            setIsLoading(false);
             
-            dispatch(login({userInfo:result.data.userInfo}))
+            dispatch(setState({userInfo:result.data.userInfo,success:"Profile updated."}));
             navigate('/settings');
             
 
         }
         catch(err){
+            setIsLoading(false);
+            dispatch(setState({error:err?.response?.data?.error||"Something went wrong!"}));
             console.log(err?.response?.data?.error);
         }
     }

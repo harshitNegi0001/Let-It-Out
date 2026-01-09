@@ -94,7 +94,7 @@ function Profile() {
 
                         </Stack>
                         <CustomPannel keyValue={'posts'} value={value}>
-                            <Posts />
+                            <Posts userData={userInfo}/>
                         </CustomPannel>
                         <CustomPannel keyValue={'replies'} value={value}>
                             <Replies />

@@ -1,46 +1,96 @@
-import {Avatar,Box,Button,Divider,IconButton,Stack,TextField,Typography} from "@mui/material";
+import { Avatar, Box, Button, Divider, IconButton, Stack, TextField, Typography } from "@mui/material";
 import CloseIcon from "@mui/icons-material/Close";
 import ImageOutlinedIcon from "@mui/icons-material/ImageOutlined";
 import DeleteOutlineIcon from "@mui/icons-material/DeleteOutline";
-import { useSelector } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 import { useRef, useState } from "react";
-import { ImageGrid } from "./PostUI.jsx";
+import ImageGrid from "./ImageGrid.jsx";
 import axios from 'axios';
+import { setState } from "../../store/authReducer/authReducer.js";
+
 
 function CreatePost({ setIsOpenCreatePost }) {
+    const [isLoading, setIsLoading] = useState(false);
     const backend_url = import.meta.env.VITE_BACKEND_URL;
     const { userInfo } = useSelector((state) => state.auth);
-
+    const dispatch = useDispatch();
+    const MAX_IMAGES = 5;
     const [text, setText] = useState("");
     const [postImages, setPostImages] = useState([]);
+    const [imageFiles, setImageFiles] = useState([]);
+
     const addImageRef = useRef();
 
     const handleAddImg = (files) => {
-        const newImages = Array.from(files).map((file) =>
+        const fileArray = Array.from(files);
+        const remainingSlots = MAX_IMAGES - imageFiles.length;
+
+        if (remainingSlots <= 0) {
+            dispatch(setState({
+                error: `You can upload up to ${MAX_IMAGES} images only.`
+            }));
+            return;
+        }
+
+        const selectedFiles = fileArray.slice(0, remainingSlots);
+
+        const previews = selectedFiles.map(file =>
             URL.createObjectURL(file)
         );
 
-        setPostImages((prev) => [...prev, ...newImages]);
+        setPostImages(prev => [...prev, ...previews]);
+        setImageFiles(prev => [...prev, ...selectedFiles]);
+
+        addImageRef.current.value = "";
     };
+
 
     const handleRemoveImages = () => {
         setPostImages([]);
+        setImageFiles([]);
     };
 
-    const isPostDisabled = text.trim() === "" && postImages.length === 0;
-
-    const submitPost = async()=>{
-
-        
-        try {
-            const result = await axios.post(`${backend_url}/api/create-post`,{},{
-                withCredentials:true,
-                headers:{'Content-Type':'application/json'}
-            })
-        } catch (err) {
-            
-        }
+    const closePostComponent = () => {
+        setText("");
+        handleRemoveImages();
+        setIsOpenCreatePost(false);
     }
+    const isPostDisabled = text.trim() === "" && postImages.length === 0;
+    const submitPost = async () => {
+        try {
+            setIsLoading(true);
+            const formData = new FormData();
+
+            formData.append("content", text);
+
+            imageFiles.forEach((file) => {
+                formData.append("images", file);
+            });
+
+            const result = await axios.post(
+                `${backend_url}/api/create-post`,
+                formData,
+                {
+                    withCredentials: true,
+                    headers: {
+                        "Content-Type": "multipart/form-data",
+                    },
+                }
+            );
+
+            setIsLoading(false);
+            dispatch(setState({ success: "Your post is live." }));
+            setText("");
+            handleRemoveImages();
+            setIsOpenCreatePost(false);
+
+        } catch (err) {
+            setIsLoading(false);
+            // console.error(err);
+            dispatch(setState({ error: err?.response?.data?.error || "Something went wrong. Please retry." }));
+        }
+    };
+
 
     return (
         <Box
@@ -53,15 +103,15 @@ function CreatePost({ setIsOpenCreatePost }) {
         >
             <Stack spacing={1.5}>
 
-                {/* Header */}
+
                 <Box display="flex" justifyContent="space-between" alignItems="center">
                     <Typography fontWeight="bold">Create Post</Typography>
-                    <IconButton size="small" onClick={() => setIsOpenCreatePost(false)}>
+                    <IconButton size="small" onClick={() => closePostComponent()}>
                         <CloseIcon />
                     </IconButton>
                 </Box>
 
-                {/* User + Text */}
+
                 <Stack direction="row" spacing={1}>
                     <Avatar src={userInfo?.image} />
                     <TextField
@@ -77,7 +127,7 @@ function CreatePost({ setIsOpenCreatePost }) {
                     />
                 </Stack>
 
-                {/* Image Preview */}
+
                 {postImages.length > 0 && (
                     <Box position="relative">
                         <ImageGrid images={postImages} />
@@ -100,7 +150,7 @@ function CreatePost({ setIsOpenCreatePost }) {
 
                 <Divider />
 
-                {/* Actions */}
+
                 <Box display="flex" justifyContent="space-between" alignItems="center">
                     <Box>
                         <input
@@ -119,6 +169,8 @@ function CreatePost({ setIsOpenCreatePost }) {
                     </Box>
 
                     <Button
+                        loading={isLoading}
+                        onClick={submitPost}
                         variant="contained"
                         color="secondary"
                         disabled={isPostDisabled}
