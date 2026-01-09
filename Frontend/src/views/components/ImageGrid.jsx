@@ -2,7 +2,7 @@ import { Box, Typography } from "@mui/material";
 
 
 function ImageGrid({ images = [] }) {
-    const countImg = images.length;
+    const countImg = images?.length||0;
 
     if (countImg == 0) {
         return null;
