@@ -1,4 +1,4 @@
-import { Badge, Box, Button, Chip, Divider, IconButton, ListItemIcon, ListItemText, Menu, MenuItem, Skeleton, Stack, TextField, Typography } from "@mui/material";
+import { Avatar, Badge, Box, Button, Chip, Divider, IconButton, ListItemIcon, ListItemText, Menu, MenuItem, Skeleton, Stack, TextField, Typography } from "@mui/material";
 import DoneIcon from '@mui/icons-material/Done';
 import DoneAllIcon from '@mui/icons-material/DoneAll';
 import { useNavigate, useParams } from "react-router-dom";
@@ -8,35 +8,38 @@ import MoreHorizIcon from '@mui/icons-material/MoreHoriz';
 import SendIcon from '@mui/icons-material/Send';
 import ReportIcon from '@mui/icons-material/Report';
 import BlockIcon from '@mui/icons-material/Block';
+import { useDispatch } from "react-redux";
+import { setState } from "../store/authReducer/authReducer";
+import axios from "axios";
 
 function TypingDots() {
-  return (
-    <Box sx={{ display: 'flex', gap: '4px', alignItems: 'center' }}>
-      <Dot delay="0s" />
-      <Dot delay="0.2s" />
-      <Dot delay="0.4s" />
-    </Box>
-  );
+    return (
+        <Box sx={{ display: 'flex', gap: '4px', alignItems: 'center' }}>
+            <Dot delay="0s" />
+            <Dot delay="0.2s" />
+            <Dot delay="0.4s" />
+        </Box>
+    );
 }
 
 function Dot({ delay }) {
-  return (
-    <Box
-      sx={{
-        width: 6,
-        height: 6,
-        borderRadius: '50%',
-        bgcolor: 'text.primary',
-        animation: 'typing 1.4s infinite',
-        animationDelay: delay,
-        '@keyframes typing': {
-          '0%': { opacity: 0.3 },
-          '50%': { opacity: 1 },
-          '100%': { opacity: 0.3 },
-        },
-      }}
-    />
-  );
+    return (
+        <Box
+            sx={{
+                width: 6,
+                height: 6,
+                borderRadius: '50%',
+                bgcolor: 'text.primary',
+                animation: 'typing 1.4s infinite',
+                animationDelay: delay,
+                '@keyframes typing': {
+                    '0%': { opacity: 0.3 },
+                    '50%': { opacity: 1 },
+                    '100%': { opacity: 0.3 },
+                },
+            }}
+        />
+    );
 }
 
 
@@ -45,9 +48,28 @@ function Messages() {
     const navigate = useNavigate();
     const [anchorEl, setAnchorEl] = useState(null);
     const openMenu = Boolean(anchorEl);
-    const [isTyping, setIsTyping] = useState(true); // example ke liye true
+    const [isTyping, setIsTyping] = useState(false); // example ke liye true
+    const [chatlist, setChatlist] = useState([]);
+    const dispatch = useDispatch();
+    const backend_url = import.meta.env.VITE_BACKEND_URL;
 
 
+    useEffect(() => {
+        getChatlist();
+    }, [])
+    const getChatlist = async () => {
+        try {
+            const result = await axios.get(`${backend_url}/msg/get-my-chatlist`,
+                {
+                    withCredentials: true
+                }
+            );
+
+            setChatlist(result?.data?.chatlist);
+        } catch (err) {
+            dispatch(setState({ error: err?.response?.data?.error || 'Something went wrong!' }));
+        }
+    }
     const handleMenuChange = (event) => {
         setAnchorEl(event.currentTarget);
     }
@@ -61,20 +83,22 @@ function Messages() {
                 {!userId && <Stack sx={{ boxSizing: 'border-box', overflowY: 'scroll', scrollbarWidth: 'none' }} direction={'column'} width={'100%'} height={'100%'} mb={{ sm: '0', xs: '0px' }}>
                     {/* Users list's section */}
                     {
-                        [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15].map(i =>
-                            <Button sx={{ p: 0, m: 0, borderRadius: '0' }} key={i} color="secondary" onClick={() => navigate(`/chats/${i}`)}>
+                        chatlist.map(u =>
+                            <Button sx={{ p: 0, m: 0, borderRadius: '0' }} key={u.id} color="secondary" onClick={() => navigate(`/chats/${u.username}`)}>
                                 <Box width={'100%'} minHeight={'60px'} display={'flex'} justifyContent={'start'} p={1} gap={2} >
-                                    <img src="https://lh3.googleusercontent.com/a/ACg8ocIeBt81ImfZlaz9bECptfoge0TD9IB-eEEqAvzrBccWZchQfZ2d=s96-c" style={{ width: '50px', height: '50px', objectFit: 'cover', borderRadius: '25px' }} alt="" />
+                                    <Avatar sx={{ width: '50px', height: "50px" }}>
+                                        {u.image&&<img src={u.image} style={{ width: '50px', height: '50px', objectFit: 'cover', borderRadius: '25px' }} alt="" />}
+                                    </Avatar>
                                     <Box sx={{ display: 'flex', flexDirection: 'column', width: 'calc( 100% - 75px)', alignItems: 'start' }}>
                                         <Box sx={{ width: '100%', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                                            <Typography variant="body1" color="text.primary" component={'span'}>Harshit Singh Negi</Typography>
+                                            <Typography variant="body1" color="text.primary" component={'span'}>{u.fake_name||u.name}</Typography>
                                             <Typography variant="body2" fontSize={10} component={'span'} color="text.secondary">12/12/2025</Typography>
                                         </Box>
                                         <Box sx={{ width: '100%', mt: 1, alignItems: 'center', justifyContent: 'start', display: 'flex', gap: '4px' }}>
                                             <DoneAllIcon sx={{ fontSize: 14, mt: '2px', color: 'info.light' }} />
                                             <Typography variant="body2" width={'calc(100% - 55px)'} noWrap textOverflow={'ellipsis'} textAlign={'start'} fontSize={12} color="text.prymary" >
 
-                                                hii
+                                                {u.name}
                                             </Typography>
                                             {/* <Chip variant='filled' color="secondary" label='244' size="small"/> */}
                                             {/* <Badge  badgeContent={100} color="secondary" sx={{width:'5px',ml:1,height:'5px',mt:'6px'}} max={99}></Badge> */}
@@ -144,9 +168,9 @@ function Messages() {
                                         p="8px 12px"
                                         sx={{
                                             background: "linear-gradient(135deg, #2b2b2bff, #444346ff)",
-                                            display:'flex',
-                                            alignItems:'center',
-                                            justifyContent:'center'
+                                            display: 'flex',
+                                            alignItems: 'center',
+                                            justifyContent: 'center'
                                         }}
                                     >
                                         <TypingDots />

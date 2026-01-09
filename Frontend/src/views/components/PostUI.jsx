@@ -86,7 +86,7 @@ function PostUI({ followed, liked = false, bookmarked = false, postData, userDat
                 </Menu>
                 <Box width={'100%'} p={1}>
 
-                    <ImageGrid images={postData.media_url} />
+                    {postData?.media_url?.length>0&&<ImageGrid images={postData?.media_url} />}
                     <Typography mt={2} fontSize={{ xs: 12, sm: 16 }}>
                         {postData.content}
                     </Typography>
