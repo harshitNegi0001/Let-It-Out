@@ -26,9 +26,11 @@ function Toaster() {
                 {(error || success) && <Alert
                     severity={success ? "success" : error ? 'error' : undefined}
                     onClose={handleClose}
+                    sx={{ whiteSpace: 'pre-wrap' }}
 
                 >
                     {success || error}
+                    
                 </Alert>}
             </Snackbar>}
 

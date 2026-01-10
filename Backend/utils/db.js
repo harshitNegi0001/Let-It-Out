@@ -13,24 +13,24 @@ const pool = new Pool(
         database: process.env.PG_DATABASE,
         password: process.env.PG_PASSWORD,
         user: process.env.PG_USER,
-        ssl: { rejectUnauthorized: false }
+        // ssl: { rejectUnauthorized: false }
 
     }
 );
 
-pool.connect()
-    .then(client => {
-        console.log("✅ PostgreSQL connected successfully");
-        client.release();
-    })
-    .catch(err => {
-        console.error("❌ PostgreSQL connection error:", err.message);
-    });
+// pool.connect()
+//     .then(client => {
+//         console.log("✅ PostgreSQL connected successfully");
+//         client.release();
+//     })
+//     .catch(err => {
+//         console.error("❌ PostgreSQL connection error:", err.message);
+//     });
 
-// Listen for runtime errors (prevents Node crash)
-pool.on('error', err => {
-    console.error('Unexpected PostgreSQL error:', err);
-});
+// // Listen for runtime errors (prevents Node crash)
+// pool.on('error', err => {
+//     console.error('Unexpected PostgreSQL error:', err);
+// });
 
 
 

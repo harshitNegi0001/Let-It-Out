@@ -14,6 +14,7 @@ import ImageGrid from "./ImageGrid";
 import { useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { useEffect } from "react";
+import { requiredAction } from "../../store/authReducer/authReducer";
 
 
 
@@ -21,7 +22,8 @@ import { useEffect } from "react";
 
 
 function PostUI({ followed, liked = false, bookmarked = false, postData, userData }) {
-    const {userInfo}= useSelector(state=>state.auth);
+
+    const { userInfo } = useSelector(state => state.auth);
     const [isLiked, setIsLiked] = useState(liked);
     const [isSaved, setIsSaved] = useState(bookmarked);
     const [anchorEl, setAnchorEl] = useState(null);
@@ -29,11 +31,11 @@ function PostUI({ followed, liked = false, bookmarked = false, postData, userDat
     const open = Boolean(anchorEl);
     const dispatch = useDispatch();
 
-    useEffect(()=>{
-        if(userData?.id&&userInfo?.id){
-            setPostAction([...getPostActions(dispatch,userData.id,userInfo.id,postData.id)]);
+    useEffect(() => {
+        if (userData?.id && userInfo?.id) {
+            setPostAction([...getPostActions(userData.id, userInfo.id, postData.id)]);
         }
-    },[userData]);
+    }, [userData]);
 
 
     const handleClick = (e) => {
@@ -49,6 +51,8 @@ function PostUI({ followed, liked = false, bookmarked = false, postData, userDat
     return (
 
         <>
+
+
             <Stack width={'100%'} borderRadius={2} overflow={'hidden'} border={1} borderColor={'primary.dark'}>
                 <Stack direction={'row'} width={'100%'} boxSizing={'border-box'} p={1} justifyContent={'space-between'} bgcolor={'primary.dark'} alignItems={'center'}>
                     <Stack direction={'row'} spacing={1} alignItems={'center'} width={'calc(100% - 40px)'}>
@@ -67,7 +71,7 @@ function PostUI({ followed, liked = false, bookmarked = false, postData, userDat
                     <IconButton onClick={handleClick} size="large" id="post-options-btn" aria-haspopup='true' aria-expanded={open ? 'true' : undefined} aria-controls={open ? 'post-option-menu' : undefined}><OptionIcon /></IconButton>
                 </Stack>
                 <Menu id="post-option-menu" anchorEl={anchorEl} open={open} slotProps={{ list: { 'aria-labelledby': 'post-options-btn' } }} onClose={handleClose}>
-                    {postAction.map((o, i) => <MenuItem key={i} onClick={() => o.action()}>
+                    {postAction.map((o, i) => <MenuItem key={i} onClick={() => { handleClose(); dispatch(requiredAction({ label: o.label, type: o.type, payload: o.payload})) }}>
                         <ListItemIcon>
                             {o.icon}
                         </ListItemIcon>
@@ -84,12 +88,13 @@ function PostUI({ followed, liked = false, bookmarked = false, postData, userDat
                         <ListItemText>{isSaved ? 'Remove boookmark' : 'Bookmark'}</ListItemText>
                     </MenuItem>
                 </Menu>
-                <Box width={'100%'} p={1}>
+                <Box width={'100%'} p={1} sx={{ display: 'flex', flexDirection: 'column' }}>
 
-                    {postData?.media_url?.length>0&&<ImageGrid images={postData?.media_url} />}
-                    <Typography mt={2} fontSize={{ xs: 12, sm: 16 }}>
+                    <Typography mb={2} fontSize={{ xs: 12, sm: 16 }}>
                         {postData.content}
                     </Typography>
+                    {postData?.media_url?.length > 0 && <ImageGrid images={postData?.media_url} />}
+
                 </Box>
                 <Stack direction={'row'} justifyContent={'space-evenly'} borderTop={1} mx={1} borderColor={'divider'}>
                     <Box display={'flex'} justifyContent={'center'} alignItems={'center'} >
@@ -127,6 +132,7 @@ function PostUI({ followed, liked = false, bookmarked = false, postData, userDat
                         </IconButton><Typography variant="body2" fontSize={12} component={'span'}>7k</Typography>
                     </Box>
                 </Stack>
+
             </Stack>
         </>
     )

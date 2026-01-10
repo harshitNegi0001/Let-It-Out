@@ -26,11 +26,11 @@ function Settings() {
                             {userInfo.image ? <img src={userInfo.image} style={{ height: '100%', aspectRatio: '1/1', objectFit: 'cover', borderRadius: '50%' }} alt="" /> : <Box height={'100%'} sx={{ aspectRatio: '1' }}><Avatar sx={{ width: '100%', height: '100%' }} /></Box>}
                             <Box width={{ xs: 'calc(100% - 85px)', sm: 'calc(100% - 130px)' }} sx={{ display: 'flex', flexDirection: 'column', gap: 1, alignItems: 'start', justifyContent: 'center' }} height={'100%'} >
                                 <Typography variant="body1" component={'div'} width={'100%'} fontSize={{ xs: 18, sm: 24 }} noWrap textOverflow={'ellipsis'} color="text.primary">
-                                    Megatron
+                                    {userInfo.fake_name||userInfo.name}
                                 </Typography>
-                                <Typography variant="body2" component={'span'} width={'100%'} fontSize={{ xs: 14, sm: 16 }} noWrap textOverflow={'ellipsis'} color="text.secondary">
-                                    Harshit Singh Negi
-                                </Typography>
+                                {userInfo.fake_name&&<Typography variant="body2" component={'span'} width={'100%'} fontSize={{ xs: 14, sm: 16 }} noWrap textOverflow={'ellipsis'} color="text.secondary">
+                                    {userInfo.name }
+                                </Typography>}
 
                             </Box>
                         </Box>

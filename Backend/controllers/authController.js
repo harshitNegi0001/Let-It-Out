@@ -101,29 +101,6 @@ class Auth {
       const userInfo = await axios.get("https://openidconnect.googleapis.com/v1/userinfo", { headers: { Authorization: `Bearer ${token.data.access_token}` } })
       const user = userInfo.data;
 
-      await db.query(`
-        CREATE TABLE IF NOT EXISTS 
-        users 
-          (id SERIAL PRIMARY KEY,
-          google_uid TEXT UNIQUE, 
-          name TEXT NOT NULL,
-          fake_name TEXT ,
-          email TEXT NOT NULL UNIQUE,
-          lio_userid TEXT UNIQUE,
-          password TEXT,	
-          image TEXT ,	
-          bio TEXT ,	
-          bg_image TEXT,
-          first_name TEXT,	
-          curr_socket_id TEXT,
-          online_status BOOLEAN DEFAULT FALSE ,
-          acc_status VARCHAR(20) DEFAULT 'active',
-          acc_type VARCHAR(20) DEFAULT 'public' ,
-          dob TEXT, 
-          created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-          last_login TIMESTAMP);`
-      );
-
 
       const result = await db.query(`
         SELECT 

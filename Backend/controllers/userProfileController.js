@@ -140,6 +140,37 @@ class UserProfile {
 
         }
     }
+
+    // Controller function that return 10 new users list.
+
+    getNewUsers = async (req, res) => {
+        const userId = req.id;
+        try {
+            const userFollowing = [userId];
+            // append following users.
+            const result = await db.query(
+                `SELECT 
+                id,
+                lio_userid as username,
+                image,
+                fake_name,
+                first_name
+                FROM users
+                WHERE 
+                NOT (id = ANY($1))
+                ORDER BY id DESC
+                LIMIT $2`,
+                [userFollowing, 10]
+            );
+            console.log(result.rows);
+            const usersList = result.rows.map(u => { return { ...u, name: u.fake_name || u.first_name } });
+            return returnRes(res, 200, { usersList });
+
+        } catch (err) {
+            // console.log(err);
+            return returnRes(res, 500, { error: 'Internal Server Error!' });
+        }
+    }
 }
 
 export default new UserProfile();

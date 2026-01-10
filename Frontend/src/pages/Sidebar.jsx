@@ -28,6 +28,7 @@ function Sidebar() {
         setOpenBackdrop(true);
     }
     const handleCloseBackdrop =()=>{
+        document.activeElement?.blur();
         setOpenBackdrop(false);
     }
     return (

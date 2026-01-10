@@ -39,7 +39,8 @@ const authSlice = createSlice({
         userInfo: null,
         isLoading: false,
         error: null,
-        success: null
+        success: null,
+        confirmComponent:null
     },
     reducers: {
         reset: (state) => {
@@ -63,6 +64,9 @@ const authSlice = createSlice({
             if ("success" in action.payload) {
                 state.success = action.payload.success
             }
+        },
+        requiredAction : (state,action)=>{
+            state.confirmComponent = action.payload
         }
     },
     extraReducers: (builder) => {
@@ -93,5 +97,5 @@ const authSlice = createSlice({
 
 
 
-export const { login, reset, setState } = authSlice.actions;
+export const { login, reset, setState ,requiredAction} = authSlice.actions;
 export default authSlice.reducer;

@@ -9,7 +9,7 @@ import axios from 'axios';
 import { setState } from "../../store/authReducer/authReducer.js";
 
 
-function CreatePost({ setIsOpenCreatePost }) {
+function CreatePost({ closeCreatePost }) {
     const [isLoading, setIsLoading] = useState(false);
     const backend_url = import.meta.env.VITE_BACKEND_URL;
     const { userInfo } = useSelector((state) => state.auth);
@@ -53,7 +53,8 @@ function CreatePost({ setIsOpenCreatePost }) {
     const closePostComponent = () => {
         setText("");
         handleRemoveImages();
-        setIsOpenCreatePost(false);
+        // setIsOpenCreatePost(false);
+        closeCreatePost();
     }
     const isPostDisabled = text.trim() === "" && postImages.length === 0;
     const submitPost = async () => {
@@ -82,7 +83,8 @@ function CreatePost({ setIsOpenCreatePost }) {
             dispatch(setState({ success: "Your post is live." }));
             setText("");
             handleRemoveImages();
-            setIsOpenCreatePost(false);
+            // setIsOpenCreatePost(false);
+            closeCreatePost();
 
         } catch (err) {
             setIsLoading(false);

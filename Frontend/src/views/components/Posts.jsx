@@ -6,28 +6,29 @@ import { setState } from "../../store/authReducer/authReducer";
 import { useState } from "react";
 import axios from "axios";
 import AddIcon from '@mui/icons-material/Add';
+import ConfirmBox from "./ConfirmBox";
 
 const RestrectedPostHandler = {
     PRIVATE_ACCOUNT: {
         image: 'https://res.cloudinary.com/dns5lxuvy/image/upload/v1767880329/ffaril9idaw7ln5xqsyg.png',
         headingMsg: 'This account is Private',
         detailMsg: 'Follow this account to see their posts.',
-        actionButton:{
-            content:'Follow',
-            icon:<AddIcon/>
+        actionButton: {
+            content: 'Follow',
+            icon: <AddIcon />
         }
     },
-    ACCOUNT_DEACTIVATED:{
-        image:'https://res.cloudinary.com/dns5lxuvy/image/upload/v1767884508/nd3lir2au0iijzpxv4wk.png',
+    ACCOUNT_DEACTIVATED: {
+        image: 'https://res.cloudinary.com/dns5lxuvy/image/upload/v1767884508/nd3lir2au0iijzpxv4wk.png',
         headingMsg: 'This account has been Temporarily Deactivated',
         detailMsg: 'This account has been temporarily deactivated by the user, it will restored when the user logs back in.',
-        actionButton:null
+        actionButton: null
     },
-    ACCOUNT_SUSPENDED:{
-        image:'https://res.cloudinary.com/dns5lxuvy/image/upload/v1767883872/ugawmofhb7scnu4mozws.png',
+    ACCOUNT_SUSPENDED: {
+        image: 'https://res.cloudinary.com/dns5lxuvy/image/upload/v1767883872/ugawmofhb7scnu4mozws.png',
         headingMsg: 'This account has been Suspended',
         detailMsg: 'This account has been Suspended. this could due to violation of our Community Guildlines or other Policies.',
-        actionButton:null
+        actionButton: null
     }
 }
 
@@ -61,21 +62,39 @@ export default function Posts({ userData }) {
 
             if (result.data?.restrictions) {
                 setPostRestriction(result.data.restrictions);
+                // hasMore = false..
             }
             else {
-                setUserPost(prev => ([...prev, ...result.data.posts]));
+                if (result?.data?.posts?.length > 0) {
+                    setUserPost(prev => ([...prev, ...result.data.posts]));
+                }
+                else{
+                    // hasMore False
+                }
 
             }
             // setUserPost(result)
         } catch (err) {
+            // hasMore = false.
             // console.log(err);
             dispatch(setState({ error: err?.response?.data?.error || "Something Went Wrong!" }));
         }
     }
     return (
         <>
-            <Stack width={'100%'} spacing={2} mb={'60px'} mt={2}>
-                {userPost.map((p) => <PostUI key={p.id} followed={true} postData={p} userData={userData} />)}
+            <Stack width={'100%'} spacing={2} position={'relative'} mb={'60px'} mt={2}>
+                <Box width={'100%'} position={'absolute'} top={0} >
+                    <ConfirmBox setUserPost={setUserPost} userPost={userPost} />
+                </Box>
+
+                {userPost.map((p) =>
+
+                    <PostUI key={p.id} followed={true} postData={p} userData={userData} />
+
+                )}
+
+
+
                 {userPost.length == 0 && postRestriction.show_posts &&
                     <Box width={'100%'} py={4} sx={{ display: 'flex', flexDirection: 'column', gap: 1, alignItems: 'center' }}>
 
@@ -112,13 +131,13 @@ export default function Posts({ userData }) {
                         <Typography variant="body2" fontSize={{ xs: '13px', sm: '16px' }} color="text.primary" textAlign={'center'}>
                             {RestrectedPostHandler[postRestriction.reason].detailMsg}
                         </Typography>
-                        {RestrectedPostHandler[postRestriction.reason].actionButton&&
-                        <Box pt={3}>
+                        {RestrectedPostHandler[postRestriction.reason].actionButton &&
+                            <Box pt={3}>
 
-                        <Button variant="contained" color="secondary" onClick={RestrectedPostHandler[postRestriction.reason]?.actionButton?.action} endIcon={RestrectedPostHandler[postRestriction.reason]?.actionButton?.icon}>
-                            {RestrectedPostHandler[postRestriction.reason]?.actionButton?.content}
-                        </Button>
-                        </Box>
+                                <Button variant="contained" color="secondary" onClick={RestrectedPostHandler[postRestriction.reason]?.actionButton?.action} endIcon={RestrectedPostHandler[postRestriction.reason]?.actionButton?.icon}>
+                                    {RestrectedPostHandler[postRestriction.reason]?.actionButton?.content}
+                                </Button>
+                            </Box>
 
                         }
                     </Box>}

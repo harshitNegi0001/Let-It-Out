@@ -21,6 +21,10 @@ export default function Home() {
     const [value, setValue] = useState('for-you-feed');
     const navigate = useNavigate();
     const [isOpenCreatePost,setIsOpenCreatePost] =useState(false);
+    const closeCreatePost = ()=>{
+        document.activeElement?.blur();
+        setIsOpenCreatePost(false);
+    }
     const handleChange = (_, newValue) => {
         setValue(newValue);
 
@@ -28,8 +32,8 @@ export default function Home() {
     return (
         <>
             <Stack height={'100%'} position={'relative'}>
-                <Backdrop  sx={{zIndex:9999,bgcolor:'#ffffff18',backdropFilter:'blur(2px)'}} open={isOpenCreatePost} onClick={()=>setIsOpenCreatePost(false)}>
-                    <CreatePost setIsOpenCreatePost={setIsOpenCreatePost}/>
+                <Backdrop  sx={{zIndex:9999,bgcolor:'#ffffff18',backdropFilter:'blur(2px)'}} open={isOpenCreatePost} onClick={closeCreatePost}>
+                    <CreatePost closeCreatePost={closeCreatePost}/>
                 </Backdrop>
                 <Stack direction={'row'} spacing={2} justifyContent={'center'} >
 

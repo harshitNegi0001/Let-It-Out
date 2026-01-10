@@ -6,26 +6,38 @@ import msgRoute from './routes/messagesRoute.js';
 import userProfileRoute from './routes/userProfileRoutes.js';
 import cookieParser from 'cookie-parser';
 import cors from 'cors';
+import setupTables from './utils/setupTables.js';
 dotenv.config();
 const port = process.env.PORT || 5000;
 
 const app = express();
 
 app.use(cors({
-    origin:["http://localhost:5173","https://let-it-out-omega.vercel.app"],
-    credentials:true
+    origin: ["http://localhost:5173", "https://let-it-out-omega.vercel.app"],
+    credentials: true
 }))
 app.use(express.json());
 app.use(cookieParser())
-app.use('/api',authRoute);
-app.use('/msg',msgRoute);
-app.use('/api',postRoute);
+app.use('/api', authRoute);
+app.use('/msg', msgRoute);
+app.use('/api', postRoute);
 
-app.use('/api',userProfileRoute);
+app.use('/api', userProfileRoute);
 app.get('/', (req, res) => {
     res.end("Hello World!");
 });
 
-app.listen(port, () => {
-    console.log(`Server running on port ${port} !`);
-})
+async function startServer() {
+
+    try {
+        await setupTables();
+        app.listen(port, () => {
+            console.log(`Server running on port ${port} !`);
+        });
+    } catch (err) {
+        console.error(' Failed to setup DB:', err);
+        process.exit(1);
+    }
+
+}
+startServer();

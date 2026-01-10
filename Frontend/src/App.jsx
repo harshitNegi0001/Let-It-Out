@@ -22,6 +22,7 @@ function App() {
             <ThemeProvider theme={customTheme}>
 
                 <Router allRoutes={allRoutes} />
+                
                 <Toaster/>
             </ThemeProvider>
 

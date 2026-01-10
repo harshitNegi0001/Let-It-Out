@@ -8,9 +8,10 @@ import MoreHorizIcon from '@mui/icons-material/MoreHoriz';
 import SendIcon from '@mui/icons-material/Send';
 import ReportIcon from '@mui/icons-material/Report';
 import BlockIcon from '@mui/icons-material/Block';
-import { useDispatch } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 import { setState } from "../store/authReducer/authReducer";
 import axios from "axios";
+import VisibilityIcon from '@mui/icons-material/Visibility';
 
 function TypingDots() {
     return (
@@ -33,9 +34,9 @@ function Dot({ delay }) {
                 animation: 'typing 1.4s infinite',
                 animationDelay: delay,
                 '@keyframes typing': {
-                    '0%': { opacity: 0.3 },
-                    '50%': { opacity: 1 },
-                    '100%': { opacity: 0.3 },
+                    '0%': { opacity: 0.3, transform: 'translateY(0px)' },
+                    '50%': { opacity: 1, transform: 'translateY(4px)' },
+                    '100%': { opacity: 0.3, transform: 'translateY(0px)' },
                 },
             }}
         />
@@ -45,19 +46,58 @@ function Dot({ delay }) {
 
 function Messages() {
     const { userId } = useParams();
+    const { userInfo } = useSelector(state => state.auth);
     const navigate = useNavigate();
     const [anchorEl, setAnchorEl] = useState(null);
     const openMenu = Boolean(anchorEl);
     const [isTyping, setIsTyping] = useState(false); // example ke liye true
     const [chatlist, setChatlist] = useState([]);
+    const [sendMessageBox, setSendMessageBox] = useState("");
+    const [messagesList, setMessagesList] = useState([]);
     const dispatch = useDispatch();
     const [isLoading, setIsLoading] = useState(false);
+    const [sendingMsg, setSendingMsg] = useState(false);
+
     const backend_url = import.meta.env.VITE_BACKEND_URL;
 
-
+    useEffect(() => {
+        if (userId) {
+            setSendMessageBox("");
+            // getMessages();
+        }
+    }, [userId])
     useEffect(() => {
         getChatlist();
     }, [])
+
+    const sendMessage = async () => {
+
+        try {
+            if(!sendMessageBox.trim()){
+                return;
+            }
+            setSendingMsg(true);
+            const result = await axios.post(
+                `${backend_url}/msg/send-message`,
+                {
+                    receiverId: userId,
+                    message: sendMessageBox.trim(),
+                    replyTo: null,
+
+                },
+                {
+                    withCredentials: true
+                }
+            )
+            setSendingMsg(false);
+            setSendMessageBox('');
+
+            setMessagesList(prev => ([...prev, result?.data?.sentMessage]));
+        } catch (err) {
+            setSendingMsg(false);
+            dispatch(setState({ error: err?.response?.data?.error || "Something went wrong!" }));
+        }
+    }
     const getChatlist = async () => {
         try {
             setIsLoading(true);
@@ -88,7 +128,7 @@ function Messages() {
                     {/* Users list's section */}
                     {
                         chatlist.map(u =>
-                            <Button sx={{ p: 0, m: 0, borderRadius: '0' }} key={u.id} color="secondary" onClick={() => navigate(`/chats/${u.username}`)}>
+                            <Button sx={{ p: 0, m: 0, borderRadius: '0' }} key={u.id} color="secondary" onClick={() => navigate(`/chats/${u.id}`)}>
                                 <Box width={'100%'} minHeight={'60px'} display={'flex'} justifyContent={'start'} p={1} gap={2} >
                                     <Avatar sx={{ width: '50px', height: "50px" }}>
                                         {u.image && <img src={u.image} style={{ width: '50px', height: '50px', objectFit: 'cover', borderRadius: '25px' }} alt="" />}
@@ -117,7 +157,7 @@ function Messages() {
                     }
                     {
                         isLoading && <Stack width={'100%'}>
-                            {[1, 2, 3, 4, 5].map(i => <Box width={'100%'} minHeight={'60px'} display={'flex'} justifyContent={'start'} p={1} gap={2} >
+                            {[1, 2, 3, 4, 5].map(i => <Box width={'100%'} key={i} minHeight={'60px'} display={'flex'} justifyContent={'start'} p={1} gap={2} >
                                 <Skeleton variant="circular" height={'50px'} width={'50px'} />
 
                                 <Box sx={{ display: 'flex', flexDirection: 'column', width: 'calc( 100% - 75px)', alignItems: 'start' }}>
@@ -182,6 +222,17 @@ function Messages() {
                                     <Typography variant="body2" color="text.secondary" fontSize={10} position={'absolute'} bottom={'3px'} right={'5px'} component={'span'}>3:40 pm <DoneAllIcon sx={{ fontSize: '14px' }} /></Typography>
                                 </Box>
                             </Box>
+                            {messagesList.map(m => <Box key={m.id} width={'100%'} sx={{ display: 'flex', justifyContent: `${(m.receiver_id == userInfo.id) ? 'start' : 'end'}`, px: '8px' }}>
+                                {(m.sender_id != userInfo.id) ? <Box maxWidth={'70%'} boxShadow={2} position={'relative'} minWidth={'70px'} borderRadius={'5px'} bgcolor={'#474747'} p={'4px 10px'} pb={2} sx={{ background: "linear-gradient(135deg, #2b2b2bff, #444346ff)" }}>
+                                    <Typography variant="body2" color="text.primary" sx={{ whiteSpace: 'pre-wrap' }}>{m.message}</Typography>
+                                    <Typography variant="body2" color="text.secondary" fontSize={10} position={'absolute'} bottom={'3px'} right={'5px'} component={'span'}>3:40 pm</Typography>
+                                </Box> :
+                                    <Box maxWidth={'70%'} boxShadow={2} minWidth={'70px'} position={'relative'} borderRadius={'8px'} p={'4px 10px'} pb={2} sx={{ background: "linear-gradient(135deg, #6b2b6bff, #290938ff)" }}>
+
+                                        <Typography variant="body2" color="text.primary" sx={{ whiteSpace: 'pre-wrap' }}>{m.message}</Typography>
+                                        <Typography variant="body2" color="text.secondary" fontSize={10} position={'absolute'} bottom={'3px'} right={'5px'} component={'span'}>3:40 pm {(m.is_read)?<VisibilityIcon sx={{ fontSize: '14px' }} />:(m.is_delivered)?<DoneAllIcon sx={{ fontSize: '14px' }} />:<DoneIcon sx={{ fontSize: '14px' }} />}</Typography>
+                                    </Box>}
+                            </Box>)}
                             {isTyping && (
                                 <Box width="100%" sx={{ display: 'flex', justifyContent: 'start', px: '8px' }}>
                                     <Box
@@ -205,10 +256,10 @@ function Messages() {
                     </Stack>
                     <Box width={'100%'} position={'absolute'} display={'flex'} bottom={'5px'} gap={1} px={1} alignItems={'end'} >
                         <Box width={'calc(100% - 50px)'} sx={{ bgcolor: '#3f3f3fff' }} borderRadius={1}>
-                            <TextField fullWidth multiline minRows={1} maxRows={3} onKeyDown={(e) => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); alert('message sent') } }} placeholder="write message..." color="secondary" size="small" />
+                            <TextField fullWidth value={sendMessageBox} onChange={(e) => setSendMessageBox(e.target.value)} multiline minRows={1} maxRows={3} onKeyDown={(e) => { if (e.key === "Enter" && !e.shiftKey) { sendMessage() } }} placeholder="write message..." color="secondary" size="small" />
                         </Box>
-                        <IconButton size="small" >
-                            <SendIcon color="secondary" fontSize="large" />
+                        <IconButton loading={sendingMsg} size="small" disabled={!sendMessageBox?.trim()} onClick={() => sendMessage()}>
+                            <SendIcon color={(sendMessageBox?.trim()) ? "secondary" : ""} fontSize="large" />
                         </IconButton>
                     </Box>
                 </Stack>}
