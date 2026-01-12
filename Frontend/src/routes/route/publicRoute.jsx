@@ -1,4 +1,5 @@
 ;import { lazy } from "react";
+import PageNotFound from "../../pages/PageNotFound.jsx";
 
 const Login = lazy(()=>import('../../pages/auth/Login.jsx'));
 const NewUserSetup = lazy(()=>import('../../pages/auth/NewUserSetup.jsx'));
@@ -18,5 +19,9 @@ export const publicRoutes = [
     {
         path:'/deactive-account',
         element:<DeactiveAccount/>
+    },
+    {
+        path:'*',
+        element:<PageNotFound/>
     },
 ]

@@ -12,13 +12,26 @@ class Messages {
                 id, 
                 lio_userid AS username,
                 fake_name,
-                name,
+                first_name as name,
                 image
-                FROM users;`
+                FROM users
+                WHERE id != $1;`,
+                [userId]
             );
-            const chatlist =  result.rows.filter(u=>u.id!=userId);
+
+            const chatlist =  result.rows.map(u=>{
+                return{
+                    name:u.fake_name||u.name,
+                    id:u.id,
+                    username:u.username,
+                    image:u.image
+                }
+            })
+            
+
             return returnRes(res, 200, { message: 'Getting chatlist success', chatlist});
         } catch (err) {
+            // console.log(err);
             return returnRes(res, 500, { error: 'Internal Server Error!' });
         }
     }

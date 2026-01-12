@@ -111,6 +111,21 @@ class Post {
                     }
                 });
             }
+            if (userDetail.acc_status == 'suspended') {
+                return returnRes(res, 200, {
+                    user: {
+                        id: userDetail.id,
+                        username: userDetail.username,
+                        acc_status: "suspended",
+                        acc_type: userDetail.acc_type
+                    },
+                    restrictions: {
+                        show_posts: false,
+                        reason: "ACCOUNT_SUSPENDED",
+                        message: "This account is temporarily suspended"
+                    }
+                });
+            }
             if (userId == visiterId) {
                 const result = await db.query(
                     `SELECT 

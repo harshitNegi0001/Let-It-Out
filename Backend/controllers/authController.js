@@ -78,7 +78,7 @@ class Auth {
       return res.redirect(url.toString());
     }
     catch (err) {
-      console.log(err);
+      // console.log(err);
       return res.end('error');
     }
   }
@@ -138,7 +138,7 @@ class Auth {
 
       }
     } catch (err) {
-      console.log(err);
+      // console.log(err);
       return returnRes(res, 500, { error: 'Internal server error!' });
     }
 
@@ -203,7 +203,7 @@ class Auth {
 
 
     } catch (err) {
-      console.log(err);
+      // console.log(err);
       return returnRes(res, 500, { error: 'Internal Server Error!' });
 
     }
@@ -248,7 +248,7 @@ class Auth {
 
 
     } catch (err) {
-      console.log(err);
+      // console.log(err);
       return returnRes(res, 500, { error: 'Internal Server Error!' });
     }
   }

@@ -16,6 +16,7 @@ const AccInfo = lazy(()=>import('../../views/SettingsPages/AccInfo.jsx'));
 const ChangePass = lazy(()=>import('../../views/SettingsPages/ChangePass.jsx'));
 const DeleteAccount = lazy(()=>import('../../views/SettingsPages/DeleteAccount.jsx'));
 const DeactivateAccount = lazy(()=>import('../../views/SettingsPages/DeactivateAccount.jsx'));
+const VisitProfile = lazy(()=>import('../../views/VisitProfile.jsx'));
 
 
 
@@ -32,7 +33,7 @@ export const authorizedRoutes=[
         needAuth:true
     },
     {
-        path:'/chats/:userId',
+        path:'/chats/:username',
         element:<Messages/>,
         needAuth:true
     },
@@ -49,6 +50,11 @@ export const authorizedRoutes=[
     {
         path:'/profile',
         element:<Profile/>,
+        needAuth:true
+    },
+    {
+        path:'/profile/:username',
+        element:<VisitProfile/>,
         needAuth:true
     },
     {

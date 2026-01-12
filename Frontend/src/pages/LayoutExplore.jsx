@@ -5,6 +5,7 @@ import { useDispatch } from "react-redux";
 import { setState } from "../store/authReducer/authReducer";
 import axios from "axios";
 import { useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 
 
 function LayoutExplore() {
@@ -12,6 +13,7 @@ function LayoutExplore() {
     const [isLoading, setIsLoading] = useState(false);
     const [newUsersList, setNewUsersList] = useState([]);
     const backend_url = import.meta.env.VITE_BACKEND_URL;
+    const navigate = useNavigate();
     const dispatch = useDispatch();
     useEffect(() => {
         getNewUsers();
@@ -112,9 +114,9 @@ function LayoutExplore() {
                         }
                         {
                             newUsersList?.map(u =>
-                                <Box width={'100%'} key={`newUser-${u.id}`} p={1} sx={{ display: 'flex',borderRadius:2,alignItems:"center", gap: 1 ,'&:hover':{bgcolor:'#63607057',cursor:"pointer"}}}>
+                                <Box width={'100%'} onClick={()=>navigate(`/profile/${u.username}`)} key={`newUser-${u.id}`} p={1} sx={{ display: 'flex',borderRadius:2,alignItems:"center", gap: 1 ,'&:hover':{bgcolor:'#63607057',cursor:"pointer"},'&:active':{transform:'scale(0.96)',transition:"all 100ms"}}}>
                                     <Avatar width={'50px'} height={'50px'}>
-                                        {u.image && <img src={u.image} alt="" />}
+                                        {u.image && <img src={u.image} style={{width:'100%',height:'100%',objectFit:'cover'}} alt="" />}
                                     </Avatar>
                                     <Box width={'calc(100% - 120px)'} sx={{ display: 'flex', flexDirection: "column", alignItems: "start", justifyContent: 'center'}}>
                                         <Typography width={'100%'} variant="body1" noWrap color="#fff" textOverflow={'ellipsis'} >

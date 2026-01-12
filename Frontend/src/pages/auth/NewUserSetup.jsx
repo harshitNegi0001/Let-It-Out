@@ -194,7 +194,7 @@ function NewUserSetup() {
                                         </Box>
                                     </Box>
                                     <Divider />
-                                    <Button loading={isLoading || usernameStatus.loading || !usernameStatus.available} type="submit" fullWidth color="secondary" sx={{ textTransform: 'none' }} variant="contained">Complete Setup</Button>
+                                    <Button loading={isLoading || usernameStatus.loading } type="submit" fullWidth color="secondary" sx={{ textTransform: 'none' }} variant="contained">Complete Setup</Button>
                                 </Stack>
                             </form>
                         </Box>

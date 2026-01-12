@@ -14,5 +14,6 @@ router.post('/change-privacy',authMiddleware,UserProfile.changePrivacy);
 router.post('/check-username',authMiddleware,UserProfile.checkUsername);
 
 router.get('/get-new-users',authMiddleware,UserProfile.getNewUsers);
+router.get('/get-profile-data',authMiddleware,UserProfile.getProfileData);
 
 export default router;

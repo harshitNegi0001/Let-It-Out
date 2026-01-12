@@ -157,14 +157,89 @@ class UserProfile {
                 first_name
                 FROM users
                 WHERE 
-                NOT (id = ANY($1))
+                NOT (id = ANY($1)) AND acc_status = 'active'
                 ORDER BY id DESC
                 LIMIT $2`,
                 [userFollowing, 10]
             );
-            console.log(result.rows);
-            const usersList = result.rows.map(u => { return { ...u, name: u.fake_name || u.first_name } });
+            // console.log(result.rows);
+            const usersList = result.rows.map(u => { return { 
+                id:u.id,
+                username:u.username,
+                image:u.image,
+                name:u.fake_name||u.first_name,
+             } });
+
             return returnRes(res, 200, { usersList });
+
+        } catch (err) {
+            // console.log(err);
+            return returnRes(res, 500, { error: 'Internal Server Error!' });
+        }
+    }
+
+    // Controller function to get data to visit other's profile.
+
+    getProfileData = async (req, res) => {
+        try {
+            const visiterId = req.id;
+            // store visiter
+            const { username } = req.query;
+
+            const result = await db.query(
+                `SELECT
+                id,
+                lio_userid as username,
+                fake_name,
+                first_name,
+                image,
+                bio,
+                bg_image,
+                acc_type,
+                acc_status
+                FROM users
+                WHERE lio_userid = $1`
+                , [username]
+            );
+            // you are follower or not check here.
+            // if deactive than don't sent image , name, bg image,bio,
+            if (result.rows.length > 0) {
+                const user = result.rows[0]
+                if (user.acc_status == 'active') {
+                    const filtered_info = {
+                        id:user.id,
+                        name:user.fake_name||user.first_name,
+                        username:user.username,
+                        image:user.image,
+                        bio:user.bio,
+                        cover_image:user.bg_image,
+                        acc_type:user.acc_type,
+                        acc_status:user.acc_status
+                    }
+
+                    return returnRes(res,200,{message:'User Info fetched',userDetail:filtered_info});
+                }
+                else {
+                    const filtered_info = {
+                        username:user.username,
+                        name:user.fake_name||user.first_name,
+                        acc_status:user.acc_status,
+                        id:user.id
+                    }
+                    return returnRes(res, 200, {
+                        userDetail:filtered_info,
+                        restriction: {
+                            isRestrictred:true,
+                            reason :(user.acc_status=='deactive')?'DEACTIVATED_ACCOUNT':'SUSPENDED_ACCOUNT',
+                            message:(user.acc_status=='deactive')?'This user has been deactivated this account':'This user has been suspended.'
+                        }
+                    })
+                }
+            }
+            else{
+
+            }
+
 
         } catch (err) {
             // console.log(err);
