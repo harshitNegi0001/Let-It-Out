@@ -2,6 +2,7 @@ import express from 'express';
 import dotenv from 'dotenv';
 import authRoute from './routes/authRoute.js';
 import postRoute from './routes/postRoute.js';
+import connectionRoute from './routes/ConnectionRoute.js';
 import msgRoute from './routes/messagesRoute.js';
 import userProfileRoute from './routes/userProfileRoutes.js';
 import cookieParser from 'cookie-parser';
@@ -21,6 +22,8 @@ app.use(cookieParser())
 app.use('/api', authRoute);
 app.use('/msg', msgRoute);
 app.use('/api', postRoute);
+app.use('/api', connectionRoute);
+
 
 app.use('/api', userProfileRoute);
 app.get('/', (req, res) => {

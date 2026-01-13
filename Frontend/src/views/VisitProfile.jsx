@@ -31,13 +31,14 @@ function VisitProfile() {
     const backend_url = import.meta.env.VITE_BACKEND_URL;
 
     const [userProfileData, setUserProfileData] = useState(null);
-    const [restriction,setRestriction] = useState({
-        isRestrictred:false,
-        reason:'',
-        message:''
+    const [restriction, setRestriction] = useState({
+        isRestrictred: false,
+        reason: '',
+        message: ''
 
     })
     const [isLoading, setIsLoading] = useState(false);
+    const [loadingFollowBtn, setLoadingFollowBtn] = useState(false);
     const [value, setValue] = useState('posts');
 
     // console.log(userProfileData)
@@ -51,23 +52,47 @@ function VisitProfile() {
         }
     }, [username]);
 
+
+    const handleFollow = async () => {
+        if (!userProfileData?.followingStatus) {
+            return;
+        }
+        const reqFor = (userProfileData.followingStatus == 'not_followed') ? 'follow' : 'cancle';
+        try {
+            setLoadingFollowBtn(true);
+            const result = await axios.post(
+                `${backend_url}/api/req-follow`, {
+                reqFor,
+                following_id: userProfileData?.id
+            }, {
+                withCredentials: true
+            }
+            );
+            setLoadingFollowBtn(false);
+            setUserProfileData(prev => ({ ...prev, followingStatus: result.data.followingStatus }));
+        } catch (err) {
+            // console.log(err);
+            setLoadingFollowBtn(false);
+            dispatch(setState({ error: err?.response?.data?.error || "Internal Server Error!" }));
+        }
+    }
     const getUserProfileData = async () => {
         try {
-            // setIsLoading(true);
+            setIsLoading(true);
             const result = await axios.get(
                 `${backend_url}/api/get-profile-data?username=${username}`,
                 { withCredentials: true }
             );
 
 
-            // setIsLoading(false);
-            if(result?.data?.restriction){
+            setIsLoading(false);
+            if (result?.data?.restriction) {
                 setRestriction(result.data.restriction);
             }
             setUserProfileData(result?.data?.userDetail);
 
         } catch (err) {
-            // setIsLoading(false);
+            setIsLoading(false);
             // console.log(err);
             dispatch(setState({ error: err?.response?.data?.error || "Internal Server Error!" }));
         }
@@ -83,13 +108,13 @@ function VisitProfile() {
             <Stack width={'100%'} height={'100%'} spacing={1} overflow={'scroll'} sx={{ scrollbarWidth: 'none' }} p={1} alignItems={'center'} pb={{ xs: '55px', sm: 2 }} boxSizing={'border-box'}>
                 <Box width={'100%'} height={{ xs: '130px', sm: '280px' }} minHeight={{ xs: '130px', sm: '280px' }} position={'relative'}>
                     <Box width={'100%'} height={'100%'}>
-                        {!isLoading && userProfileData?.cover_image && <img src="https://pbs.twimg.com/profile_banners/1801098709205172224/1721541135/1500x500" style={{ width: '100%', height: '100%', objectFit: 'cover' }} alt="" />}
+                        {!isLoading && userProfileData?.cover_image && <img src={userProfileData.cover_image} style={{ width: '100%', height: '100%', objectFit: 'cover' }} alt="" />}
                         {isLoading && <Skeleton animation="wave" width={'100%'} height={'100%'} variant="rectangular"></Skeleton>}
                     </Box>
                     <Divider sx={{ width: '100%' }} />
                     <Box width={{ xs: '100px', sm: '180px' }} height={{ xs: '100px', sm: '180px' }} bgcolor={'primary.main'} borderRadius={'50%'} position={'absolute'} overflow={'hidden'} sx={{ bottom: { xs: '-50px', sm: '-90px' }, left: { xs: '15px', sm: '20px' } }} border={'4px solid #1E1B29'}>
                         {!isLoading && <Avatar sx={{ width: '100%', height: '100%', bgcolor: '#aeaabb' }}>
-                            {userProfileData?.image && <img src="https://pbs.twimg.com/profile_images/1989504462365614081/OlyruE2g_400x400.jpg" style={{ width: '100%', height: '100%', objectFit: 'cover' }} alt="" />}
+                            {userProfileData?.image && <img src={userProfileData.image} style={{ width: '100%', height: '100%', objectFit: 'cover' }} alt="" />}
 
                         </Avatar>}
                         {isLoading && <Skeleton animation="wave" sx={{ position: 'absolute' }} variant="circular" width={'100%'} height={'100%'} />}
@@ -97,10 +122,10 @@ function VisitProfile() {
                 </Box>
                 <Box width={'100%'} p={1} pt={{ xs: '60px', sm: '100px', display: 'flex', flexDirection: "column", gap: 2 }} position={'relative'}>
                     {!isLoading && !restriction?.isRestrictred && <Box height={'50px'} position={'absolute'} sx={{ top: 8, right: 8, display: 'flex', gap: 1, alignItems: "center" }}>
-                        <IconButton onClick={() => navigate(`/chats/${userProfileData.username}`)}>
+                        <IconButton onClick={() => navigate(`/chats/${userProfileData.username}`, { state: { userData: userProfileData | {} } })}>
                             <SmsOutlinedIcon />
                         </IconButton>
-                        {true ? <Button color="secondary" sx={{ textTransform: 'none' }} variant="outlined" >Unfollow</Button> : <Button color="secondary" sx={{ textTransform: 'none' }} variant="contained" >Follow</Button>}
+                        {!(userProfileData?.followingStatus == 'not_followed') ? <Button loading={loadingFollowBtn} onClick={handleFollow} color="secondary" sx={{ textTransform: 'none' }} variant="outlined" >{userProfileData?.followingStatus == 'accepted' ? 'Unfollow' : 'Requested'}</Button> : <Button onClick={handleFollow} loading={loadingFollowBtn} color="secondary" sx={{ textTransform: 'none' }} variant="contained" >Follow</Button>}
                     </Box>}
                     <Stack width={'100%'}>
                         {isLoading ? <Skeleton animation="wave" width={'40%'} height={'30px'} sx={{ maxWidth: '200px' }} variant="rounded"></Skeleton> : <Box width={'100%'} sx={{ display: "flex", flexDirection: "column", p: 1 }}>
@@ -121,8 +146,8 @@ function VisitProfile() {
                                         {userProfileData?.bio}
                                     </Typography>
                                     <Box width={'100%'} sx={{ display: 'flex', gap: 4, pb: 2 }}>
-                                        <Button variant="text" color="secondary">{restriction?.isRestrictred?'0':'123456'} Follower</Button>
-                                        <Button variant="text" color="secondary">{restriction?.isRestrictred?'0':'123456'} Following</Button>
+                                        <Button variant="text" color="secondary">{restriction?.isRestrictred ? '0' : `${userProfileData?.followers}`} Follower</Button>
+                                        <Button variant="text" color="secondary">{restriction?.isRestrictred ? '0' : `${userProfileData?.followings}`} Following</Button>
                                     </Box>
                                 </Box>
 
@@ -162,17 +187,17 @@ function VisitProfile() {
                             <Box width={'100%'} mt={2} borderRadius={3} overflow={'hidden'} sx={{ display: 'flex', flexDirection: 'column' }}>
                                 <Stack direction={'row'} width={'100%'} spacing={2} boxSizing={'border-box'} p={1} justifyContent={'start'} bgcolor={'#42424250'} alignItems={'center'}>
                                     <Box width={{ xs: '40px', sm: '55px' }} height={{ xs: '40px', sm: '55px' }} overflow={'hidden'} borderRadius={'30px'} >
-                                        <Skeleton animation="wave" variant="circular" width={'100%'} height={'100%'}/>
-                                        
+                                        <Skeleton animation="wave" variant="circular" width={'100%'} height={'100%'} />
+
 
                                     </Box>
                                     <Stack spacing={'4px'} width={'calc(100% - 70px)'} >
-                                            <Skeleton animation="wave" variant="text" width={'40%'} sx={{minWidth:'60px',maxWidth:'150px'}}/>
-                                            <Skeleton animation="wave" variant="text" width={'30%'} sx={{minWidth:'40px',maxWidth:'120px'}}/>
+                                        <Skeleton animation="wave" variant="text" width={'40%'} sx={{ minWidth: '60px', maxWidth: '150px' }} />
+                                        <Skeleton animation="wave" variant="text" width={'30%'} sx={{ minWidth: '40px', maxWidth: '120px' }} />
 
-                                        </Stack>
+                                    </Stack>
                                 </Stack>
-                                <Box width={'100%'} pt={'4px'} sx={{ display: 'flex', flexDirection: 'column',aspectRatio:'5/3' }}>
+                                <Box width={'100%'} pt={'4px'} sx={{ display: 'flex', flexDirection: 'column', aspectRatio: '5/3' }}>
                                     <Skeleton animation="wave" variant="rectangle" width={'100%'} height={'100%'} />
                                 </Box>
                             </Box>

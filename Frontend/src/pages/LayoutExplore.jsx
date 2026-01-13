@@ -114,7 +114,7 @@ function LayoutExplore() {
                         }
                         {
                             newUsersList?.map(u =>
-                                <Box width={'100%'} onClick={()=>navigate(`/profile/${u.username}`)} key={`newUser-${u.id}`} p={1} sx={{ display: 'flex',borderRadius:2,alignItems:"center", gap: 1 ,'&:hover':{bgcolor:'#63607057',cursor:"pointer"},'&:active':{transform:'scale(0.96)',transition:"all 100ms"}}}>
+                                <Box width={'100%'} onClick={()=>navigate(`/profile/${u.username}`)} key={`newUser-${u.id}`} p={1} sx={{ display: 'flex',borderRadius:2,alignItems:"center", gap: 1 ,'&:hover':{bgcolor:'#63607057',cursor:"pointer"},'&:active:not(:has(button:active))':{transform:'scale(0.96)',transition:"all 100ms"}}}>
                                     <Avatar width={'50px'} height={'50px'}>
                                         {u.image && <img src={u.image} style={{width:'100%',height:'100%',objectFit:'cover'}} alt="" />}
                                     </Avatar>
@@ -127,7 +127,7 @@ function LayoutExplore() {
                                         </Typography>
                                     </Box>
                                     <Box width={'50px'} sx={{ display: 'flex', alignItems: 'center' }}>
-                                        <Button fullWidth size="small" color="secondary" variant="contained" sx={{textTransform:'none'}}>
+                                        <Button fullWidth size="small" color="secondary" onMouseDown={(e) => e.stopPropagation()} onClick={(e)=>{e.stopPropagation(); }} variant="contained" sx={{textTransform:'none'}}>
                                             <Typography variant="body2" color="text.main" fontSize={'12px'} >
                                                 Follow
                                             </Typography>

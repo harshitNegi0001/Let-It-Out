@@ -143,7 +143,7 @@ class Post {
 
 
             const isPrivate = userDetail.acc_type == 'private';
-            const isFollowing = true;
+            const isFollowing = false;
             if (isPrivate && !isFollowing) {
                 return returnRes(res, 200, {
                     user: {

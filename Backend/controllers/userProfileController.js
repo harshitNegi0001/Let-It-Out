@@ -163,12 +163,14 @@ class UserProfile {
                 [userFollowing, 10]
             );
             // console.log(result.rows);
-            const usersList = result.rows.map(u => { return { 
-                id:u.id,
-                username:u.username,
-                image:u.image,
-                name:u.fake_name||u.first_name,
-             } });
+            const usersList = result.rows.map(u => {
+                return {
+                    id: u.id,
+                    username: u.username,
+                    image: u.image,
+                    name: u.fake_name || u.first_name,
+                }
+            });
 
             return returnRes(res, 200, { usersList });
 
@@ -201,43 +203,68 @@ class UserProfile {
                 WHERE lio_userid = $1`
                 , [username]
             );
+
             // you are follower or not check here.
+
             // if deactive than don't sent image , name, bg image,bio,
             if (result.rows.length > 0) {
                 const user = result.rows[0]
                 if (user.acc_status == 'active') {
+                    const isFollower = await db.query(
+                        `SELECT status FROM followers
+                        WHERE follower_id = $1 AND following_id =$2`,
+                        [visiterId,user.id]
+                    );
+                    const countFollowers = await db.query(
+                        `SELECT
+                        COUNT(id)
+                        FROM followers
+                        WHERE following_id = $1`,
+                        [user.id]
+                    )
+                    const countFollowings = await db.query(
+                        `SELECT
+                        COUNT(id)
+                        FROM followers
+                        WHERE follower_id = $1`,
+                        [user.id]
+                    )
+                    const followingStatus = (isFollower.rows.length>0)?isFollower.rows[0].status:'not_followed'
                     const filtered_info = {
-                        id:user.id,
-                        name:user.fake_name||user.first_name,
-                        username:user.username,
-                        image:user.image,
-                        bio:user.bio,
-                        cover_image:user.bg_image,
-                        acc_type:user.acc_type,
-                        acc_status:user.acc_status
+                        id: user.id,
+                        name: user.fake_name || user.first_name,
+                        username: user.username,
+                        image: user.image,
+                        bio: user.bio,
+                        cover_image: user.bg_image,
+                        acc_type: user.acc_type,
+                        acc_status: user.acc_status,
+                        followingStatus,
+                        followers:countFollowers.rows[0].count,
+                        followings:countFollowings.rows[0].count
                     }
 
-                    return returnRes(res,200,{message:'User Info fetched',userDetail:filtered_info});
+                    return returnRes(res, 200, { message: 'User Info fetched', userDetail: filtered_info});
                 }
                 else {
                     const filtered_info = {
-                        username:user.username,
-                        name:user.fake_name||user.first_name,
-                        acc_status:user.acc_status,
-                        id:user.id
+                        username: user.username,
+                        name: user.fake_name || user.first_name,
+                        acc_status: user.acc_status,
+                        id: user.id
                     }
                     return returnRes(res, 200, {
-                        userDetail:filtered_info,
+                        userDetail: filtered_info,
                         restriction: {
-                            isRestrictred:true,
-                            reason :(user.acc_status=='deactive')?'DEACTIVATED_ACCOUNT':'SUSPENDED_ACCOUNT',
-                            message:(user.acc_status=='deactive')?'This user has been deactivated this account':'This user has been suspended.'
+                            isRestrictred: true,
+                            reason: (user.acc_status == 'deactive') ? 'DEACTIVATED_ACCOUNT' : 'SUSPENDED_ACCOUNT',
+                            message: (user.acc_status == 'deactive') ? 'This user has been deactivated this account' : 'This user has been suspended.'
                         }
                     })
                 }
             }
-            else{
-
+            else {
+                return returnRes(res, 404, { error: 'User not found.' });
             }
 
 
