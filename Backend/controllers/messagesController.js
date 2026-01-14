@@ -8,25 +8,55 @@ class Messages {
         const userId = req.id;
         try {
             const result = await db.query(
-                `SELECT 
-                id, 
-                lio_userid AS username,
-                fake_name,
-                first_name as name,
-                image
-                FROM users
-                WHERE id != $1;`,
+                `SELECT *
+                FROM (
+                    SELECT DISTINCT ON (u.id)
+                        u.id AS id,
+                        u.fake_name,
+                        u.first_name AS name,
+                        u.image,
+                        u.lio_userid AS username,
+                        json_build_object(
+                            'id', m.id,
+                            'sender_id', m.sender_id,
+                            'is_read', m.is_read,
+                            'is_delivered', m.is_delivered,
+                            'message', m.message,
+                            'created_at', m.created_at
+                     ) AS last_message,
+                        m.id AS last_message_id
+                    FROM users u
+                    JOIN messages m
+                     ON (u.id = m.sender_id OR u.id = m.receiver_id)
+                    WHERE u.id != $1
+                    AND (m.receiver_id = $1 OR m.sender_id = $1)
+                    ORDER BY u.id, m.id DESC
+                ) t
+                ORDER BY last_message_id DESC;
+`,
                 [userId]
             );
 
-            const chatlist = result.rows.map(u => {
+            const getUnreadCount = async (sender_id) => {
+                const count = await db.query(
+                    `SELECT
+                    COUNT(id)
+                    FROM messages
+                    WHERE sender_id =$1 AND receiver_id =$2 AND is_read = false`,
+                    [sender_id, userId]
+                )
+                return count.rows[0].count;
+            }
+            const chatlist = await Promise.all(result.rows.map(async (u) => {
                 return {
                     name: u.fake_name || u.name,
                     id: u.id,
                     username: u.username,
-                    image: u.image
+                    image: u.image,
+                    last_message: u.last_message,
+                    unread_count: await getUnreadCount(u.id)
                 }
-            })
+            }))
 
 
             return returnRes(res, 200, { message: 'Getting chatlist success', chatlist });
@@ -70,7 +100,7 @@ class Messages {
 
     // Controller function for getting messages within chat.
     getMessages = async (req, res) => {
-        const user1=  req.id;
+        const user1 = req.id;
         const user2 = req.body?.userId;
 
         try {
@@ -98,17 +128,17 @@ class Messages {
                     (sender_id = $2 AND receiver_id = $1)
                 GROUP BY DATE(created_at)
                 ORDER BY message_date;`,
-                [user1,user2]
+                [user1, user2]
             );
 
             await db.query(
                 `UPDATE messages
                 SET is_read = true, is_delivered = true
                 WHERE receiver_id = $1 AND sender_id = $2 AND is_read!= true`,
-                [user1,user2]
+                [user1, user2]
             );
 
-            return returnRes(res,200,{messagesList:result.rows});
+            return returnRes(res, 200, { messagesList: result.rows });
         } catch (err) {
             // console.log(err);
             return returnRes(res, 500, { error: 'Internal Server Error!' });

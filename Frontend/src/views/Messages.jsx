@@ -1,5 +1,6 @@
-import { Avatar, Box, Button,  Skeleton, Stack, Typography } from "@mui/material";
-
+import { Avatar, Badge, Box, Button,  Chip,  Skeleton, Stack, Typography } from "@mui/material";
+import VisibilityIcon from '@mui/icons-material/Visibility';
+import DoneIcon from '@mui/icons-material/Done';
 import DoneAllIcon from '@mui/icons-material/DoneAll';
 import { useLocation, useNavigate, useParams } from "react-router-dom";
 import { useEffect, useState } from "react";
@@ -10,7 +11,41 @@ import axios from "axios";
 import ChattingComponent from "./components/ChattingComponent";
 
 
+const formatChatDate = (dateStr) => {
+        const date = new Date(dateStr);
 
+        const today = new Date();
+        const yesterday = new Date();
+        yesterday.setDate(today.getDate() - 1);
+
+        const isSameDay = (d1, d2) =>
+            d1.getFullYear() === d2.getFullYear() &&
+            d1.getMonth() === d2.getMonth() &&
+            d1.getDate() === d2.getDate();
+
+        if (isSameDay(date, today)) {
+            return 'Today';
+        }
+
+        if (isSameDay(date, yesterday)) {
+            return 'Yesterday';
+        }
+
+        return date.toLocaleDateString('en-US', {
+            month: 'long',
+            day: 'numeric',
+            year: 'numeric',
+        });
+    };
+
+    const formatTime = (dateStr) => {
+        const date = new Date(dateStr);
+        return date.toLocaleTimeString('en-US', {
+            hour: 'numeric',
+            minute: '2-digit',
+            hour12: true,
+        });
+    };
 
 function Messages() {
     const { username } = useParams();
@@ -42,6 +77,7 @@ function Messages() {
             setIsLoading(false);
 
             setChatlist(result?.data?.chatlist);
+            console.log(result?.data?.chatlist)
         } catch (err) {
             setIsLoading(false);
             dispatch(setState({ error: err?.response?.data?.error || 'Something went wrong!' }));
@@ -62,16 +98,14 @@ function Messages() {
                                     <Box sx={{ display: 'flex', flexDirection: 'column', width: 'calc( 100% - 75px)', alignItems: 'start' }}>
                                         <Box sx={{ width: '100%', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                                             <Typography variant="body1" color="text.primary" component={'span'}>{u.fake_name || u.name}</Typography>
-                                            <Typography variant="body2" fontSize={10} component={'span'} color="text.secondary">12/12/2025</Typography>
+                                            <Typography variant="body2" fontSize={10} component={'span'} color="text.secondary">{formatChatDate(u?.last_message?.created_at)}</Typography>
                                         </Box>
                                         <Box sx={{ width: '100%', mt: 1, alignItems: 'center', justifyContent: 'start', display: 'flex', gap: '4px' }}>
-                                            <DoneAllIcon sx={{ fontSize: 14, mt: '2px', color: 'info.light' }} />
+                                            {(u?.last_message?.sender_id==u.id)?null:(u?.last_message?.is_read)?<VisibilityIcon sx={{ fontSize: 14, mt: '2px', color: '#fff' }} />:(u?.last_message?.is_received)?<DoneAllIcon sx={{ fontSize: 14, mt: '2px', color: '#fff' }} />:<DoneIcon sx={{ fontSize: 14, mt: '2px', color: '#fff' }}/>}
                                             <Typography variant="body2" width={'calc(100% - 55px)'} noWrap textOverflow={'ellipsis'} textAlign={'start'} fontSize={12} color="text.primary" >
-
-                                                {u.name}
+                                                {u?.last_message?.message}
                                             </Typography>
-                                            {/* <Chip variant='filled' color="secondary" label='244' size="small"/> */}
-                                            {/* <Badge  badgeContent={100} color="secondary" sx={{width:'5px',ml:1,height:'5px',mt:'6px'}} max={99}></Badge> */}
+                                            <Badge badgeContent={parseInt(u?.unread_count)} color="secondary" sx={{width:'5px',ml:1,height:'5px',mt:'6px'}} max={99}></Badge>
                                         </Box>
 
 

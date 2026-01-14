@@ -120,7 +120,7 @@ function ChattingComponent({ username, userData }) {
             )
             setMessagesList(result?.data?.messagesList);
             console.log(result?.data?.messagesList)
-        } catch (error) {
+        } catch (err) {
             setSendingMsg(false);
             dispatch(setState({ error: err?.response?.data?.error || "Something went wrong!" }));
         }
@@ -148,7 +148,32 @@ function ChattingComponent({ username, userData }) {
             setSendingMsg(false);
             setSendMessageBox('');
 
-            setMessagesList(prev => ([...prev, result?.data?.sentMessage]));
+            setMessagesList(prev => {
+                const lastGroup = prev[prev.length - 1];
+                const today = new Date().toISOString().split("T")[0];
+
+                // same date → messages push
+                if (lastGroup && lastGroup.message_date === today) {
+                    return prev.map((group, index) =>
+                        index === prev.length - 1
+                            ? {
+                                ...group,
+                                messages: [...group.messages, result.data.sentMessage]
+                            }
+                            : group
+                    );
+                }
+
+                // new date → new group
+                return [
+                    ...prev,
+                    {
+                        message_date: today,
+                        messages: [result.data.sentMessage]
+                    }
+                ];
+            });
+
 
         } catch (err) {
             setSendingMsg(false);
@@ -207,14 +232,14 @@ function ChattingComponent({ username, userData }) {
 
                     </Stack>)
                     }
-                    {messagesList.length==0&&<Stack width={'100%'} height={'100%'} justifyContent={'center'} alignItems={'center'}>
-                        <Box width={'90%'} maxWidth={{xs:'320px',sm:'450px'}} >
-                            <img src="https://res.cloudinary.com/dns5lxuvy/image/upload/v1768276563/uof3wqwlmc9tojb6yfk9.png" style={{width:'100%',objectFit:'contain'}}  alt="" />
+                    {messagesList.length == 0 && <Stack width={'100%'} height={'100%'} justifyContent={'center'} alignItems={'center'}>
+                        <Box width={'90%'} maxWidth={{ xs: '320px', sm: '450px' }} >
+                            <img src="https://res.cloudinary.com/dns5lxuvy/image/upload/v1768276563/uof3wqwlmc9tojb6yfk9.png" style={{ width: '100%', objectFit: 'contain' }} alt="" />
                         </Box>
-                        <Typography variant="body1" fontWeight={'bold'} fontSize={{xs:'24px',sm:'32px'}} color="#fff">
+                        <Typography variant="body1" fontWeight={'bold'} fontSize={{ xs: '24px', sm: '32px' }} color="#fff">
                             No Messages Yet
                         </Typography>
-                        <Typography variant="body2"  fontSize={{xs:'10px',sm:'15px'}} color="text.secondary">
+                        <Typography variant="body2" fontSize={{ xs: '10px', sm: '15px' }} color="text.secondary">
                             Send a message to start a conversation.
                         </Typography>
                     </Stack>}
