@@ -1,4 +1,4 @@
-import { Avatar, Box, Chip, IconButton, ListItemIcon, ListItemText, Menu, MenuItem, Stack, TextField, Typography } from "@mui/material";
+import { Avatar, Box, Chip, IconButton, ListItemIcon, ListItemText, Menu, MenuItem, Skeleton, Stack, TextField, Typography } from "@mui/material";
 import MoreHorizIcon from '@mui/icons-material/MoreHoriz';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import SendIcon from '@mui/icons-material/Send';
@@ -60,37 +60,37 @@ function ChattingComponent({ username, getChatlist }) {
     const dispatch = useDispatch();
 
     const formatChatDate = (dateStr) => {
-  if (!dateStr) return '';
+        if (!dateStr) return '';
 
-  // Normalize to YYYY-MM-DD
-  const dateOnly = dateStr.split('T')[0];
+        // Normalize to YYYY-MM-DD
+        const dateOnly = dateStr.split('T')[0];
 
-  const today = new Date();
-  const todayStr = [
-    today.getFullYear(),
-    String(today.getMonth() + 1).padStart(2, '0'),
-    String(today.getDate()).padStart(2, '0'),
-  ].join('-');
+        const today = new Date();
+        const todayStr = [
+            today.getFullYear(),
+            String(today.getMonth() + 1).padStart(2, '0'),
+            String(today.getDate()).padStart(2, '0'),
+        ].join('-');
 
-  const yesterday = new Date();
-  yesterday.setDate(yesterday.getDate() - 1);
-  const yesterdayStr = [
-    yesterday.getFullYear(),
-    String(yesterday.getMonth() + 1).padStart(2, '0'),
-    String(yesterday.getDate()).padStart(2, '0'),
-  ].join('-');
+        const yesterday = new Date();
+        yesterday.setDate(yesterday.getDate() - 1);
+        const yesterdayStr = [
+            yesterday.getFullYear(),
+            String(yesterday.getMonth() + 1).padStart(2, '0'),
+            String(yesterday.getDate()).padStart(2, '0'),
+        ].join('-');
 
-  if (dateOnly === todayStr) return 'Today';
-  if (dateOnly === yesterdayStr) return 'Yesterday';
+        if (dateOnly === todayStr) return 'Today';
+        if (dateOnly === yesterdayStr) return 'Yesterday';
 
-  const [y, m, d] = dateOnly.split('-').map(Number);
+        const [y, m, d] = dateOnly.split('-').map(Number);
 
-  return new Date(y, m - 1, d).toLocaleDateString('en-US', {
-    month: 'long',
-    day: 'numeric',
-    year: 'numeric',
-  });
-};
+        return new Date(y, m - 1, d).toLocaleDateString('en-US', {
+            month: 'long',
+            day: 'numeric',
+            year: 'numeric',
+        });
+    };
 
 
 
@@ -137,6 +137,7 @@ function ChattingComponent({ username, getChatlist }) {
     }
     const getMessages = async () => {
         try {
+            setIsLoading(true);
             const result = await axios.post(
                 `${backend_url}/msg/get-messages`,
                 {
@@ -147,10 +148,11 @@ function ChattingComponent({ username, getChatlist }) {
                     withCredentials: true
                 }
             )
+
             setMessagesList(result?.data?.messagesList);
-            console.log(result?.data?.messagesList)
+            setIsLoading(false);
         } catch (err) {
-            setSendingMsg(false);
+            setIsLoading(false);
             dispatch(setState({ error: err?.response?.data?.error || "Something went wrong!" }));
         }
     }
@@ -239,8 +241,20 @@ function ChattingComponent({ username, getChatlist }) {
                     </MenuItem>
 
                 </Menu>
-                <Stack width={'100%'} height={'calc(100% - 70px)'} direction={'column-reverse'} sx={{ overflowY: 'scroll' }} spacing={2} pb={'55px'}>
-                    {messagesList?.map((m, i) => <Stack key={i} width={'100%'} spacing={2}>
+                <Stack width={'100%'} height={'calc(100% - 70px)'} direction={'column'} sx={{ overflowY: 'scroll' }} spacing={2} pb={'55px'}>
+                    {isLoading && <Stack width={'100%'} spacing={2}>
+                        <Box width={'100%'} pt={1} sx={{ display: 'flex', justifyContent: 'center' }}>
+                            <Skeleton variant="rounded" animation="pulse" width={'100px'} height={'25px'} />
+                        </Box>
+                        <Box width={'100%'} sx={{ display: 'flex', justifyContent: 'start', px: '8px' }}>
+                            <Skeleton variant="rounded" animation="wave" width={'40%'} height={'55px'} sx={{ background: "linear-gradient(135deg, #2b2b2bff, #444346ff)", borderRadius: 3 }} />
+                        </Box>
+                        <Box width={'100%'} sx={{ display: 'flex', justifyContent: 'end', px: '8px' }}>
+                            <Skeleton variant="rounded" animation="wave" width={'30%'} height={'55px'} sx={{ background: "linear-gradient(135deg, #6b2b6bff, #290938ff)", borderRadius: 3 }} />
+                        </Box>
+
+                    </Stack>}
+                    {!isLoading && messagesList?.map((m, i) => <Stack key={i} width={'100%'} spacing={2}>
                         <Box width={'100%'} pt={1} sx={{ display: 'flex', justifyContent: 'center' }}>
                             <Chip label={formatChatDate(m.message_date)} size="small" />
                         </Box>
