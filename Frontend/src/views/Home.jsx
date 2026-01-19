@@ -10,7 +10,7 @@ function CustomPannel(props) {
 
     return (
         <div role='tabpanel' hidden={value != `${keyValue}-feed`} id={`${keyValue}-pannel`} aria-labelledby={`${keyValue}-feed`} {...other}>
-            {value === `${keyValue}-feed` && <Box sx={{ m: 3, p: 2 }}>
+            {value === `${keyValue}-feed` && <Box width={'100%'} height={'100%'} mt={1}>
                 {children}
             </Box>}
         </div>
@@ -31,7 +31,7 @@ export default function Home() {
     };
     return (
         <>
-            <Stack height={'100%'} position={'relative'}>
+            <Stack height={'100%'} position={'relative'}  >
                 <Backdrop  sx={{zIndex:9999,bgcolor:'#ffffff18',backdropFilter:'blur(2px)'}} open={isOpenCreatePost} onClick={closeCreatePost}>
                     <CreatePost closeCreatePost={closeCreatePost}/>
                 </Backdrop>
@@ -44,10 +44,10 @@ export default function Home() {
 
 
                 </Stack>
-                <CustomPannel keyValue={'for-you'} value={value}>
+                <CustomPannel keyValue={'for-you'} value={value} style={{width:'100%',height:'100%'}}>
                     <ForYouFeed />
                 </CustomPannel>
-                <CustomPannel keyValue={'following'} value={value}>
+                <CustomPannel keyValue={'following'} value={value} style={{width:'100%',height:'100%'}}>
                     <FollowingFeed />
                 </CustomPannel>
 

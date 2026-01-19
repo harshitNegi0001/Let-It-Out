@@ -95,13 +95,19 @@ function ChattingComponent({ username, getChatlist }) {
 
 
     const formatTime = (dateStr) => {
-        const date = new Date(dateStr);
+        if (!dateStr) return '';
+
+        // remove microseconds + force UTC
+        const cleaned = dateStr.split('.')[0] + 'Z';
+        const date = new Date(cleaned);
+
         return date.toLocaleTimeString('en-US', {
             hour: 'numeric',
             minute: '2-digit',
             hour12: true,
-        });
+        }).toLowerCase();
     };
+
     useEffect(() => {
         if (username) {
             getUserData();

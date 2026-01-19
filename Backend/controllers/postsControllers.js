@@ -247,12 +247,34 @@ class Post {
                 }
                 const followingList = followingResult.rows.map(f => f.following_id);
 
+
+
                 const result = await db.query(
                     `SELECT 
-                    * 
-                    FROM posts
+                    json_build_object(
+                        'id', p.id,
+                        'user_id', p.user_id,
+                        'content', p.content,
+                        'mood_tag', p.mood_tag,
+                        'media_url', p.media_url,
+                        'post_type', p.post_type,
+                        'likes_count', p.likes_count,
+                        'comments_count', p.comments_count,
+                        'share_count', p.shares_count,
+                        'created_at', p.created_at
+                    ) AS post_data, 
+                    json_build_object(
+                        'id', u.id,
+                        'name', COALESCE(NULLIF(u.fake_name, ''), u.first_name),
+                        'username', u.lio_userid,
+                        'image', u.image
+
+
+                    ) AS user_data
+                    FROM posts AS p
+                    JOIN users AS u
                     WHERE user_id = ANY($1)
-                    ORDER BY id DESC
+                    ORDER BY p.id DESC
                     offset $2
                     limit  $3
                     ;`,
@@ -263,17 +285,39 @@ class Post {
                 return returnRes(res, 200, { message: 'Following feed successfully fetched.', postsList: result.rows });
 
             }
+
             const result = await db.query(
                 `SELECT 
-                * 
-                FROM posts
+                json_build_object(
+                    'id', p.id,
+                    'user_id', p.user_id,
+                    'content', p.content,
+                    'mood_tag', p.mood_tag,
+                    'media_url', p.media_url,
+                    'post_type', p.post_type,
+                    'likes_count', p.likes_count,
+                    'comments_count', p.comments_count,
+                    'share_count', p.shares_count,
+                    'created_at', p.created_at
+                ) AS post_data, 
+                json_build_object(
+                    'id', u.id,
+                    'name', COALESCE(NULLIF(u.fake_name, ''), u.first_name),
+                    'username', u.lio_userid,
+                    'image', u.image
+
+
+                ) AS user_data
+                FROM posts AS p
+                JOIN users AS u
+                ON u.id = p.user_id
                 WHERE mood_tag =ANY($1::varchar[])
-                ORDER BY id DESC
+                ORDER BY p.id DESC
                 offset $2
                 limit $3;`
                 , [reqMood, (limit * (currPage - 1)), limit]
             );
-            
+
             return returnRes(res, 200, { message: 'Following feed successfully fetched.', postsList: result.rows });
         } catch (err) {
             console.log(err);

@@ -47,10 +47,10 @@ function ExploreFeed({ moods = [] }) {
     }
     return (
         <>
-            {!isLoading && <Stack width={'100%'} >
+            {!isLoading && <Stack width={'100%'} spacing={1} >
                 {postslist.map(p => {
-                    console.log(p)
-                    return (<PostUI key={p.id} followed={true} postData={p} userData={userInfo} />)
+                    
+                    return (<PostUI key={p.post_data.id} followed={true} postData={p.post_data} userData={p.user_data} />)
                 }
                 )}
 

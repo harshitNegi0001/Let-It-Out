@@ -15,7 +15,8 @@ import { useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { useEffect } from "react";
 import { requiredAction } from "../../store/authReducer/authReducer";
-
+import { useNavigate } from "react-router-dom";
+import { moods } from "../../utils/moods";
 
 
 
@@ -30,12 +31,49 @@ function PostUI({ followed, liked = false, bookmarked = false, postData, userDat
     const [postAction, setPostAction] = useState([]);
     const open = Boolean(anchorEl);
     const dispatch = useDispatch();
+    const navigate = useNavigate();
 
     useEffect(() => {
         if (userData?.id && userInfo?.id) {
             setPostAction([...getPostActions(userData.id, userInfo.id, postData.id)]);
         }
     }, [userData]);
+
+    function formatPostTime(createdAt) {
+        // Remove microseconds if present
+        const cleaned = createdAt.split(".")[0] + "Z"; // force UTC
+
+        const postDate = new Date(cleaned);
+        const now = new Date();
+
+        const diffMs = now - postDate;
+
+        const diffMinutes = Math.floor(diffMs / 60000);
+        const diffHours = Math.floor(diffMinutes / 60);
+        const diffDays = Math.floor(diffHours / 24);
+        const diffMonths = Math.floor(diffDays / 30);
+        const diffYears = Math.floor(diffDays / 365);
+
+        // Same local day
+        if (postDate.toDateString() === now.toDateString()) {
+            return `today at ${postDate
+                .toLocaleTimeString([], {
+                    hour: "numeric",
+                    minute: "2-digit",
+                    hour12: true,
+                })
+                .toLowerCase()}`;
+        }
+
+        if (diffYears >= 1) return `${diffYears}yr ago`;
+        if (diffMonths >= 1) return `${diffMonths}mon ago`;
+        if (diffDays >= 1) return `${diffDays}d ago`;
+        if (diffHours >= 1) return `${diffHours}h ago`;
+        if (diffMinutes >= 1) return `${diffMinutes}m ago`;
+
+        return "just now";
+    }
+
 
 
     const handleClick = (e) => {
@@ -56,22 +94,30 @@ function PostUI({ followed, liked = false, bookmarked = false, postData, userDat
             <Stack width={'100%'} borderRadius={2} overflow={'hidden'} border={1} borderColor={'primary.dark'}>
                 <Stack direction={'row'} width={'100%'} boxSizing={'border-box'} p={1} justifyContent={'space-between'} bgcolor={'primary.dark'} alignItems={'center'}>
                     <Stack direction={'row'} spacing={1} alignItems={'center'} width={'calc(100% - 40px)'}>
-                        <Box width={{ xs: '40px', sm: '55px' }} height={{ xs: '40px', sm: '55px' }} overflow={'hidden'} borderRadius={'30px'} >
+                        <Box width={{ xs: '40px', sm: '55px' }} onClick={()=>navigate(`/profile/${userData.username}`)} height={{ xs: '40px', sm: '55px' }} overflow={'hidden'} borderRadius={'30px'} >
                             <Avatar sx={{ width: '100%', height: "100%", bgcolor: '#c2c2c2' }}>
                                 {userData?.image && <img src={userData?.image} style={{ width: '100%', height: '100%', objectFit: 'cover' }} alt="" />}
                             </Avatar>
                         </Box>
 
-                        <Stack spacing={0}><Typography variant="body2" component={'span'} fontWeight={'bold'} fontSize={{ xs: 12, sm: 16 }} textOverflow={'ellipsis'} noWrap color="text.primary">{userData?.fake_name || userData?.name}</Typography>
-                            {
-                                !followed && <Button variant='text' endIcon={<AddIcon />} color="secondary" size="small" sx={{ width: '85px', mx: 2 }}>Follow</Button>
-                            }</Stack>
+                        <Stack spacing={0}>
+                            <Typography variant="body2" component={'span'} fontWeight={'bold'} fontSize={{ xs: 12, sm: 16 }} textOverflow={'ellipsis'} noWrap color="text.primary">{userData?.fake_name || userData?.name}</Typography>
+                            <Box sx={{ display: 'flex', gap: '4px' }}>
+                                {postData?.created_at && <Typography variant="body2" fontSize={{ xs: 10, sm: 14 }}>
+                                    {formatPostTime(postData?.created_at)}
+                                </Typography>}
+                                {postData?.mood_tag && <Typography variant="body2" fontSize={{ xs: 10, sm: 14 }}>
+                                    feeling {moods.find(m=>m.value==postData?.mood_tag).label}
+                                </Typography>}
+                            </Box>
+                            
+                        </Stack>
 
                     </Stack>
                     <IconButton onClick={handleClick} size="large" id="post-options-btn" aria-haspopup='true' aria-expanded={open ? 'true' : undefined} aria-controls={open ? 'post-option-menu' : undefined}><OptionIcon /></IconButton>
                 </Stack>
                 <Menu id="post-option-menu" anchorEl={anchorEl} open={open} slotProps={{ list: { 'aria-labelledby': 'post-options-btn' } }} onClose={handleClose}>
-                    {postAction.map((o, i) => <MenuItem key={i} onClick={() => { handleClose(); dispatch(requiredAction({ label: o.label, type: o.type, payload: o.payload})) }}>
+                    {postAction.map((o, i) => <MenuItem key={i} onClick={() => { handleClose(); dispatch(requiredAction({ label: o.label, type: o.type, payload: o.payload })) }}>
                         <ListItemIcon>
                             {o.icon}
                         </ListItemIcon>
@@ -90,7 +136,7 @@ function PostUI({ followed, liked = false, bookmarked = false, postData, userDat
                 </Menu>
                 <Box width={'100%'} p={1} sx={{ display: 'flex', flexDirection: 'column' }}>
 
-                    <Typography mb={2} sx={{ whiteSpace: 'pre-wrap'}} fontSize={{ xs: 12, sm: 16 }}>
+                    <Typography mb={2} sx={{ whiteSpace: 'pre-wrap' }} fontSize={{ xs: 12, sm: 16 }}>
                         {postData.content}
                     </Typography>
                     {postData?.media_url?.length > 0 && <ImageGrid images={postData?.media_url} />}
