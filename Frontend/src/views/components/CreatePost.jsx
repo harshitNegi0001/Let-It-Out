@@ -1,4 +1,4 @@
-import { Avatar, Box, Button, Divider, IconButton, Stack, TextField, Typography } from "@mui/material";
+import { Avatar, Box, Button, Divider, FormControl, IconButton, InputLabel, MenuItem, Select, Stack, TextField, Typography } from "@mui/material";
 import CloseIcon from "@mui/icons-material/Close";
 import ImageOutlinedIcon from "@mui/icons-material/ImageOutlined";
 import DeleteOutlineIcon from "@mui/icons-material/DeleteOutline";
@@ -7,7 +7,7 @@ import { useRef, useState } from "react";
 import ImageGrid from "./ImageGrid.jsx";
 import axios from 'axios';
 import { setState } from "../../store/authReducer/authReducer.js";
-
+import { moods } from "../../utils/moods.js";
 
 function CreatePost({ closeCreatePost }) {
     const [isLoading, setIsLoading] = useState(false);
@@ -16,6 +16,7 @@ function CreatePost({ closeCreatePost }) {
     const dispatch = useDispatch();
     const MAX_IMAGES = 5;
     const [text, setText] = useState("");
+    const [mood,setMood] = useState("");
     const [postImages, setPostImages] = useState([]);
     const [imageFiles, setImageFiles] = useState([]);
 
@@ -63,6 +64,7 @@ function CreatePost({ closeCreatePost }) {
             const formData = new FormData();
 
             formData.append("content", text);
+            formData.append("mood",mood);
 
             imageFiles.forEach((file) => {
                 formData.append("images", file);
@@ -154,7 +156,7 @@ function CreatePost({ closeCreatePost }) {
 
 
                 <Box display="flex" justifyContent="space-between" alignItems="center">
-                    <Box>
+                    <Box sx={{ display: 'flex', gap: '4px' }}>
                         <input
                             type="file"
                             multiple
@@ -168,6 +170,15 @@ function CreatePost({ closeCreatePost }) {
                         >
                             <ImageOutlinedIcon />
                         </IconButton>
+                        < Box width={'140px'}>
+                            <FormControl fullWidth>
+                                <InputLabel size="small" color="secondary" id="mood-select-label" >Mood</InputLabel>
+                                <Select  size="small" color='secondary' MenuProps={{ disablePortal: true }} value={mood} onChange={(e)=>setMood(e.target.value)} labelId="mood-select-label" id="mood-select" label="mood">
+                                    {moods?.map((m)=><MenuItem key={m.id} value={m.value}>{m.label}</MenuItem>)}
+                                    
+                                </Select>
+                            </FormControl>
+                        </Box>
                     </Box>
 
                     <Button

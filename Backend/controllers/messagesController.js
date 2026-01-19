@@ -59,6 +59,7 @@ class Messages {
             }))
 
 
+
             return returnRes(res, 200, { message: 'Getting chatlist success', chatlist });
         } catch (err) {
             // console.log(err);
@@ -69,65 +70,88 @@ class Messages {
 
     // Controller function to send message and insert message to db.
     sendMessage = async (req, res) => {
-
         const senderId = req.id;
         const { receiverId, message, replyTo } = req.body;
-        try {
-            const result = await db.query(
-                `INSERT INTO messages
-                (
-                    sender_id,
-                    receiver_id,
-                    message,
-                    message_type,
-                    reply_to_msg
 
-                )
-                VALUES 
-                (
-                    $1,$2,$3,$4,$5
-                )
-                RETURNING *;`,
+        try {
+            const { rows } = await db.query(
+                `
+      INSERT INTO messages
+      (
+        sender_id,
+        receiver_id,
+        message,
+        message_type,
+        reply_to_msg
+      )
+      VALUES
+      (
+        $1, $2, $3, $4, $5
+      )
+      RETURNING
+        id,
+        sender_id,
+        receiver_id,
+        message,
+        message_type,
+        reply_to_msg,
+        is_read,
+        is_delivered,
+        created_at,
+        DATE(created_at AT TIME ZONE 'UTC') AS message_date
+      ;
+      `,
                 [senderId, receiverId, message, "text", replyTo]
             );
 
-            return returnRes(res, 200, { message: 'Sent.', sentMessage: result.rows[0] });
+            const msg = rows[0];
+
+            // 👇 SAME FORMAT AS getMessages
+            return returnRes(res, 200, {
+                wrappedMessage: {
+                    message_date: msg.message_date,
+                    messages: [msg]
+                }
+            });
+
         } catch (err) {
-            // console.log(err);
             return returnRes(res, 500, { error: 'Internal Server Error!' });
         }
-    }
+    };
+
 
     // Controller function for getting messages within chat.
     getMessages = async (req, res) => {
         const user1 = req.id;
         const user2 = req.body?.userId;
-
         try {
 
             const result = await db.query(
-                `SELECT 
-                    DATE(created_at) AS message_date,
+                `SELECT
+                msg_date AS message_date,
                     json_agg(
                         json_build_object(
-                            'id', id,
-                            'sender_id', sender_id,
-                            'receiver_id', receiver_id,
-                            'message', message,
-                            'is_read',is_read,
-                            'is_delivered',is_delivered,
-                            'created_at', created_at
+                        'id', id,
+                        'sender_id', sender_id,
+                        'receiver_id', receiver_id,
+                        'message', message,
+                        'is_read', is_read,
+                        'is_delivered', is_delivered,
+                        'created_at', created_at
                         )
-                        ORDER BY created_at
+                    ORDER BY created_at
                     ) AS messages
-	
-                FROM messages
-                WHERE 
-                    (sender_id = $1 AND receiver_id = $2)
-                    OR
-                    (sender_id = $2 AND receiver_id = $1)
-                GROUP BY DATE(created_at)
-                ORDER BY message_date;`,
+                FROM (
+                SELECT *,
+                   DATE(created_at AT TIME ZONE 'UTC') AS msg_date
+                   FROM messages
+                   WHERE
+                   (sender_id = $1 AND receiver_id = $2)
+                   OR
+                   (sender_id = $2 AND receiver_id = $1)
+                ) t
+                GROUP BY msg_date
+                ORDER BY msg_date DESC;`,
                 [user1, user2]
             );
 
@@ -137,7 +161,6 @@ class Messages {
                 WHERE receiver_id = $1 AND sender_id = $2 AND is_read!= true`,
                 [user1, user2]
             );
-
             return returnRes(res, 200, { messagesList: result.rows });
         } catch (err) {
             // console.log(err);

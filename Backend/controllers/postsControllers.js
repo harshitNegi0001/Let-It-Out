@@ -10,7 +10,7 @@ class Post {
         const userId = req.id;
 
         try {
-            const { content = "", post_type } = req.body;
+            const { content = "", post_type, mood = "unsure" } = req.body;
             const files = req.files || [];
 
             if (!content.trim() && files.length === 0) {
@@ -44,14 +44,15 @@ class Post {
 
 
             const result = await db.query(
-                `INSERT INTO posts (user_id, content, media_url, post_type)
-                VALUES ($1,$2,$3,$4)
+                `INSERT INTO posts (user_id, content, media_url, post_type, mood_tag)
+                VALUES ($1,$2,$3,$4,$5)
                 RETURNING *`,
                 [
                     userId,
                     content.trim() || null,
                     mediaUrls.length > 0 ? mediaUrls : null,
-                    finalPostType
+                    finalPostType,
+                    mood
                 ]
             );
 
@@ -179,12 +180,12 @@ class Post {
         }
 
     }
-    
+
     // Controller function to delete user itself post.
-    deleteMyPost = async(req,res)=>{
+    deleteMyPost = async (req, res) => {
 
         const userId = req.id;
-        const {postId} = req.body;
+        const { postId } = req.body;
         try {
             const post = await db.query(
                 `SELECT 
@@ -194,7 +195,7 @@ class Post {
                 [postId]
             );
 
-            if(post.rows.length!=0 && post.rows[0].user_id == userId){
+            if (post.rows.length != 0 && post.rows[0].user_id == userId) {
 
                 await db.query(
                     `DELETE
@@ -202,13 +203,81 @@ class Post {
                     WHERE id = $1`,
                     [postId]
                 );
-                return returnRes(res,200,{message:'Post Deleted.'});    
+                return returnRes(res, 200, { message: 'Post Deleted.' });
             }
-            return returnRes(res,400,{error:'Something went wrong!'});
+            return returnRes(res, 400, { error: 'Something went wrong!' });
 
         } catch (err) {
             // console.log(err);
-            return returnRes(res,500,{error:'Internal Server Error!'});
+            return returnRes(res, 500, { error: 'Internal Server Error!' });
+        }
+    }
+
+    // Controller function to get post for feed.
+    getPosts = async (req, res) => {
+        let { currPage, reqMood = [], limit, reqFollowing = false, lastFeedId } = req.query;
+        if (!reqMood) {
+            reqMood = [];
+        } else if (Array.isArray(reqMood)) {
+            // frontend sent ?reqMood=a&reqMood=b
+            reqMood = reqMood.flatMap(v => v.split(','));
+        } else {
+            // frontend sent ?reqMood=a,b
+            reqMood = reqMood.split(',');
+        }
+
+        reqMood = reqMood.map(m => m.trim().toLowerCase());
+
+        const userId = req.id;
+        try {
+
+            if (reqFollowing) {
+                const followingResult = await db.query(
+                    `SELECT 
+                    f.*
+                    FROM followers AS f
+                    JOIN users AS u
+                    ON u.id = f.following_id
+
+                    WHERE f.follower_id= $1 AND f.status = 'accepted' AND u.acc_status = 'active'`,
+                    [userId]
+                );
+                if (followingResult.rows.length == 0) {
+                    return returnRes(res, 200, { message: 'Follow someone to get following feed.', postsList: [] });
+                }
+                const followingList = followingResult.rows.map(f => f.following_id);
+
+                const result = await db.query(
+                    `SELECT 
+                    * 
+                    FROM posts
+                    WHERE user_id = ANY($1)
+                    ORDER BY id DESC
+                    offset $2
+                    limit  $3
+                    ;`,
+                    [followingList, (limit * (currPage - 1)), limit]
+                );
+
+
+                return returnRes(res, 200, { message: 'Following feed successfully fetched.', postsList: result.rows });
+
+            }
+            const result = await db.query(
+                `SELECT 
+                * 
+                FROM posts
+                WHERE mood_tag =ANY($1::varchar[])
+                ORDER BY id DESC
+                offset $2
+                limit $3;`
+                , [reqMood, (limit * (currPage - 1)), limit]
+            );
+            
+            return returnRes(res, 200, { message: 'Following feed successfully fetched.', postsList: result.rows });
+        } catch (err) {
+            console.log(err);
+            return returnRes(res, 500, { error: 'Internal Server Error!' });
         }
     }
 }

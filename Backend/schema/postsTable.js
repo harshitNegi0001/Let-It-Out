@@ -10,6 +10,7 @@ export const createPostsTable = async (pool) => {
 	            id BIGSERIAL PRIMARY KEY,
 	            user_id INT NOT NULL,
 	            content TEXT,
+                mood_tag VARCHAR(30),
 	            media_url TEXT[],
 	            post_type VARCHAR(20) NOT NULL DEFAULT 'text',
 	            likes_count INT NOT NULL DEFAULT 0,

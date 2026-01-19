@@ -17,6 +17,8 @@ const ChangePass = lazy(()=>import('../../views/SettingsPages/ChangePass.jsx'));
 const DeleteAccount = lazy(()=>import('../../views/SettingsPages/DeleteAccount.jsx'));
 const DeactivateAccount = lazy(()=>import('../../views/SettingsPages/DeactivateAccount.jsx'));
 const VisitProfile = lazy(()=>import('../../views/VisitProfile.jsx'));
+const SearchPage = lazy(()=>import('../../views/SearchPage.jsx'));
+
 
 
 
@@ -40,6 +42,11 @@ export const authorizedRoutes=[
     {
         path:'/explore',
         element:<Explore/>,
+        needAuth:true
+    },
+    {
+        path:'/search/:query',
+        element:<SearchPage/>,
         needAuth:true
     },
     {

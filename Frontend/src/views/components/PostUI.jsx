@@ -90,7 +90,7 @@ function PostUI({ followed, liked = false, bookmarked = false, postData, userDat
                 </Menu>
                 <Box width={'100%'} p={1} sx={{ display: 'flex', flexDirection: 'column' }}>
 
-                    <Typography mb={2} fontSize={{ xs: 12, sm: 16 }}>
+                    <Typography mb={2} sx={{ whiteSpace: 'pre-wrap'}} fontSize={{ xs: 12, sm: 16 }}>
                         {postData.content}
                     </Typography>
                     {postData?.media_url?.length > 0 && <ImageGrid images={postData?.media_url} />}

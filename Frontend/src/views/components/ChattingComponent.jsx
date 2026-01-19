@@ -45,12 +45,14 @@ function Dot({ delay }) {
 
 
 
-function ChattingComponent({ username, userData }) {
+function ChattingComponent({ username, getChatlist }) {
     const [anchorEl, setAnchorEl] = useState(null);
     const [isTyping, setIsTyping] = useState(false);
     const [messagesList, setMessagesList] = useState([]);
     const [sendMessageBox, setSendMessageBox] = useState("");
     const [sendingMsg, setSendingMsg] = useState(false);
+    const [isLoading, setIsLoading] = useState(false);
+    const [userData, setUserData] = useState({});
     const { userInfo } = useSelector(state => state.auth);
     const openMenu = Boolean(anchorEl);
     const backend_url = import.meta.env.VITE_BACKEND_URL;
@@ -58,31 +60,39 @@ function ChattingComponent({ username, userData }) {
     const dispatch = useDispatch();
 
     const formatChatDate = (dateStr) => {
-        const date = new Date(dateStr);
+  if (!dateStr) return '';
 
-        const today = new Date();
-        const yesterday = new Date();
-        yesterday.setDate(today.getDate() - 1);
+  // Normalize to YYYY-MM-DD
+  const dateOnly = dateStr.split('T')[0];
 
-        const isSameDay = (d1, d2) =>
-            d1.getFullYear() === d2.getFullYear() &&
-            d1.getMonth() === d2.getMonth() &&
-            d1.getDate() === d2.getDate();
+  const today = new Date();
+  const todayStr = [
+    today.getFullYear(),
+    String(today.getMonth() + 1).padStart(2, '0'),
+    String(today.getDate()).padStart(2, '0'),
+  ].join('-');
 
-        if (isSameDay(date, today)) {
-            return 'Today';
-        }
+  const yesterday = new Date();
+  yesterday.setDate(yesterday.getDate() - 1);
+  const yesterdayStr = [
+    yesterday.getFullYear(),
+    String(yesterday.getMonth() + 1).padStart(2, '0'),
+    String(yesterday.getDate()).padStart(2, '0'),
+  ].join('-');
 
-        if (isSameDay(date, yesterday)) {
-            return 'Yesterday';
-        }
+  if (dateOnly === todayStr) return 'Today';
+  if (dateOnly === yesterdayStr) return 'Yesterday';
 
-        return date.toLocaleDateString('en-US', {
-            month: 'long',
-            day: 'numeric',
-            year: 'numeric',
-        });
-    };
+  const [y, m, d] = dateOnly.split('-').map(Number);
+
+  return new Date(y, m - 1, d).toLocaleDateString('en-US', {
+    month: 'long',
+    day: 'numeric',
+    year: 'numeric',
+  });
+};
+
+
 
     const formatTime = (dateStr) => {
         const date = new Date(dateStr);
@@ -93,11 +103,17 @@ function ChattingComponent({ username, userData }) {
         });
     };
     useEffect(() => {
-        if (username && userData) {
+        if (username) {
+            getUserData();
+        }
+
+    }, [username])
+    useEffect(() => {
+        if (userData.id) {
             setSendMessageBox("");
             getMessages();
         }
-    }, [username])
+    }, [userData])
 
     const handleMenuChange = (event) => {
         setAnchorEl(event.currentTarget);
@@ -105,7 +121,20 @@ function ChattingComponent({ username, userData }) {
     const handleCloseMenu = () => {
         setAnchorEl(null);
     }
+    const getUserData = async () => {
+        try {
+            const result = await axios.get(
+                `${backend_url}/api/get-profile-data?username=${username}`,
+                { withCredentials: true }
+            );
 
+            setUserData(result?.data?.userDetail);
+
+        } catch (err) {
+            // console.log(err);
+            dispatch(setState({ error: err?.response?.data?.error || "Something went wrong!" }));
+        }
+    }
     const getMessages = async () => {
         try {
             const result = await axios.post(
@@ -147,32 +176,30 @@ function ChattingComponent({ username, userData }) {
             )
             setSendingMsg(false);
             setSendMessageBox('');
+            getChatlist();
 
             setMessagesList(prev => {
-                const lastGroup = prev[prev.length - 1];
-                const today = new Date().toISOString().split("T")[0];
+                const lastGroup = prev[0];
 
-                // same date → messages push
-                if (lastGroup && lastGroup.message_date === today) {
-                    return prev.map((group, index) =>
-                        index === prev.length - 1
-                            ? {
-                                ...group,
-                                messages: [...group.messages, result.data.sentMessage]
-                            }
-                            : group
-                    );
+                if (lastGroup && lastGroup.message_date === result.data.wrappedMessage.message_date) {
+                    return [
+                        {
+                            ...lastGroup,
+                            messages: [...lastGroup.messages, ...result.data.wrappedMessage.messages]
+                        },
+                        ...prev.slice(1)
+                    ];
                 }
 
-                // new date → new group
                 return [
-                    ...prev,
                     {
-                        message_date: today,
-                        messages: [result.data.sentMessage]
-                    }
+                        message_date: result.data.wrappedMessage.message_date,
+                        messages: [...result.data.wrappedMessage.messages]
+                    },
+                    ...prev
                 ];
             });
+
 
 
         } catch (err) {
@@ -212,7 +239,7 @@ function ChattingComponent({ username, userData }) {
                     </MenuItem>
 
                 </Menu>
-                <Stack width={'100%'} height={'calc(100% - 70px)'} sx={{ overflowY: 'scroll' }} spacing={2} pb={'55px'}>
+                <Stack width={'100%'} height={'calc(100% - 70px)'} direction={'column-reverse'} sx={{ overflowY: 'scroll' }} spacing={2} pb={'55px'}>
                     {messagesList?.map((m, i) => <Stack key={i} width={'100%'} spacing={2}>
                         <Box width={'100%'} pt={1} sx={{ display: 'flex', justifyContent: 'center' }}>
                             <Chip label={formatChatDate(m.message_date)} size="small" />

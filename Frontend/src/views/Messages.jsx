@@ -50,8 +50,8 @@ const formatChatDate = (dateStr) => {
 function Messages() {
     const { username } = useParams();
     const navigate = useNavigate();
-    const {state} = useLocation();
-    const userData= state?.userData;
+    // const {state} = useLocation();
+    // const userData= state?.userData;
     
     const [chatlist, setChatlist] = useState([]);
     
@@ -63,6 +63,8 @@ function Messages() {
     
     useEffect(() => {
         getChatlist();
+
+        
     }, [])
 
     
@@ -77,7 +79,6 @@ function Messages() {
             setIsLoading(false);
 
             setChatlist(result?.data?.chatlist);
-            console.log(result?.data?.chatlist)
         } catch (err) {
             setIsLoading(false);
             dispatch(setState({ error: err?.response?.data?.error || 'Something went wrong!' }));
@@ -90,22 +91,23 @@ function Messages() {
             <Stack width={'100%'} alignItems={"center"} height={{ sm: '100%', xs: 'calc(100% - 110px)' }} boxSizing={'border-box'}>
                 {!username && <Stack sx={{ boxSizing: 'border-box', overflowY: 'scroll', scrollbarWidth: 'none' }} direction={'column'} width={'100%'} height={'100%'} mb={{ sm: '0', xs: '0px' }}>                    {
                         chatlist.map(u =>
-                            <Button sx={{ p: 0, m: 0, borderRadius: '0' }} key={u.id} color="secondary" onClick={() => navigate(`/chats/${u.username}`,{state:{userData:u}})}>
+                            <Button sx={{ p: 0, m: 0, borderRadius: '0' }} key={u.id} color="secondary" onClick={() => navigate(`/chats/${u.username}`)}>
                                 <Box width={'100%'} minHeight={'60px'} display={'flex'} justifyContent={'start'} p={1} gap={2} >
                                     <Avatar sx={{ width: '50px', height: "50px" }}>
                                         {u.image && <img src={u.image} style={{ width: '50px', height: '50px', objectFit: 'cover', borderRadius: '25px' }} alt="" />}
                                     </Avatar>
                                     <Box sx={{ display: 'flex', flexDirection: 'column', width: 'calc( 100% - 75px)', alignItems: 'start' }}>
                                         <Box sx={{ width: '100%', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                                            <Typography variant="body1" color="text.primary" component={'span'}>{u.fake_name || u.name}</Typography>
+                                            <Typography variant="body1" color="text.primary" width={'calc(100% - 65px)'} noWrap textOverflow={'ellipsis'} textAlign={'start'} component={'span'}>{u.fake_name || u.name}</Typography>
                                             <Typography variant="body2" fontSize={10} component={'span'} color="text.secondary">{formatChatDate(u?.last_message?.created_at)}</Typography>
                                         </Box>
                                         <Box sx={{ width: '100%', mt: 1, alignItems: 'center', justifyContent: 'start', display: 'flex', gap: '4px' }}>
                                             {(u?.last_message?.sender_id==u.id)?null:(u?.last_message?.is_read)?<VisibilityIcon sx={{ fontSize: 14, mt: '2px', color: '#fff' }} />:(u?.last_message?.is_received)?<DoneAllIcon sx={{ fontSize: 14, mt: '2px', color: '#fff' }} />:<DoneIcon sx={{ fontSize: 14, mt: '2px', color: '#fff' }}/>}
-                                            <Typography variant="body2" width={'calc(100% - 55px)'} noWrap textOverflow={'ellipsis'} textAlign={'start'} fontSize={12} color="text.primary" >
+                                            <Typography variant="body2" width={'calc(100% - 70px)'} noWrap textOverflow={'ellipsis'} textAlign={'start'} fontSize={12} color="text.primary" >
                                                 {u?.last_message?.message}
                                             </Typography>
                                             <Badge badgeContent={parseInt(u?.unread_count)} color="secondary" sx={{width:'5px',ml:1,height:'5px',mt:'6px'}} max={99}></Badge>
+                                            <Typography variant="body2" width={'55px'} fontSize={10} color="text.secondary">{formatTime(u?.last_message?.created_at)}</Typography>
                                         </Box>
 
 
@@ -135,7 +137,7 @@ function Messages() {
                         </Stack>
                     }
                 </Stack>}
-                {username && userData&& <ChattingComponent username={username} userData={userData}/>}
+                {username &&  <ChattingComponent username={username} getChatlist={getChatlist}/>}
             </Stack>
         </>
     )

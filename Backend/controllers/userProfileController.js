@@ -213,7 +213,7 @@ class UserProfile {
                     const isFollower = await db.query(
                         `SELECT status FROM followers
                         WHERE follower_id = $1 AND following_id =$2`,
-                        [visiterId,user.id]
+                        [visiterId, user.id]
                     );
                     const countFollowers = await db.query(
                         `SELECT
@@ -229,7 +229,7 @@ class UserProfile {
                         WHERE follower_id = $1`,
                         [user.id]
                     )
-                    const followingStatus = (isFollower.rows.length>0)?isFollower.rows[0].status:'not_followed'
+                    const followingStatus = (isFollower.rows.length > 0) ? isFollower.rows[0].status : 'not_followed'
                     const filtered_info = {
                         id: user.id,
                         name: user.fake_name || user.first_name,
@@ -240,11 +240,11 @@ class UserProfile {
                         acc_type: user.acc_type,
                         acc_status: user.acc_status,
                         followingStatus,
-                        followers:countFollowers.rows[0].count,
-                        followings:countFollowings.rows[0].count
+                        followers: countFollowers.rows[0].count,
+                        followings: countFollowings.rows[0].count
                     }
 
-                    return returnRes(res, 200, { message: 'User Info fetched', userDetail: filtered_info});
+                    return returnRes(res, 200, { message: 'User Info fetched', userDetail: filtered_info });
                 }
                 else {
                     const filtered_info = {
@@ -271,6 +271,54 @@ class UserProfile {
         } catch (err) {
             // console.log(err);
             return returnRes(res, 500, { error: 'Internal Server Error!' });
+        }
+    }
+    // Controller function to search a user by it's username or name
+
+    searchUsers = async (req, res) => {
+        const { query } = req.query;
+        const userId = req.id;
+
+        try {
+
+            const exactResult = await db.query(
+                `SELECT 
+                id,
+                COALESCE(NULLIF(fake_name, ''), first_name) as name,
+                lio_userid as username,
+                image
+
+                FROM users
+                WHERE lio_userid =$1
+                `,
+                [query]
+            );
+            let searchResult = [];
+            searchResult.push(...exactResult.rows);
+            let alreadySearchedId = searchResult.map(u => u.id);
+
+            const fakenameSearch = await db.query(
+                `SELECT 
+                    id,
+                    COALESCE(NULLIF(fake_name, ''), first_name) AS name,
+                    lio_userid AS username,
+                    image
+                FROM users
+                WHERE (
+                    fake_name ILIKE ($1::text || '%')
+                    OR lio_userid ILIKE ($1::text || '%')
+                )
+                AND id != ALL($2::int[])`,
+                [query, alreadySearchedId]
+            );
+
+            searchResult.push(...fakenameSearch.rows);
+            console.log(searchResult);
+            return returnRes(res, 200, { searchResults: searchResult });
+        } catch (err) {
+            console.log(err);
+            return returnRes(res, 500, { error: 'Internal Server Error!' });
+
         }
     }
 }

@@ -147,6 +147,7 @@ class Auth {
   // helper function to get current user's info
   getUserDetail = async (userId) => {
     try {
+      
       const result = await db.query(`
         SELECT 
         id, 
@@ -160,6 +161,7 @@ class Auth {
         FROM users 
         WHERE id = $1`, [userId]
       );
+      
       return result.rows[0];
     }
     catch (err) {
@@ -177,6 +179,7 @@ class Auth {
         return returnRes(res, 404, { error: 'User not found!' });
 
       }
+
       return returnRes(res, 200, { message: 'Request Success', userInfo });
 
 
