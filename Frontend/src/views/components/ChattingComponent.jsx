@@ -241,7 +241,7 @@ function ChattingComponent({ username, getChatlist }) {
                     </MenuItem>
 
                 </Menu>
-                <Stack width={'100%'} height={'calc(100% - 70px)'} direction={'column'} sx={{ overflowY: 'scroll' }} spacing={2} pb={'55px'}>
+                <Stack width={'100%'} height={'calc(100% - 70px)'} direction={'column-reverse'} sx={{ overflowY: 'scroll' }} spacing={2} pb={'55px'}>
                     {isLoading && <Stack width={'100%'} spacing={2}>
                         <Box width={'100%'} pt={1} sx={{ display: 'flex', justifyContent: 'center' }}>
                             <Skeleton variant="rounded" animation="pulse" width={'100px'} height={'25px'} />
@@ -273,7 +273,7 @@ function ChattingComponent({ username, getChatlist }) {
 
                     </Stack>)
                     }
-                    {messagesList.length == 0 && <Stack width={'100%'} height={'100%'} justifyContent={'center'} alignItems={'center'}>
+                    {isLoading&&messagesList.length == 0 && <Stack width={'100%'} height={'100%'} justifyContent={'center'} alignItems={'center'}>
                         <Box width={'90%'} maxWidth={{ xs: '320px', sm: '450px' }} >
                             <img src="https://res.cloudinary.com/dns5lxuvy/image/upload/v1768276563/uof3wqwlmc9tojb6yfk9.png" style={{ width: '100%', objectFit: 'contain' }} alt="" />
                         </Box>
