@@ -276,7 +276,7 @@ function ChattingComponent({ username, getChatlist }) {
 
                         </Stack>)
                         }
-                        {isLoading && messagesList.length == 0 && <Stack width={'100%'} height={'100%'} justifyContent={'center'} alignItems={'center'}>
+                        {!isLoading && messagesList.length == 0 && <Stack width={'100%'} height={'100%'} justifyContent={'center'} alignItems={'center'}>
                             <Box width={'90%'} maxWidth={{ xs: '320px', sm: '450px' }} >
                                 <img src="https://res.cloudinary.com/dns5lxuvy/image/upload/v1768276563/uof3wqwlmc9tojb6yfk9.png" style={{ width: '100%', objectFit: 'contain' }} alt="" />
                             </Box>
