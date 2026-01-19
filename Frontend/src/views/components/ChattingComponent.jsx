@@ -241,8 +241,8 @@ function ChattingComponent({ username, getChatlist }) {
                     </MenuItem>
 
                 </Menu>
-                <Stack width={'100%'} height={'calc(100% - 70px)'} direction={'column-reverse'} sx={{ overflowY: 'scroll' }} spacing={2} pb={'55px'}>
-                    {isLoading && <Stack width={'100%'} spacing={2}>
+                {isLoading ? <Stack width={'100%'} height={'calc(100% - 70px)'} direction={'column-reverse'} sx={{ overflowY: 'scroll' }} spacing={2} pb={'55px'}>
+                    <Stack width={'100%'} spacing={2}>
                         <Box width={'100%'} pt={1} sx={{ display: 'flex', justifyContent: 'center' }}>
                             <Skeleton variant="rounded" animation="pulse" width={'100px'} height={'25px'} />
                         </Box>
@@ -253,57 +253,60 @@ function ChattingComponent({ username, getChatlist }) {
                             <Skeleton variant="rounded" animation="wave" width={'30%'} height={'55px'} sx={{ background: "linear-gradient(135deg, #6b2b6bff, #290938ff)", borderRadius: 3 }} />
                         </Box>
 
-                    </Stack>}
-                    {!isLoading && messagesList?.map((m, i) => <Stack key={i} width={'100%'} spacing={2}>
-                        <Box width={'100%'} pt={1} sx={{ display: 'flex', justifyContent: 'center' }}>
-                            <Chip label={formatChatDate(m.message_date)} size="small" />
-                        </Box>
+                    </Stack>
+                </Stack> :
+                    <Stack width={'100%'} height={'calc(100% - 70px)'} direction={'column-reverse'} sx={{ overflowY: 'scroll' }} spacing={2} pb={'55px'}>
 
-                        {m?.messages?.map(msg => <Box key={msg.id} width={'100%'} sx={{ display: 'flex', justifyContent: `${(msg.receiver_id == userInfo.id) ? 'start' : 'end'}`, px: '8px' }}>
-                            {(msg.sender_id != userInfo.id) ? <Box maxWidth={'70%'} boxShadow={2} position={'relative'} minWidth={'70px'} borderRadius={'5px'} bgcolor={'#474747'} p={'4px 10px'} pb={2} sx={{ background: "linear-gradient(135deg, #2b2b2bff, #444346ff)" }}>
-                                <Typography variant="body2" color="text.primary" sx={{ whiteSpace: 'pre-wrap' }}>{msg.message}</Typography>
-                                <Typography variant="body2" color="text.secondary" fontSize={10} position={'absolute'} bottom={'3px'} right={'5px'} component={'span'}>{formatTime(msg.created_at)}</Typography>
-                            </Box> :
-                                <Box maxWidth={'70%'} boxShadow={2} minWidth={'70px'} position={'relative'} borderRadius={'8px'} p={'4px 10px'} pb={2} sx={{ background: "linear-gradient(135deg, #6b2b6bff, #290938ff)" }}>
-
-                                    <Typography variant="body2" color="text.primary" sx={{ whiteSpace: 'pre-wrap' }}>{msg.message}</Typography>
-                                    <Typography variant="body2" color="text.secondary" fontSize={10} position={'absolute'} bottom={'3px'} right={'5px'} component={'span'}>{formatTime(msg.created_at)} {(msg.is_read) ? <VisibilityIcon sx={{ fontSize: '14px', transform: "translateY(4px)" }} /> : (msg.is_delivered) ? <DoneAllIcon sx={{ fontSize: '14px', transform: "translateY(4px)" }} /> : <DoneIcon sx={{ fontSize: '14px', transform: "translateY(4px)" }} />}</Typography>
-                                </Box>}
-                        </Box>)}
-
-                    </Stack>)
-                    }
-                    {isLoading&&messagesList.length == 0 && <Stack width={'100%'} height={'100%'} justifyContent={'center'} alignItems={'center'}>
-                        <Box width={'90%'} maxWidth={{ xs: '320px', sm: '450px' }} >
-                            <img src="https://res.cloudinary.com/dns5lxuvy/image/upload/v1768276563/uof3wqwlmc9tojb6yfk9.png" style={{ width: '100%', objectFit: 'contain' }} alt="" />
-                        </Box>
-                        <Typography variant="body1" fontWeight={'bold'} fontSize={{ xs: '24px', sm: '32px' }} color="#fff">
-                            No Messages Yet
-                        </Typography>
-                        <Typography variant="body2" fontSize={{ xs: '10px', sm: '15px' }} color="text.secondary">
-                            Send a message to start a conversation.
-                        </Typography>
-                    </Stack>}
-
-                    {isTyping && (
-                        <Box width="100%" sx={{ display: 'flex', justifyContent: 'start', px: '8px' }}>
-                            <Box
-                                maxWidth="100px"
-                                height={'35px'}
-                                borderRadius="10px"
-                                p="8px 12px"
-                                sx={{
-                                    background: "linear-gradient(135deg, #2b2b2bff, #444346ff)",
-                                    display: 'flex',
-                                    alignItems: 'center',
-                                    justifyContent: 'center'
-                                }}
-                            >
-                                <TypingDots />
+                        {!isLoading && messagesList?.map((m, i) => <Stack key={i} width={'100%'} spacing={2}>
+                            <Box width={'100%'} pt={1} sx={{ display: 'flex', justifyContent: 'center' }}>
+                                <Chip label={formatChatDate(m.message_date)} size="small" />
                             </Box>
-                        </Box>
-                    )}
-                </Stack>
+
+                            {m?.messages?.map(msg => <Box key={msg.id} width={'100%'} sx={{ display: 'flex', justifyContent: `${(msg.receiver_id == userInfo.id) ? 'start' : 'end'}`, px: '8px' }}>
+                                {(msg.sender_id != userInfo.id) ? <Box maxWidth={'70%'} boxShadow={2} position={'relative'} minWidth={'70px'} borderRadius={'5px'} bgcolor={'#474747'} p={'4px 10px'} pb={2} sx={{ background: "linear-gradient(135deg, #2b2b2bff, #444346ff)" }}>
+                                    <Typography variant="body2" color="text.primary" sx={{ whiteSpace: 'pre-wrap' }}>{msg.message}</Typography>
+                                    <Typography variant="body2" color="text.secondary" fontSize={10} position={'absolute'} bottom={'3px'} right={'5px'} component={'span'}>{formatTime(msg.created_at)}</Typography>
+                                </Box> :
+                                    <Box maxWidth={'70%'} boxShadow={2} minWidth={'70px'} position={'relative'} borderRadius={'8px'} p={'4px 10px'} pb={2} sx={{ background: "linear-gradient(135deg, #6b2b6bff, #290938ff)" }}>
+
+                                        <Typography variant="body2" color="text.primary" sx={{ whiteSpace: 'pre-wrap' }}>{msg.message}</Typography>
+                                        <Typography variant="body2" color="text.secondary" fontSize={10} position={'absolute'} bottom={'3px'} right={'5px'} component={'span'}>{formatTime(msg.created_at)} {(msg.is_read) ? <VisibilityIcon sx={{ fontSize: '14px', transform: "translateY(4px)" }} /> : (msg.is_delivered) ? <DoneAllIcon sx={{ fontSize: '14px', transform: "translateY(4px)" }} /> : <DoneIcon sx={{ fontSize: '14px', transform: "translateY(4px)" }} />}</Typography>
+                                    </Box>}
+                            </Box>)}
+
+                        </Stack>)
+                        }
+                        {isLoading && messagesList.length == 0 && <Stack width={'100%'} height={'100%'} justifyContent={'center'} alignItems={'center'}>
+                            <Box width={'90%'} maxWidth={{ xs: '320px', sm: '450px' }} >
+                                <img src="https://res.cloudinary.com/dns5lxuvy/image/upload/v1768276563/uof3wqwlmc9tojb6yfk9.png" style={{ width: '100%', objectFit: 'contain' }} alt="" />
+                            </Box>
+                            <Typography variant="body1" fontWeight={'bold'} fontSize={{ xs: '24px', sm: '32px' }} color="#fff">
+                                No Messages Yet
+                            </Typography>
+                            <Typography variant="body2" fontSize={{ xs: '10px', sm: '15px' }} color="text.secondary">
+                                Send a message to start a conversation.
+                            </Typography>
+                        </Stack>}
+
+                        {isTyping && (
+                            <Box width="100%" sx={{ display: 'flex', justifyContent: 'start', px: '8px' }}>
+                                <Box
+                                    maxWidth="100px"
+                                    height={'35px'}
+                                    borderRadius="10px"
+                                    p="8px 12px"
+                                    sx={{
+                                        background: "linear-gradient(135deg, #2b2b2bff, #444346ff)",
+                                        display: 'flex',
+                                        alignItems: 'center',
+                                        justifyContent: 'center'
+                                    }}
+                                >
+                                    <TypingDots />
+                                </Box>
+                            </Box>
+                        )}
+                    </Stack>}
                 <Box width={'100%'} position={'absolute'} display={'flex'} bottom={'5px'} gap={1} px={1} alignItems={'end'} >
                     <Box width={'calc(100% - 50px)'} sx={{ bgcolor: '#3f3f3fff' }} borderRadius={1}>
                         <TextField fullWidth value={sendMessageBox} onChange={(e) => { setSendMessageBox(e.target.value) }} multiline minRows={1} maxRows={3} onKeyDown={(e) => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); sendMessage() } }} placeholder="write message..." color="secondary" size="small" />
