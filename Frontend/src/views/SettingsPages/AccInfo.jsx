@@ -41,7 +41,7 @@ function AccInfo() {
                         <Divider />
                         <Box width={'100%'} sx={{ display: 'flex', justifyContent: 'space-between' }} >
                             <Typography variant="body1" fontWeight={'400'}>Username</Typography>
-                            <Typography variant="body2" pl={1} color="text.secondary">{userInfo?.lio_userid}</Typography>
+                            <Typography variant="body2" pl={1} color="text.secondary">{userInfo?.username}</Typography>
                             {/* <Box sx={{display:'flex',alignItems:"center",gap:2}} >
                             <Typography variant="body2" pl={1} color="text.secondary">{userInfo?.lio_userid}</Typography>
                                 <IconButton  size="small" sx={{m:0}}>

@@ -6,7 +6,7 @@ import { CircularProgress, Stack } from '@mui/material';
 
 function ProtectedRoute({ route, children }) {
     const { isLoading, userInfo } = useSelector(state => state.auth);
-    const isNewUser = Boolean(userInfo&&!userInfo?.lio_userid);
+    const isNewUser = Boolean(userInfo&&!userInfo?.username);
     const isDeactiveAccount = userInfo?.acc_status == 'deactive';
     if (isLoading) {
         return <Stack direction={'row'} justifyContent={'center'} width={'100%'} p={3}><CircularProgress color='secondary' size={'40px'}/></Stack>

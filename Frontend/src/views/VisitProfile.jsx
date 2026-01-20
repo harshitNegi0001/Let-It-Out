@@ -9,6 +9,7 @@ import axios from "axios";
 import { useState } from "react";
 import { Avatar, Box, Button, Divider, IconButton, Tab, Tabs, Skeleton, Stack, Typography } from "@mui/material";
 import SmsOutlinedIcon from '@mui/icons-material/SmsOutlined';
+import LoadingPost from "./components/LoadingPosts";
 
 function CustomPannel(props) {
     const { children, keyValue, value, ...other } = props;
@@ -24,12 +25,6 @@ function CustomPannel(props) {
 
 function VisitProfile() {
 
-    const { username } = useParams();
-    const dispatch = useDispatch();
-    const navigate = useNavigate();
-    const { userInfo } = useSelector(state => state.auth);
-    const backend_url = import.meta.env.VITE_BACKEND_URL;
-
     const [userProfileData, setUserProfileData] = useState(null);
     const [restriction, setRestriction] = useState({
         isRestrictred: false,
@@ -41,7 +36,12 @@ function VisitProfile() {
     const [loadingFollowBtn, setLoadingFollowBtn] = useState(false);
     const [value, setValue] = useState('posts');
 
-    // console.log(userProfileData)
+    const { username } = useParams();
+    const dispatch = useDispatch();
+    const navigate = useNavigate();
+    const { userInfo } = useSelector(state => state.auth);
+    const backend_url = import.meta.env.VITE_BACKEND_URL;
+
 
     useEffect(() => {
         if (username) {
@@ -184,23 +184,7 @@ function VisitProfile() {
                                 <Skeleton animation="wave" variant="rounded" width={'50px'} height={'35px'} />
                             </Box>
                             <Divider />
-                            <Box width={'100%'} mt={2} borderRadius={3} overflow={'hidden'} sx={{ display: 'flex', flexDirection: 'column' }}>
-                                <Stack direction={'row'} width={'100%'} spacing={2} boxSizing={'border-box'} p={1} justifyContent={'start'} bgcolor={'#42424250'} alignItems={'center'}>
-                                    <Box width={{ xs: '40px', sm: '55px' }} height={{ xs: '40px', sm: '55px' }} overflow={'hidden'} borderRadius={'30px'} >
-                                        <Skeleton animation="wave" variant="circular" width={'100%'} height={'100%'} />
-
-
-                                    </Box>
-                                    <Stack spacing={'4px'} width={'calc(100% - 70px)'} >
-                                        <Skeleton animation="wave" variant="text" width={'40%'} sx={{ minWidth: '60px', maxWidth: '150px' }} />
-                                        <Skeleton animation="wave" variant="text" width={'30%'} sx={{ minWidth: '40px', maxWidth: '120px' }} />
-
-                                    </Stack>
-                                </Stack>
-                                <Box width={'100%'} pt={'4px'} sx={{ display: 'flex', flexDirection: 'column', aspectRatio: '5/3' }}>
-                                    <Skeleton animation="wave" variant="rectangle" width={'100%'} height={'100%'} />
-                                </Box>
-                            </Box>
+                            <LoadingPost/>
                         </Stack>
 
 

@@ -19,12 +19,12 @@ function EditProfile() {
     const navigate = useNavigate();
     const dispatch = useDispatch();
     const profileImgInput = useRef(null);
-    const [coverImage, setCoverImage] = useState(userInfo?.bg_image || "");
+    const [coverImage, setCoverImage] = useState(userInfo?.cover_image || "");
     const [profileImage, setProfileImage] = useState(userInfo?.image || "");
     const backend_url = import.meta.env.VITE_BACKEND_URL;
     const [progressUpload, setProgressUpload] = useState(0);
     const [userBasicDetail,setUserBasicDetail] = useState({
-        fake_name:userInfo?.fake_name??"",
+        fake_name:userInfo?.fake_name??userInfo?.name,
         bio:userInfo?.bio??"",
         dob:userInfo?.dob??""
     });

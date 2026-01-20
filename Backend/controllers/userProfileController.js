@@ -3,7 +3,7 @@ import cloudinary from "../config/cloudinaryConfig.js";
 import streamifier from 'streamifier';
 import db from '../utils/db.js';
 import bcrypt from 'bcrypt';
-
+import Auth from './authController.js';
 class UserProfile {
 
     uploadImage = async (req, res) => {
@@ -52,8 +52,8 @@ class UserProfile {
             const dob = userBasicDetail?.dob || null;
 
             await db.query(`UPDATE users SET fake_name=$1, dob=$2, bio=$3, image=$4, bg_image=$5 WHERE id=$6`, [userBasicDetail?.fake_name, dob, userBasicDetail?.bio, profileImage, coverImage, userId]);
-            const result = await db.query(`SELECT id, email,first_name, name, google_uid, fake_name, lio_userid, image, bio, bg_image, dob, acc_status, created_at FROM users WHERE id = $1`, [userId]);
-            const userInfo = result.rows[0];
+            
+            const userInfo =await Auth.getUserDetail(userId);
 
             return returnRes(res, 200, { message: "SuccessFull", userInfo });
         } catch (err) {

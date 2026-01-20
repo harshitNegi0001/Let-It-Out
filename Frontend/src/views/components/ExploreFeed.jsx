@@ -41,7 +41,6 @@ function ExploreFeed({ moods = [] }) {
 
         } catch (err) {
             setIsLoading(false);
-
             dispatch(setState({ error: err?.response?.data?.error || "Interal Server Error!" }));
             // console.log(err);
         }
@@ -54,7 +53,7 @@ function ExploreFeed({ moods = [] }) {
                     <ConfirmBox setUserPost={setPostslist} userPost={postslist} />
                 </Box>
                 {postslist.map(p => {
-                    
+
                     return (<PostUI key={p.post_data.id} followed={true} postData={p.post_data} userData={p.user_data} />)
                 }
                 )}

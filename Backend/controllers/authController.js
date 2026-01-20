@@ -66,7 +66,7 @@ class Auth {
         httpOnly: true,
         maxAge: 1000 * 60 * 10,
         sameSite: 'none',
-        secure:true
+        secure: true
       });
       res.cookie('codeVerifier', codeVerifier, {
         httpOnly: true,
@@ -115,7 +115,7 @@ class Auth {
           httpOnly: true,
           sameSite: 'none',
           maxAge: 1000 * 60 * 60 * 24 * 7,
-          secure:true
+          secure: true
         });
         return res.redirect(`${this.frontend_url}`);
       }
@@ -132,7 +132,7 @@ class Auth {
           httpOnly: true,
           sameSite: 'none',
           maxAge: 1000 * 60 * 60 * 24 * 7,
-          secure:true
+          secure: true
         });
         return res.redirect(`${this.frontend_url}/new-user-setup/`);
 
@@ -147,13 +147,12 @@ class Auth {
   // helper function to get current user's info
   getUserDetail = async (userId) => {
     try {
-      
+
       const result = await db.query(`
         SELECT 
         id, 
         email, first_name, 
-        name, google_uid, 
-        fake_name, lio_userid, 
+        fake_name, lio_userid as username, 
         image, bio, 
         bg_image, acc_status,
         acc_type, dob, 
@@ -161,8 +160,39 @@ class Auth {
         FROM users 
         WHERE id = $1`, [userId]
       );
-      
-      return result.rows[0];
+
+      const countFollowers = await db.query(
+        `SELECT
+        COUNT(id)
+        FROM followers
+        WHERE following_id = $1`,
+        [userId]
+      )
+      const countFollowings = await db.query(
+        `SELECT
+        COUNT(id)
+        FROM followers
+        WHERE follower_id = $1`,
+        [userId]
+      )
+      const user =result.rows[0];
+      const user_info = {
+        id: user.id,
+        name: user.fake_name || user.first_name,
+        username: user.username,
+        image: user.image,
+        bio: user.bio,
+        cover_image: user.bg_image,
+        acc_type: user.acc_type,
+        acc_status: user.acc_status,
+        dob:user.dob,
+        email:user.email,
+        created_at:user.created_at,
+        followers: countFollowers.rows[0].count,
+        followings: countFollowings.rows[0].count
+      }
+
+      return user_info;
     }
     catch (err) {
       throw err;

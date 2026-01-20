@@ -21,68 +21,58 @@ function Profile() {
     const [isLoading, setIsLoading] = useState(false);
     const [value, setValue] = useState('posts');
     const { userInfo } = useSelector(state => state.auth);
-    const [profileLoading, setProfileLoading] = useState({
-        avatarImg: false,
-        coverImage: false,
-
-    })
     const handleChange = (_, newValue) => {
         setValue(newValue);
 
     };
     return (
         <>
-            <Stack width={'100%'} height={'100%'} overflow={'scroll'} sx={{ scrollbarWidth: 'none' }} justifyContent={'center'} p={2} alignItems={'center'} boxSizing={'border-box'}>
-                <Stack width={'100%'} height={'100%'} >
-                    <Box position={'relative'} width={'100%'} sx={{ aspectRatio: '3/1' }} >
+            <Stack width={'100%'} height={'100%'} spacing={1} overflow={'scroll'} sx={{ scrollbarWidth: 'none' }} p={1} alignItems={'center'} pb={{ xs: '55px', sm: 2 }} boxSizing={'border-box'}>
 
-                        {
-                            (profileLoading.coverImage) ?
-                                <>
-                                    <Skeleton variant='rectangular' width={'100%'} height={'100%'} animation='wave'></Skeleton>
-                                    <Avatar sx={{ position: 'absolute', width: { sm: '150px', xs: '70px' }, height: { sm: '150px', xs: '70px' }, bottom: { sm: '-60px', xs: '-30px' }, left: '20px', zIndex: '1' }} ></Avatar>
-                                    <Skeleton variant='circular' animation='wave' sx={{ position: 'absolute', width: { sm: '150px', xs: '70px' }, height: { sm: '150px', xs: '70px' }, bottom: { sm: '-60px', xs: '-30px' }, left: '20px', zIndex: '2' }}></Skeleton>
-                                </>
-                                : <>
-                                    {userInfo?.bg_image ? <img src={userInfo?.bg_image} onLoad={() => setProfileLoading({ ...profileLoading, coverImage: true })} style={{ width: '100%', aspectRatio: '3/1', objectFit: 'cover' }} alt="" /> : <Box width={'100%'} sx={{ aspectRatio: '3/1' }}></Box>}
-                                    <Divider />
-                                    <Box sx={{ width: { sm: '150px', xs: '70px' }, height: { sm: '150px', xs: '70px' }, bottom: { sm: '-60px', xs: '-30px' }, borderRadius: '90px', position: 'absolute', zIndex: '1', display: 'flex', justifyContent: 'center', alignItems: 'center', overflow: 'hidden', left: '20px', border: '3px solid #1E1B29' }}>
-                                        {userInfo?.image ? <img src={userInfo?.image} onLoad={() => setProfileLoading({ ...profileLoading, avatarImg: true })} style={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: '90px' }} alt="" /> : <Avatar sx={{ width: '100%', height: '100%' }}></Avatar>}
-                                    </Box>
-                                </>
-                        }
-                        {
-                            (isLoading) ?
-                                <>
-                                    <Box width={{ sm: 'calc(100% - 200px)', xs: 'calc(100% - 120px)' }} height={'55px'} sx={{ position: 'absolute', left: { xs: '105px', sm: '185px' }, bottom: '-55px' }}>
-                                        <Skeleton variant="text" width={'80%'} animation='wave' height={'45px'} /></Box>
-                                </> :
-                                <>
-                                    <Box width={{ sm: 'calc(100% - 200px)', xs: 'calc(100% - 120px)' }} height={'55px'} sx={{ position: 'absolute', left: { xs: '105px', sm: '185px' }, bottom: '-55px' }}>
-                                        <Typography variant="h6" color="text.primary" component={'div'} textOverflow={'ellipsis'} noWrap width={'100%'}> {userInfo?.fake_name || userInfo?.name}</Typography>
-                                        <Typography variant="body2" component={'div'} textOverflow={'ellipsis'} noWrap width={'100%'}>{userInfo?.name} </Typography>
-                                    </Box>
-                                </>
-                        }
+                <Box width={'100%'} height={{ xs: '130px', sm: '280px' }} minHeight={{ xs: '130px', sm: '280px' }} position={'relative'}>
+                    <Box width={'100%'} height={'100%'}>
+                        {!isLoading && userInfo?.cover_image && <img src={userInfo.cover_image} style={{ width: '100%', height: '100%', objectFit: 'cover' }} alt="" />}
+                        {isLoading && <Skeleton animation="wave" width={'100%'} height={'100%'} variant="rectangular"></Skeleton>}
+                    </Box>
+                    <Divider sx={{ width: '100%' }} />
+                    <Box width={{ xs: '100px', sm: '180px' }} height={{ xs: '100px', sm: '180px' }} bgcolor={'primary.main'} borderRadius={'50%'} position={'absolute'} overflow={'hidden'} sx={{ bottom: { xs: '-50px', sm: '-90px' }, left: { xs: '15px', sm: '20px' } }} border={'4px solid #1E1B29'}>
+                        {!isLoading && <Avatar sx={{ width: '100%', height: '100%', bgcolor: '#aeaabb' }}>
+                            {userInfo?.image && <img src={userInfo.image} style={{ width: '100%', height: '100%', objectFit: 'cover' }} alt="" />}
 
+                        </Avatar>}
+                        {isLoading && <Skeleton animation="wave" sx={{ position: 'absolute' }} variant="circular" width={'100%'} height={'100%'} />}
                     </Box>
-                    <Box width={'100%'} sx={{ display: 'flex', justifyContent: 'space-evenly' }} mt={{ xs: '70px', sm: '100px' }}>
-                        <Box width={'fit-content'} sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }} textAlign={'center'}>
-                            {(isLoading) ? <><Skeleton width={'100px'} height={'30px'}></Skeleton>
-                                <Skeleton width={'50px'} height={'20px'}></Skeleton></>
-                                : <Button variant="text" color="secondary">{'3k'} Followers</Button>}
-                        </Box>
-                        <Box width={'fit-content'} textAlign={'center'} sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-                            {(isLoading) ? <><Skeleton width={'100px'} height={'30px'}></Skeleton>
-                                <Skeleton width={'50px'} height={'20px'}></Skeleton></>
-                                : <Button variant="text" color="secondary">{'3k'} Followings</Button>}
-                        </Box>
-                    </Box>
-                    <Box mt={2} mb={1} px={2} width={'100%'} minHeight={'50px'} overflow={'hidden'}>
-                        <Typography variant="body2" fontSize={12}>{userInfo?.bio}</Typography>
-                    </Box>
-                    <Divider orientation='horizontal' />
-                    <Stack height={'100%'} position={'relative'} boxSizing={'border-box'}>
+                </Box>
+                <Box width={'100%'} p={1} pt={{ xs: '60px', sm: '100px', display: 'flex', flexDirection: "column", gap: 2 }} position={'relative'}>
+                    
+                    <Stack width={'100%'}>
+                        {isLoading ? <Skeleton animation="wave" width={'40%'} height={'30px'} sx={{ maxWidth: '200px' }} variant="rounded"></Skeleton> : <Box width={'100%'} sx={{ display: "flex", flexDirection: "column", p: 1 }}>
+                            <Typography variant="body1" width={'100%'} noWrap textOverflow={'ellipsis'} fontSize={{ xs: '16px', sm: '22px' }} fontWeight={'bold'} color="#fff" >
+                                {userInfo?.fake_name||userInfo?.name}
+                            </Typography>
+                            <Typography variant="body2" width={'100%'} noWrap textOverflow={'ellipsis'} fontSize={{ xs: '12px', sm: '15px' }} color="text.secondary" >
+                                @{userInfo?.username}
+                            </Typography>
+                        </Box>}
+                    </Stack>
+                    <Stack width={'100%'} >
+                        {
+                            isLoading ?
+                                <Skeleton width={'80%'} height={'40px'} variant="rounded" animation="wave" /> :
+                                <Box width={'100%'} px={1} sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
+                                    <Typography variant="body2" fontSize={{ xs: '10px', sm: '14px' }} color="text.primary">
+                                        {userInfo?.bio}
+                                    </Typography>
+                                    <Box width={'100%'} sx={{ display: 'flex', gap: 4, pb: 2 }}>
+                                        <Button variant="text" color="secondary">{userInfo?.followers||0} Follower</Button>
+                                        <Button variant="text" color="secondary">{userInfo?.followings||0} Following</Button>
+                                    </Box>
+                                </Box>
+
+                        }
+                    </Stack>
+                    <Divider sx={{ width: '100%' }} />
+                    {!isLoading && <Stack height={'100%'} position={'relative'} boxSizing={'border-box'}>
                         <Stack direction={'row'} spacing={2} justifyContent={'center'} >
                             <Tabs variant='scrollable' value={value} scrollButtons='auto' sx={{ maxWdth: '100%' }} slotProps={{ indicator: { sx: { backgroundColor: 'secondary.main', borderRadius: '10px', height: 2 } } }} onChange={handleChange} aria-label="Feed options tab">
                                 <Tab sx={{ color: '#fff', textTransform: 'none', '&.Mui-selected': { color: 'secondary.main', } }} value={'posts'} label='Posts' id="posts" aria-controls="posts-pannel" />
@@ -94,7 +84,7 @@ function Profile() {
 
                         </Stack>
                         <CustomPannel keyValue={'posts'} value={value}>
-                            <Posts userData={userInfo}/>
+                            <Posts userData={userInfo || {}} />
                         </CustomPannel>
                         <CustomPannel keyValue={'replies'} value={value}>
                             <Replies />
@@ -102,8 +92,24 @@ function Profile() {
                         <CustomPannel keyValue={'bookmarked'} value={value}>
                             <Bookmarked />
                         </CustomPannel>
-                    </Stack>
-                </Stack>
+                    </Stack>}
+
+                    {
+                        isLoading && <Stack width={'100%'} p={1} spacing={1} mt={3}>
+                            <Box width={'100%'} sx={{ display: 'flex', justifyContent: 'center', gap: '10%' }}>
+                                <Skeleton animation="wave" variant="rounded" width={'50px'} height={'35px'} />
+                                <Skeleton animation="wave" variant="rounded" width={'50px'} height={'35px'} />
+                                <Skeleton animation="wave" variant="rounded" width={'50px'} height={'35px'} />
+                            </Box>
+                            <Divider />
+                            <LoadingPost />
+                        </Stack>
+
+
+                    }
+
+                </Box>
+
             </Stack>
         </>
     )

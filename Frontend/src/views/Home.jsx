@@ -10,7 +10,7 @@ function CustomPannel(props) {
 
     return (
         <div role='tabpanel' hidden={value != `${keyValue}-feed`} id={`${keyValue}-pannel`} aria-labelledby={`${keyValue}-feed`} {...other}>
-            {value === `${keyValue}-feed` && <Box width={'100%'} height={'100%'} mt={1}>
+            {value === `${keyValue}-feed` && <Box width={'100%'}height={{xs:'calc(100% - 100px)',sm:'calc(100% - 50px)'}} >
                 {children}
             </Box>}
         </div>
@@ -31,7 +31,7 @@ export default function Home() {
     };
     return (
         <>
-            <Stack height={'100%'} position={'relative'}  >
+            <Stack height={'100%'} position={'relative'} overflow={'hidden'} >
                 <Backdrop  sx={{zIndex:9999,bgcolor:'#ffffff18',backdropFilter:'blur(2px)'}} open={isOpenCreatePost} onClick={closeCreatePost}>
                     <CreatePost closeCreatePost={closeCreatePost}/>
                 </Backdrop>
