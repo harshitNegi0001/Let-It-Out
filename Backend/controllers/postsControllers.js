@@ -138,7 +138,13 @@ class Post {
                         WHERE l2.target_type = 'post'
                             AND l2.target_id = p.id
                             AND l2.user_id = $1
-                    ) AS is_liked
+                    ) AS is_liked,
+					EXISTS(
+						SELECT 1
+						FROM bookmarks as b
+						WHERE b.user_id = $1
+							AND b.post_id=p.id
+					) AS is_saved
                     FROM posts AS p
                     LEFT JOIN likes AS l
                     ON p.id=l.target_id AND l.target_type='post'
@@ -183,7 +189,13 @@ class Post {
                     WHERE l2.target_type = 'post'
                     AND l2.target_id = p.id
                     AND l2.user_id = $4
-                ) AS is_liked
+                ) AS is_liked,
+				EXISTS(
+					SELECT 1
+					FROM bookmarks AS b
+					WHERE b.user_id = $4
+						AND b.post_id=p.id
+				) AS is_saved
                 FROM posts AS p
                 LEFT JOIN likes AS l
                 ON p.id=l.target_id AND l.target_type='post'
@@ -291,7 +303,13 @@ class Post {
                             WHERE l2.target_id = p.id
                                 AND l2.target_type = 'post'
                                 AND l2.user_id = $4
-                        )
+                        ),
+					    'is_saved',EXISTS(
+						    SELECT 1
+						    FROM bookmarks as b
+						    WHERE b.user_id = $4
+							    AND b.post_id=p.id
+					    )
                     ) AS post_data, 
                     json_build_object(
                         'id', u.id,
@@ -340,7 +358,13 @@ class Post {
                         WHERE l2.target_id = p.id
                             AND l2.target_type = 'post'
                             AND l2.user_id = $4
-                    )
+                    ),
+					'is_saved',EXISTS(
+						SELECT 1
+						FROM bookmarks as b
+						WHERE b.user_id = $4
+							AND b.post_id=p.id
+					)
                 ) AS post_data, 
                 json_build_object(
                     'id', u.id,
@@ -384,7 +408,13 @@ class Post {
                         WHERE l2.target_id = p.id
                             AND l2.target_type = 'post'
                             AND l2.user_id = $3
-                    )
+                    ),
+					'is_saved',EXISTS(
+						SELECT 1
+						FROM bookmarks as b
+						WHERE b.user_id = $3
+							AND b.post_id=p.id
+					)
                 ) AS post_data, 
                 json_build_object(
                     'id', u.id,
@@ -418,6 +448,53 @@ class Post {
         }
     }
 
+    // Controller function to save or bookmark post.
+    savePost = async(req,res)=>{
+        const {postId} = req.body;
+        const userId = req.id;
+
+        try {
+            await db.query(
+                `INSERT INTO bookmarks
+                (
+                	user_id ,
+                	post_id
+                )
+                VALUES (
+                	$1,
+                	$2
+                );`,
+                [userId,postId]
+            )
+
+            return returnRes(res,200,{messages:"Post saved."});
+        } catch (err) {
+            // console.log(err);
+            return returnRes(res, 500, { error: 'Internal Server Error!' });
+        }
+    }
+
+
+    // Controller function to remove saved post or remove bookmark.
+    undoSavePost = async(req,res)=>{
+        const {postId} = req.body;
+        const userId = req.id;
+
+        try {
+            await db.query(
+                `DELETE 
+                FROM bookmarks
+                WHERE post_id =$1
+                    AND user_id =$2;`,
+                [postId,userId]
+            );
+
+            return returnRes(res,200,{messages:"Removed saved post."});
+        } catch (err) {
+            console.log(err);
+            return returnRes(res, 500, { error: 'Internal Server Error!' });
+        }
+    }
 
 }
 

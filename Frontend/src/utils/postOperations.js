@@ -39,3 +39,35 @@ export const deleteLikeTarget = async (target,targetId,dispatch)=>{
         // console.log(err);
     }
 }
+export const savePost = async (postId,dispatch)=>{
+    
+    try {
+        const result = await axios.post(
+            `${backend_url}/api/save-post`,
+            {
+                postId
+            },
+            {withCredentials:true}
+        )
+
+    } catch (err) {
+        dispatch(setState({error:err?.response?.data?.error || "Something Went Wrong!"}));
+        // console.log(err);
+    }
+}
+export const undoSavedPost = async (postId,dispatch)=>{
+    
+    try {
+        const result = await axios.post(
+            `${backend_url}/api/undo-save-post`,
+            {
+                postId
+            },
+            {withCredentials:true}
+        )
+
+    } catch (err) {
+        dispatch(setState({error:err?.response?.data?.error || "Something Went Wrong!"}));
+        // console.log(err);
+    }
+}

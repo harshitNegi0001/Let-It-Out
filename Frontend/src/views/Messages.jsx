@@ -1,4 +1,4 @@
-import { Avatar, Badge, Box, Button,  Chip,  Skeleton, Stack, Typography } from "@mui/material";
+import { Avatar, Badge, Box, Button,  Chip,  Divider,  Skeleton, Stack, Typography } from "@mui/material";
 import VisibilityIcon from '@mui/icons-material/Visibility';
 import DoneIcon from '@mui/icons-material/Done';
 import DoneAllIcon from '@mui/icons-material/DoneAll';
@@ -95,7 +95,18 @@ function Messages() {
     return (
         <>
             <Stack width={'100%'} alignItems={"center"} height={{ sm: '100%', xs: 'calc(100% - 110px)' }} boxSizing={'border-box'}>
-                {!username && <Stack sx={{ boxSizing: 'border-box', overflowY: 'scroll', scrollbarWidth: 'none' }} direction={'column'} width={'100%'} height={'100%'} mb={{ sm: '0', xs: '0px' }}>                    {
+                
+                {!username && <Stack sx={{ boxSizing: 'border-box', overflowY: 'scroll', scrollbarWidth: 'none' }} direction={'column'} width={'100%'} height={'100%'}> 
+                    <Box width={'100%'} sx={{display:'flex',flexDirection:"column",gap:'4px'}}  p={1} pb={2} >
+                        <Typography variant="h6" fontSize={{xs:'24px',sm:'28px'}} color="#fff">
+                            Messages
+                        </Typography>
+                        <Typography variant="body2" fontSize={{xs:'10px',sm:'14px'}} color="text.secondary">
+                            Chats will appear here after you send or receive a message
+                        </Typography>
+                        
+                    </Box><Divider/>
+                    {
                         chatlist.map(u =>
                             <Button sx={{ p: 0, m: 0, borderRadius: '0' }} key={u.id} color="secondary" onClick={() => navigate(`/chats/${u.username}`)}>
                                 <Box width={'100%'} minHeight={'60px'} display={'flex'} justifyContent={'start'} p={1} gap={2} >

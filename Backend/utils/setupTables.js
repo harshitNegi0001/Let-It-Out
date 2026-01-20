@@ -1,3 +1,4 @@
+import { createBookmarksTable } from "../schema/bookmarkTable.js";
 import { createUsersTable } from "../schema/createUsers.js";
 import { createFollowersTable } from "../schema/FollowersTable.js";
 import { createLikesTable } from "../schema/likesTable.js";
@@ -12,4 +13,5 @@ export default async function setupTables() {
     await createPostsTable(pool);
     await createFollowersTable(pool);
     await createLikesTable(pool);
+    await createBookmarksTable(pool);
 }

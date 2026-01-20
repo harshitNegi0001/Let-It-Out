@@ -9,28 +9,27 @@ import BookmarkBorderIcon from '@mui/icons-material/BookmarkBorder';
 import BookmarkIcon from '@mui/icons-material/Bookmark';
 import getPostActions from "../../utils/postActions";
 import ImageGrid from "./ImageGrid";
-
 import { useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { useEffect } from "react";
 import { requiredAction } from "../../store/authReducer/authReducer";
 import { useNavigate } from "react-router-dom";
 import { moods } from "../../utils/moods";
-import { deleteLikeTarget, likeTarget } from "../../utils/likeTarget";
+import { deleteLikeTarget, likeTarget, savePost, undoSavedPost } from "../../utils/postOperations";
 
 
 
 
 
 
-function PostUI({ followed, bookmarked = false, postData, userData }) {
+function PostUI({ followed, postData, userData }) {
 
     const { userInfo } = useSelector(state => state.auth);
     const [likeCount, setLikeCount] = useState({
         is_liked: false,
         count: 0
     });
-    const [isSaved, setIsSaved] = useState(bookmarked);
+    const [isSaved, setIsSaved] = useState(false);
     const [anchorEl, setAnchorEl] = useState(null);
     const [postAction, setPostAction] = useState([]);
     const open = Boolean(anchorEl);
@@ -46,6 +45,7 @@ function PostUI({ followed, bookmarked = false, postData, userData }) {
 
         if (postData) {
             setLikeCount({ count: parseInt(postData?.likes_count), is_liked: postData?.is_liked });
+            setIsSaved(postData?.is_saved);
         }
 
 
@@ -106,8 +106,15 @@ function PostUI({ followed, bookmarked = false, postData, userData }) {
     const handleClose = () => {
         setAnchorEl(null);
     }
-    const handleBookmark = () => {
+    const handleBookmark =async () => {
+        if(isSaved){
+            undoSavedPost(postData.id);
+        }
+        else{
+            savePost(postData.id);
+        }
         setIsSaved(prev => !prev);
+        
         handleClose();
     }
     return (
