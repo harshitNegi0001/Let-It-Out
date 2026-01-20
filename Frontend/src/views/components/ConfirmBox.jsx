@@ -57,7 +57,7 @@ function ConfirmBox({ setUserPost, userPost }) {
 
             setIsLoading(false);
             handleCancleConfirmation();
-            const filteredPost = userPost.filter(p => p.id != confirmComponent.payload);
+            const filteredPost = userPost.filter(p => p.id != confirmComponent.payload && p?.post_data?.id!=confirmComponent.payload);
             setUserPost([...filteredPost]);
             dispatch(setState({ success: 'Post has been deleted.' }));
 

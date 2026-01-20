@@ -1,5 +1,4 @@
 import { Avatar, Box, Button, IconButton, ListItemIcon, ListItemText, Menu, MenuItem, Stack, Typography } from "@mui/material";
-import AddIcon from '@mui/icons-material/Add';
 import OptionIcon from '@mui/icons-material/MoreVert';
 import LikeEmptyButton from '@mui/icons-material/FavoriteBorder';
 import LikeFilledButton from '@mui/icons-material/Favorite';
@@ -17,15 +16,20 @@ import { useEffect } from "react";
 import { requiredAction } from "../../store/authReducer/authReducer";
 import { useNavigate } from "react-router-dom";
 import { moods } from "../../utils/moods";
+import { deleteLikeTarget, likeTarget } from "../../utils/likeTarget";
 
 
 
 
 
-function PostUI({ followed, liked = false, bookmarked = false, postData, userData }) {
+
+function PostUI({ followed, bookmarked = false, postData, userData }) {
 
     const { userInfo } = useSelector(state => state.auth);
-    const [isLiked, setIsLiked] = useState(liked);
+    const [likeCount, setLikeCount] = useState({
+        is_liked: false,
+        count: 0
+    });
     const [isSaved, setIsSaved] = useState(bookmarked);
     const [anchorEl, setAnchorEl] = useState(null);
     const [postAction, setPostAction] = useState([]);
@@ -38,6 +42,14 @@ function PostUI({ followed, liked = false, bookmarked = false, postData, userDat
             setPostAction([...getPostActions(userData.id, userInfo.id, postData.id)]);
         }
     }, [userData]);
+    useEffect(() => {
+
+        if (postData) {
+            setLikeCount({ count: parseInt(postData?.likes_count), is_liked: postData?.is_liked });
+        }
+
+
+    }, [postData])
 
     function formatPostTime(createdAt) {
         // Remove microseconds if present
@@ -75,7 +87,19 @@ function PostUI({ followed, liked = false, bookmarked = false, postData, userDat
     }
 
 
+    const handleLikeBtn = () => {
+        if (likeCount.is_liked) {
+            deleteLikeTarget('post', postData?.id, dispatch);
+            setLikeCount(prev => ({ count: prev.count - 1, is_liked: false }));
+            return;
+        }
+        else {
+            likeTarget('post', postData?.id, dispatch);
+            setLikeCount(prev => ({ count: prev.count + 1, is_liked: true }));
 
+            return;
+        }
+    }
     const handleClick = (e) => {
         setAnchorEl(e.currentTarget);
     }
@@ -94,7 +118,7 @@ function PostUI({ followed, liked = false, bookmarked = false, postData, userDat
             <Stack width={'100%'} borderRadius={2} overflow={'hidden'} border={1} borderColor={'primary.dark'}>
                 <Stack direction={'row'} width={'100%'} boxSizing={'border-box'} p={1} justifyContent={'space-between'} bgcolor={'primary.dark'} alignItems={'center'}>
                     <Stack direction={'row'} spacing={1} alignItems={'center'} width={'calc(100% - 40px)'}>
-                        <Box width={{ xs: '40px', sm: '55px' }} onClick={()=>navigate(`/profile/${userData.username}`)} height={{ xs: '40px', sm: '55px' }} overflow={'hidden'} borderRadius={'30px'} >
+                        <Box width={{ xs: '40px', sm: '55px' }} onClick={() => navigate(`/profile/${userData.username}`)} height={{ xs: '40px', sm: '55px' }} overflow={'hidden'} borderRadius={'30px'} >
                             <Avatar sx={{ width: '100%', height: "100%", bgcolor: '#c2c2c2' }}>
                                 {userData?.image && <img src={userData?.image} style={{ width: '100%', height: '100%', objectFit: 'cover' }} alt="" />}
                             </Avatar>
@@ -102,15 +126,15 @@ function PostUI({ followed, liked = false, bookmarked = false, postData, userDat
 
                         <Stack spacing={0}>
                             <Typography variant="body2" component={'span'} fontWeight={'bold'} fontSize={{ xs: 12, sm: 16 }} textOverflow={'ellipsis'} noWrap color="text.primary">{userData?.fake_name || userData?.name}</Typography>
-                            <Box sx={{ display: 'flex', gap: '4px' }}>
-                                {postData?.created_at && <Typography variant="body2" fontSize={{ xs: 10, sm: 14 }}>
-                                    {formatPostTime(postData?.created_at)}
-                                </Typography>}
-                                {postData?.mood_tag && <Typography variant="body2" fontSize={{ xs: 10, sm: 14 }}>
-                                    feeling {moods.find(m=>m.value==postData?.mood_tag).label}
-                                </Typography>}
-                            </Box>
-                            
+
+                            {postData?.created_at && <Typography variant="body2" fontSize={{ xs: 10, sm: 14 }}>
+                                {formatPostTime(postData?.created_at)}
+                            </Typography>}
+
+
+                            {postData?.mood_tag && <Typography variant="body2" fontSize={{ xs: 10, sm: 14 }}>
+                                feeling {moods.find(m => m.value == postData?.mood_tag).label}
+                            </Typography>}
                         </Stack>
 
                     </Stack>
@@ -144,12 +168,12 @@ function PostUI({ followed, liked = false, bookmarked = false, postData, userDat
                 </Box>
                 <Stack direction={'row'} justifyContent={'space-evenly'} borderTop={1} mx={1} borderColor={'divider'}>
                     <Box display={'flex'} justifyContent={'center'} alignItems={'center'} >
-                        <IconButton onClick={() => setIsLiked(prev => !prev)} title="Likes">
+                        <IconButton onClick={() => handleLikeBtn()} title="Likes">
                             {
-                                isLiked ? <LikeFilledButton color="secondary" /> : <LikeEmptyButton />
+                                likeCount.is_liked ? <LikeFilledButton color="secondary" /> : <LikeEmptyButton />
                             }
 
-                        </IconButton><Typography variant="body2" fontSize={12} component={'span'}>{postData.likes_count}</Typography>
+                        </IconButton><Typography variant="body2" fontSize={12} component={'span'}>{likeCount.count}</Typography>
                     </Box>
                     <Box display={'flex'} justifyContent={'center'} alignItems={'center'}>
                         <IconButton title="comments">

@@ -5,6 +5,7 @@ import { setState } from "../../store/authReducer/authReducer";
 import axios from "axios";
 import { Box, Divider, Skeleton, Stack, Typography } from "@mui/material";
 import PostUI from "./PostUI";
+import ConfirmBox from "./ConfirmBox";
 
 
 function ExploreFeed({ moods = [] }) {
@@ -47,7 +48,11 @@ function ExploreFeed({ moods = [] }) {
     }
     return (
         <>
+
             {!isLoading && <Stack width={'100%'} spacing={1} >
+                <Box width={'100%'} position={'absolute'} top={0} >
+                    <ConfirmBox setUserPost={setPostslist} userPost={postslist} />
+                </Box>
                 {postslist.map(p => {
                     
                     return (<PostUI key={p.post_data.id} followed={true} postData={p.post_data} userData={p.user_data} />)

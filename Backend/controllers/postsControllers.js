@@ -130,8 +130,20 @@ class Post {
             if (userId == visiterId) {
                 const result = await db.query(
                     `SELECT 
-                    * FROM posts
-                    WHERE user_id = $1
+                    p.*
+                    ,count(l.id) AS likes_count,
+                    EXISTS(
+                        SELECT 1
+                        FROM likes AS l2
+                        WHERE l2.target_type = 'post'
+                            AND l2.target_id = p.id
+                            AND l2.user_id = $1
+                    ) AS is_liked
+                    FROM posts AS p
+                    LEFT JOIN likes AS l
+                    ON p.id=l.target_id AND l.target_type='post'
+                    WHERE p.user_id = $1
+                    GROUP BY p.id
                     ORDER BY id DESC
                     OFFSET $2
                     LIMIT $3`
@@ -163,13 +175,24 @@ class Post {
 
             const result = await db.query(
                 `SELECT 
-                * 
-                FROM posts
-                WHERE user_id = $1
+                p.* ,
+                count(l.id) AS likes_count,
+                EXISTS(
+                    SELECT 1
+                    FROM likes AS l2
+                    WHERE l2.target_type = 'post'
+                    AND l2.target_id = p.id
+                    AND l2.user_id = $4
+                ) AS is_liked
+                FROM posts AS p
+                LEFT JOIN likes AS l
+                ON p.id=l.target_id AND l.target_type='post'
+                WHERE p.user_id = $1
+                GROUP BY p.id
                 ORDER BY id DESC
                 OFFSET $2
                 LIMIT $3`
-                , [userId, (limit * (currPage - 1)), limit]
+                , [userId, (limit * (currPage - 1)), limit,visiterId]
             );
 
             return returnRes(res, 200, { mustFollow: false, posts: result.rows });
@@ -258,10 +281,17 @@ class Post {
                         'mood_tag', p.mood_tag,
                         'media_url', p.media_url,
                         'post_type', p.post_type,
-                        'likes_count', p.likes_count,
+                        'likes_count',count(l.id),
                         'comments_count', p.comments_count,
                         'share_count', p.shares_count,
-                        'created_at', p.created_at
+                        'created_at', p.created_at,
+                        'is_liked', EXISTS(
+                            SELECT 1
+                            FROM likes l2
+                            WHERE l2.target_id = p.id
+                                AND l2.target_type = 'post'
+                                AND l2.user_id = $4
+                        )
                     ) AS post_data, 
                     json_build_object(
                         'id', u.id,
@@ -273,12 +303,16 @@ class Post {
                     ) AS user_data
                     FROM posts AS p
                     JOIN users AS u
-                    WHERE user_id = ANY($1)
+                    ON u.id = p.user_id
+                    LEFT JOIN likes AS l
+                    ON l.target_id = p.id AND l.target_type ='post'
+                    WHERE p.user_id = ANY($1)
+                    GROUP BY p.id,u.id
                     ORDER BY p.id DESC
                     offset $2
                     limit  $3
                     ;`,
-                    [followingList, (limit * (currPage - 1)), limit]
+                    [followingList, (limit * (currPage - 1)), limit,userId]
                 );
 
 
@@ -295,10 +329,17 @@ class Post {
                     'mood_tag', p.mood_tag,
                     'media_url', p.media_url,
                     'post_type', p.post_type,
-                    'likes_count', p.likes_count,
+                    'likes_count',count(l.id),
                     'comments_count', p.comments_count,
                     'share_count', p.shares_count,
-                    'created_at', p.created_at
+                    'created_at', p.created_at,
+                    'is_liked', EXISTS(
+                        SELECT 1
+                        FROM likes l2
+                        WHERE l2.target_id = p.id
+                            AND l2.target_type = 'post'
+                            AND l2.user_id = $4
+                    )
                 ) AS post_data, 
                 json_build_object(
                     'id', u.id,
@@ -311,11 +352,14 @@ class Post {
                 FROM posts AS p
                 JOIN users AS u
                 ON u.id = p.user_id
+                LEFT JOIN likes AS l
+                ON l.target_id = p.id AND l.target_type ='post'
                 WHERE mood_tag =ANY($1::varchar[])
+                GROUP BY p.id,u.id
                 ORDER BY p.id DESC
                 offset $2
                 limit $3;`
-                , [reqMood, (limit * (currPage - 1)), limit]
+                , [reqMood, (limit * (currPage - 1)), limit,userId]
             );
 
             return returnRes(res, 200, { message: 'Following feed successfully fetched.', postsList: result.rows });
@@ -324,6 +368,8 @@ class Post {
             return returnRes(res, 500, { error: 'Internal Server Error!' });
         }
     }
+
+    
 }
 
 export default new Post();

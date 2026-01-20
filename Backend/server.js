@@ -2,6 +2,7 @@ import express from 'express';
 import dotenv from 'dotenv';
 import authRoute from './routes/authRoute.js';
 import postRoute from './routes/postRoute.js';
+import likeRoute from './routes/likesRoute.js';
 import connectionRoute from './routes/ConnectionRoute.js';
 import msgRoute from './routes/messagesRoute.js';
 import userProfileRoute from './routes/userProfileRoutes.js';
@@ -20,6 +21,7 @@ app.use(cors({
 app.use(express.json());
 app.use(cookieParser())
 app.use('/api', authRoute);
+app.use('/like', likeRoute);
 app.use('/msg', msgRoute);
 app.use('/api', postRoute);
 app.use('/api', connectionRoute);

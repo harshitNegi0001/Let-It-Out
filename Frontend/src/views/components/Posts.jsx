@@ -34,7 +34,6 @@ const RestrectedPostHandler = {
 
 export default function Posts({ userData }) {
     const [userPost, setUserPost] = useState([]);
-    const [postOptions, setPostOptions] = useState([]);
     const [postRestriction, setPostRestriction] = useState({
         show_posts: true,
         reason: "",
@@ -62,7 +61,7 @@ export default function Posts({ userData }) {
 
             if (result.data?.restrictions) {
                 setPostRestriction(result.data.restrictions);
-                // hasMore = false..
+                // hasMore = false;
             }
             else {
                 if (result?.data?.posts?.length > 0) {
