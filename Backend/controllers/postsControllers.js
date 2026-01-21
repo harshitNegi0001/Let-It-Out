@@ -282,8 +282,6 @@ class Post {
                 }
                 const followingList = followingResult.rows.map(f => f.following_id);
 
-
-
                 const result = await db.query(
                     `SELECT 
                     json_build_object(
@@ -376,7 +374,7 @@ class Post {
                 ) AS user_data
                 FROM posts AS p
                 JOIN users AS u
-                ON u.id = p.user_id
+                ON u.id = p.user_id AND u.acc_type ='public'
                 LEFT JOIN likes AS l
                 ON l.target_id = p.id AND l.target_type ='post'
                 WHERE mood_tag =ANY($1::varchar[])
@@ -426,7 +424,7 @@ class Post {
                 ) AS user_data
                 FROM posts AS p
                 JOIN users AS u
-                ON u.id = p.user_id
+                ON u.id = p.user_id AND u.acc_type ='public'
                 LEFT JOIN likes AS l
                 ON l.target_id = p.id AND l.target_type ='post'
                 

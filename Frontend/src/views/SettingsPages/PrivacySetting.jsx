@@ -8,6 +8,8 @@ import DynamicFeedIcon from '@mui/icons-material/DynamicFeed';
 import AlternateEmailIcon from '@mui/icons-material/AlternateEmail';
 import { useNavigate } from "react-router-dom";
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
+import ExploreOffOutlinedIcon from '@mui/icons-material/ExploreOffOutlined';
+import ExploreOutlinedIcon from '@mui/icons-material/ExploreOutlined';
 import { getInitialState, setState } from "../../store/authReducer/authReducer";
 
 
@@ -94,6 +96,13 @@ function PrivacySetting() {
                                 </Typography>
 
                             </Box>
+                            <Box width={'100%'} sx={{ display: 'flex',  alignItems: 'center', gap: 2 }} >
+                                <ExploreOffOutlinedIcon sx={{ color: 'text.primary' }} />
+                                <Typography variant="body2" component={'span'} fontSize={{ xs: '12px', sm: '15px' }}>
+                                    Your post will no longer be discoverable in explore page.
+                                </Typography>
+
+                            </Box>
                             <Box width={'100%'} sx={{ display: 'flex', alignItems: 'center', gap: 2 }} >
                                 <AlternateEmailIcon sx={{ color: 'text.primary' }} />
                                 <Typography variant="body2" component={'span'} fontSize={{ xs: '12px', sm: '15px' }}>
@@ -127,6 +136,13 @@ function PrivacySetting() {
                                 <DynamicFeedIcon sx={{ color: 'text.primary' }} />
                                 <Typography variant="body2" component={'span'} fontSize={{ xs: '12px', sm: '15px' }}>
                                     Anyone can see your posts, reels and stories, and can use your original audio and text.
+                                </Typography>
+
+                            </Box>
+                            <Box width={'100%'} sx={{ display: 'flex',  alignItems: 'center', gap: 2 }} >
+                                <ExploreOutlinedIcon sx={{ color: 'text.primary' }} />
+                                <Typography variant="body2" component={'span'} fontSize={{ xs: '12px', sm: '15px' }}>
+                                    Your post will be visible on the Explore page.
                                 </Typography>
 
                             </Box>

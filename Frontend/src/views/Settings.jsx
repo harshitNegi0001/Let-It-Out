@@ -28,8 +28,8 @@ function Settings() {
                                 <Typography variant="body1" component={'div'} width={'100%'} fontSize={{ xs: 18, sm: 24 }} noWrap textOverflow={'ellipsis'} color="text.primary">
                                     {userInfo.fake_name||userInfo.name}
                                 </Typography>
-                                {userInfo.fake_name&&<Typography variant="body2" component={'span'} width={'100%'} fontSize={{ xs: 14, sm: 16 }} noWrap textOverflow={'ellipsis'} color="text.secondary">
-                                    {userInfo.name }
+                                {<Typography variant="body2" component={'span'} width={'100%'} fontSize={{ xs: 14, sm: 16 }} noWrap textOverflow={'ellipsis'} color="text.secondary">
+                                    {userInfo.username }
                                 </Typography>}
 
                             </Box>

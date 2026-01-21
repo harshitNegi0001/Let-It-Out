@@ -50,6 +50,11 @@ export const authorizedRoutes=[
         needAuth:true
     },
     {
+        path:'/search',
+        element:<SearchPage/>,
+        needAuth:true
+    },
+    {
         path:'/notification',
         element:<Notifications/>,
         needAuth:true

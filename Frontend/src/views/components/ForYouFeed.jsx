@@ -43,7 +43,7 @@ function ForYouFeed() {
     }
 
     return (
-        <Stack width={'100%'} height={'100%'} spacing={1} overflow={'scroll'} sx={{ scrollbarWidth: 'none' }} p={1} alignItems={'center'} boxSizing={'border-box'}>
+        <Stack width={'100%'} height={'100%'} spacing={1} overflow={'scroll'} sx={{ scrollbarWidth: 'none' }} p={1} pb={{xs:'110px',sm:'55px'}} alignItems={'center'} boxSizing={'border-box'}>
             {
                 isLoading ?
                     <Box width={'100%'}>

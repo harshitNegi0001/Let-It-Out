@@ -10,7 +10,7 @@ function CustomPannel(props) {
 
     return (
         <div role='tabpanel' hidden={value != `${keyValue}-feed`} id={`${keyValue}-pannel`} aria-labelledby={`${keyValue}-feed`} {...other}>
-            {value === `${keyValue}-feed` && <Box width={'100%'}height={{xs:'calc(100% - 100px)',sm:'calc(100% - 50px)'}} >
+            {value === `${keyValue}-feed` && <Box width={'100%'} height={'100%'} overflow={'scroll'}>
                 {children}
             </Box>}
         </div>

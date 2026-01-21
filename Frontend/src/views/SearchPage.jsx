@@ -67,7 +67,7 @@ function SearchPage() {
                     </form>
                 </Box>
                 <Divider sx={{ width: '100%' }} />
-                <Box width={'100%'} sx={{ display: 'flex', flexDirection: 'column', alignItems: 'start', gap: 1 }}>
+                {query&&<Box width={'100%'} sx={{ display: 'flex', flexDirection: 'column', alignItems: 'start', gap: 1 }}>
                     <Typography width={'100%'} textAlign={'start'} variant="body1" color="#fff" fontSize={{ xs: '20px', sm: '26px' }} fontWeight={'400'}>
                         Search Results
                     </Typography>
@@ -80,7 +80,7 @@ function SearchPage() {
 
                     </Typography>
 
-                </Box>
+                </Box>}
                 <Stack width={'100%'} alignItems={'center'} spacing={2}>
                     {isLoading && [1, 2, 3, 4, 5].map((i) => <Box width={'97%'} key={i} p={1} sx={{ display: 'flex', gap: 1 }}>
                         <Box width={'50px'} height={'50px'}>
@@ -112,13 +112,13 @@ function SearchPage() {
 
                         </Box>)
                     }
-                    {!isLoading && searchResults.length == 0 &&
+                    {!isLoading && searchResults.length == 0 && 
                         <Box width={'100%'} sx={{ display: 'flex', flexDirection: 'column', justifyContent: "center", alignItems: 'center', gap: 1 }}>
                             <Box width={'100%'} maxWidth={{ xs: '280px', sm: '380px' }}>
                                 <img src="https://res.cloudinary.com/dns5lxuvy/image/upload/v1768049071/sjdkhrwrnttukqirggxb.png" style={{ width: '100%', objectFit: 'contain' }} alt="" />
                             </Box>
-                            <Typography variant="body2" width={'100%'} fontSize={{ xs: '12px', sm: '18px' }} textAlign={'center'} color="text.secondary" >
-                                No new users found.
+                            <Typography variant="body2" width={'100%'} fontSize={{ xs: '12px', sm: '16px' }} textAlign={'center'} color="text.secondary" >
+                                {query?"No new users found.":'Start searching to find users'}
                             </Typography>
                         </Box>
                     }
