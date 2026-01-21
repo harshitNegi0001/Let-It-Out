@@ -90,7 +90,7 @@ function Profile() {
                             <Replies />
                         </CustomPannel>
                         <CustomPannel keyValue={'bookmarked'} value={value}>
-                            <Bookmarked />
+                            <Bookmarked userData={userInfo || {}}/>
                         </CustomPannel>
                     </Stack>}
 

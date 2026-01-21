@@ -172,7 +172,7 @@ function VisitProfile() {
                             <Replies />
                         </CustomPannel>
                         <CustomPannel keyValue={'bookmarked'} value={value}>
-                            <Bookmarked />
+                            <Bookmarked userData={userProfileData || {}}/>
                         </CustomPannel>
                     </Stack>}
 

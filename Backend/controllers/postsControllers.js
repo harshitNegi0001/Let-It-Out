@@ -71,7 +71,7 @@ class Post {
     getProfilePost = async (req, res) => {
 
         const visiterId = req.id;
-        const { userId, limit, currPage } = req.query;
+        const { userId, limit, currPage, reqType = "posts" } = req.query;
 
         try {
 
@@ -128,8 +128,9 @@ class Post {
                 });
             }
             if (userId == visiterId) {
-                const result = await db.query(
-                    `SELECT 
+                if (reqType == 'posts') {
+                    const result = await db.query(
+                        `SELECT 
                     p.*
                     ,count(l.id) AS likes_count,
                     EXISTS(
@@ -153,11 +154,71 @@ class Post {
                     ORDER BY id DESC
                     OFFSET $2
                     LIMIT $3`
-                    , [userId, (limit * (currPage - 1)), limit]
-                );
+                        , [userId, (limit * (currPage - 1)), limit]
+                    );
+
+                    return returnRes(res, 200, { message: 'Success', posts: result.rows });
+                }
 
 
-                return returnRes(res, 200, { message: 'Success', posts: result.rows });
+                else if (reqType == 'saved_posts') {
+                    const result = await db.query(
+                        `SELECT 
+                    json_build_object(
+                    'id', p.id,
+                    'user_id', p.user_id,
+                    'content', p.content,
+                    'mood_tag', p.mood_tag,
+                    'media_url', p.media_url,
+                    'post_type', p.post_type,
+                    'likes_count',count(l.id),
+                    'comments_count', p.comments_count,
+                    'share_count', p.shares_count,
+                    'created_at', p.created_at,
+                    'is_liked', EXISTS(
+                        SELECT 1
+                        FROM likes l2
+                        WHERE l2.target_id = p.id
+                            AND l2.target_type = 'post'
+                            AND l2.user_id = $1
+                    ),
+					'is_saved',EXISTS(
+						SELECT 1
+						FROM bookmarks as b
+						WHERE b.user_id = $1
+							AND b.post_id=p.id
+					)
+                ) AS post_data, 
+                json_build_object(
+                    'id', u.id,
+                    'name', COALESCE(NULLIF(u.fake_name, ''), u.first_name),
+                    'username', u.lio_userid,
+                    'image', u.image
+
+
+                ) AS user_data
+                FROM posts AS p
+                JOIN bookmarks AS b
+                ON b.post_id =p.id AND b.user_id = $1
+                JOIN users AS u
+                ON u.id = p.user_id 
+                LEFT JOIN likes AS l
+                ON l.target_id = p.id AND l.target_type ='post'
+                
+                GROUP BY p.id,u.id
+                ORDER BY p.id DESC
+                offset $2
+                limit $3;`
+                        , [visiterId, (limit * (currPage - 1)), limit]
+                    );
+
+
+                    return returnRes(res, 200, { message: 'Success', posts: result.rows });
+                }
+
+
+
+
             }
 
 
@@ -178,9 +239,9 @@ class Post {
                     }
                 });
             }
-
-            const result = await db.query(
-                `SELECT 
+            if (reqType == 'posts') {
+                const result = await db.query(
+                    `SELECT 
                 p.* ,
                 count(l.id) AS likes_count,
                 EXISTS(
@@ -204,13 +265,67 @@ class Post {
                 ORDER BY id DESC
                 OFFSET $2
                 LIMIT $3`
-                , [userId, (limit * (currPage - 1)), limit, visiterId]
-            );
+                    , [userId, (limit * (currPage - 1)), limit, visiterId]
+                );
+                return returnRes(res, 200, { mustFollow: false, posts: result.rows });
+            }
+            else if (reqType == 'saved_posts') {
+                const result = await db.query(
+                    `SELECT 
+                    json_build_object(
+                    'id', p.id,
+                    'user_id', p.user_id,
+                    'content', p.content,
+                    'mood_tag', p.mood_tag,
+                    'media_url', p.media_url,
+                    'post_type', p.post_type,
+                    'likes_count',count(l.id),
+                    'comments_count', p.comments_count,
+                    'share_count', p.shares_count,
+                    'created_at', p.created_at,
+                    'is_liked', EXISTS(
+                        SELECT 1
+                        FROM likes l2
+                        WHERE l2.target_id = p.id
+                            AND l2.target_type = 'post'
+                            AND l2.user_id = $1
+                    ),
+					'is_saved',EXISTS(
+						SELECT 1
+						FROM bookmarks as b
+						WHERE b.user_id = $1
+							AND b.post_id=p.id
+					)
+                ) AS post_data, 
+                json_build_object(
+                    'id', u.id,
+                    'name', COALESCE(NULLIF(u.fake_name, ''), u.first_name),
+                    'username', u.lio_userid,
+                    'image', u.image
 
-            return returnRes(res, 200, { mustFollow: false, posts: result.rows });
+
+                ) AS user_data
+                FROM posts AS p
+                JOIN bookmarks AS b
+                ON b.post_id =p.id AND b.user_id = $4
+                JOIN users AS u
+                ON u.id = p.user_id AND u.acc_type = 'public'
+                LEFT JOIN likes AS l
+                ON l.target_id = p.id AND l.target_type ='post'
+                
+                GROUP BY p.id,u.id
+                ORDER BY p.id DESC
+                offset $2
+                limit $3;`
+                    , [visiterId, (limit * (currPage - 1)), limit, userId]
+                );
+
+
+                return returnRes(res, 200, { message: 'Success', posts: result.rows });
+            }
 
         } catch (err) {
-            // console.error(err);
+            console.error(err);
             return returnRes(res, 500, { error: "Internal Server Error!" });
         }
 
@@ -432,7 +547,7 @@ class Post {
                 ORDER BY p.id DESC
                 offset $1
                 limit $2;`
-                    , [ (limit * (currPage - 1)), limit, userId]
+                    , [(limit * (currPage - 1)), limit, userId]
                 );
                 return returnRes(res, 200, { message: 'Following feed successfully fetched.', postsList: result.rows });
             }
@@ -447,8 +562,8 @@ class Post {
     }
 
     // Controller function to save or bookmark post.
-    savePost = async(req,res)=>{
-        const {postId} = req.body;
+    savePost = async (req, res) => {
+        const { postId } = req.body;
         const userId = req.id;
 
         try {
@@ -462,10 +577,10 @@ class Post {
                 	$1,
                 	$2
                 );`,
-                [userId,postId]
+                [userId, postId]
             )
 
-            return returnRes(res,200,{messages:"Post saved."});
+            return returnRes(res, 200, { messages: "Post saved." });
         } catch (err) {
             // console.log(err);
             return returnRes(res, 500, { error: 'Internal Server Error!' });
@@ -474,8 +589,8 @@ class Post {
 
 
     // Controller function to remove saved post or remove bookmark.
-    undoSavePost = async(req,res)=>{
-        const {postId} = req.body;
+    undoSavePost = async (req, res) => {
+        const { postId } = req.body;
         const userId = req.id;
 
         try {
@@ -484,10 +599,10 @@ class Post {
                 FROM bookmarks
                 WHERE post_id =$1
                     AND user_id =$2;`,
-                [postId,userId]
+                [postId, userId]
             );
 
-            return returnRes(res,200,{messages:"Removed saved post."});
+            return returnRes(res, 200, { messages: "Removed saved post." });
         } catch (err) {
             console.log(err);
             return returnRes(res, 500, { error: 'Internal Server Error!' });
