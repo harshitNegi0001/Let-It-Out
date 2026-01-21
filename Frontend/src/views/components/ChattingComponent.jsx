@@ -51,7 +51,7 @@ function ChattingComponent({ username, getChatlist }) {
     const [messagesList, setMessagesList] = useState([]);
     const [sendMessageBox, setSendMessageBox] = useState("");
     const [sendingMsg, setSendingMsg] = useState(false);
-    const [isLoading, setIsLoading] = useState(false);
+    const [isLoading, setIsLoading] = useState(true);
     const [userData, setUserData] = useState({});
     const { userInfo } = useSelector(state => state.auth);
     const openMenu = Boolean(anchorEl);
