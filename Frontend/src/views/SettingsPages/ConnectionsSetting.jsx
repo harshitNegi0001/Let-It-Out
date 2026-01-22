@@ -24,22 +24,14 @@ const settingOption = [
         path: '/settings/connections/account-visitors'
 
     },
-    // {
-    //     id: 3,
-    //     name: "Deactivate your account",
-    //     desc: "find out how you can deactivate account",
-    //     icon: <HeartBrokenIcon />,
-    //     path: '/settings/deactivate-acc'
-
-    // },
-    // {
-    //     id: 4,
-    //     name: "Permanent delete your account",
-    //     desc: "Delete your account and data from platform",
-    //     icon: <DeleteForeverIcon />,
-    //     path: '/settings/account/delete-permanent'
-
-    // }
+    {
+        id: 4,
+        name: "Recent searches",
+        desc: "Searches you’ve made recently",
+        icon: <HistoryIcon />,
+        path: "/settings/connections/recent-searches"
+    }
+    
 ];
 
 function ConnectionsSetting() {
@@ -50,7 +42,7 @@ function ConnectionsSetting() {
 
     return (
         <>
-            <Stack width={'100%'} height={"100%"} p={2}>
+            <Stack width={'100%'} height={"100%"} p={{xs:1,sm:2}}>
                 <Stack width={'100%'} height={'100%'} pb={{ xs: '50px', sm: '10px' }} spacing={3} overflow={'scroll'}>
                     <Box width={'100%'} sx={{ display: 'flex', flexDirection: 'column', gap: 1, alignItems: 'start' }}>
 

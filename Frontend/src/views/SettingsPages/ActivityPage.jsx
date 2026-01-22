@@ -17,49 +17,42 @@ const settingOption = [
         name: "Liked posts",
         desc: "Posts you’ve liked",
         icon: <FavoriteBorderIcon />,
-        path: "/settings/activity/liked-posts"
+        path: "/settings/my-activity/liked-posts"
     },
     {
         id: 2,
         name: "Interacted posts",
         desc: "Posts you’ve commented on or reacted to",
         icon: <ChatBubbleOutlineIcon />,
-        path: "/settings/activity/interacted-posts"
+        path: "/settings/my-activity/interacted-posts"
     },
     {
         id: 3,
         name: "Saved posts",
         desc: "Posts you’ve saved for later",
         icon: <BookmarksOutlinedIcon />,
-        path: "/settings/activity/saved-posts"
+        path: "/settings/my-activity/saved-posts"
     },
     {
         id: 4,
         name: "Shared posts",
         desc: "Posts you’ve shared with others",
         icon: <RepeatIcon />,
-        path: "/settings/activity/shared-posts"
+        path: "/settings/my-activity/shared-posts"
     },
     {
         id: 5,
-        name: "Recent searches",
-        desc: "Searches you’ve made recently",
-        icon: <HistoryIcon />,
-        path: "/settings/activity/recent-searches"
-    },
-    {
-        id: 6,
         name: "Reported posts",
         desc: "Posts you’ve reported",
         icon: <ReportOutlinedIcon />,
-        path: "/settings/activity/reported-posts"
+        path: "/settings/my-activity/reported-posts"
     },
     {
-        id: 7,
+        id: 6,
         name: "Not interested posts",
         desc: "Posts you’ve hidden or marked as not interested",
         icon: <ThumbDownOffAltIcon />,
-        path: "/settings/activity/not-interested-posts"
+        path: "/settings/my-activity/not-interested-posts"
     }
 ]
 
@@ -70,7 +63,7 @@ function ActivityPage (){
 
     return(
         <>
-            <Stack width={'100%'} height={"100%"}  p={2}>
+            <Stack width={'100%'} height={"100%"}  p={{xs:1,sm:2}}>
                 <Stack width={'100%'} height={'100%'} pb={{xs:'50px',sm:'10px'}} spacing={3} overflow={'scroll'}>
                     <Box width={'100%'} sx={{display:'flex',flexDirection:'column',gap:1,alignItems:'start'}}>
                         

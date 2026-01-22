@@ -18,6 +18,7 @@ const DeleteAccount = lazy(()=>import('../../views/SettingsPages/DeleteAccount.j
 const DeactivateAccount = lazy(()=>import('../../views/SettingsPages/DeactivateAccount.jsx'));
 const VisitProfile = lazy(()=>import('../../views/VisitProfile.jsx'));
 const SearchPage = lazy(()=>import('../../views/SearchPage.jsx'));
+const PostsActivityPage = lazy(()=>import('../../views/SettingsPages/PostsActivityPage.jsx'));
 
 
 
@@ -97,6 +98,11 @@ export const authorizedRoutes=[
     {
         path:'/settings/my-activity',
         element:<ActivityPage/>,
+        needAuth:true
+    },
+    {
+        path:'/settings/my-activity/:required_type',
+        element:<PostsActivityPage/>,
         needAuth:true
     },
     {

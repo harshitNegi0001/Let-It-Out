@@ -59,7 +59,7 @@ function PrivacySetting() {
     }
     return (
         <>
-            <Stack width={'100%'} height={"100%"} p={2}>
+            <Stack width={'100%'} height={"100%"} p={{xs:1,sm:2}}>
                 <Stack width={'100%'} height={'100%'} pb={{ xs: '50px', sm: '10px' }} spacing={3} overflow={'scroll'}>
 
                     <Box width={'100%'} sx={{ display: 'flex', gap: 2 ,alignItems:'center'}}>

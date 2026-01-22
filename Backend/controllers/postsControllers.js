@@ -604,11 +604,114 @@ class Post {
 
             return returnRes(res, 200, { messages: "Removed saved post." });
         } catch (err) {
-            console.log(err);
+            // console.log(err);
             return returnRes(res, 500, { error: 'Internal Server Error!' });
         }
     }
+    // controller function to server users their interected posts.
 
+    getActivityPosts = async(req,res)=>{
+        const userId = req.id;
+        const {req_type,currPage,limit,lastFeedId } = req.query;
+        try {
+            if(req_type=='liked-posts'){
+                const result = await db.query(
+                    `SELECT 
+                        json_build_object(
+                            'id',p.id,
+                            'user_id',p.user_id,
+                            'content',p.content,
+                            'mood_tag',p.mood_tag,
+                            'media_url',p.media_url,
+                            'post_type',p.post_type,
+                            'comments_count',p.comments_count,
+                            'likes_count',(SELECT 
+                                COUNT(l2.id) 
+                                FROM likes AS l2
+                                WHERE l2.target_type='post' AND l2.target_id=p.id),
+                            'shares_count',p.shares_count,
+                            'created_at',p.created_at,
+                            'is_liked',TRUE,
+                            'is_saved',EXISTS(
+                                SELECT 1 
+                                FROM bookmarks AS b
+                                WHERE b.user_id=$1 AND b.post_id = p.id
+                            )
+                        ) AS post_data,
+                        json_build_object(  
+                            'id', u.id,
+                            'name', COALESCE(NULLIF(u.fake_name, ''), u.first_name),
+                            'username', u.lio_userid,
+                            'image', u.image
+                        ) AS user_data
+                        
+                    FROM posts AS p
+                    JOIN likes AS l
+                    ON l.target_type='post'
+                        AND l.target_id=p.id
+                    LEFT JOIN users AS u
+                    ON u.id=p.user_id
+                    WHERE l.user_id=$1
+                    ORDER BY l.id DESC
+                    `,
+                    [userId]
+                        
+                );
+                return returnRes(res, 200, { message: 'Success', postsList: result.rows });
+            }
+            else if(req_type=='saved-posts'){
+                const result = await db.query(
+                    `SELECT 
+                        json_build_object(
+                            'id',p.id,
+                            'user_id',p.user_id,
+                            'content',p.content,
+                            'mood_tag',p.mood_tag,
+                            'media_url',p.media_url,
+                            'post_type',p.post_type,
+                            'comments_count',p.comments_count,
+                            'likes_count',(SELECT 
+                                COUNT(l2.id) 
+                                FROM likes AS l2
+                                WHERE l2.target_type='post' AND l2.target_id=p.id),
+                            'shares_count',p.shares_count,
+                            'created_at',p.created_at,
+                            'is_liked',EXISTS (
+								SELECT 1
+								FROM likes AS l
+								WHERE l.target_type='post' 
+									AND l.target_id = p.id 
+									AND l.user_id=$1
+							),
+                            'is_saved',TRUE
+                        ) AS post_data,
+                        json_build_object(
+                            'id', u.id,
+                            'name', COALESCE(NULLIF(u.fake_name, ''), u.first_name),
+                            'username', u.lio_userid,
+                            'image', u.image
+                        ) AS user_data
+                        
+                    FROM posts AS p
+                    JOIN bookmarks AS b
+                    ON b.post_id=p.id
+                    LEFT JOIN users AS u
+                    ON u.id=p.user_id
+                    WHERE b.user_id=$1
+                    ORDER BY b.id DESC`,
+                    [userId]
+                        
+                );
+                return returnRes(res, 200, { message: 'Success', postsList: result.rows });
+            }
+            else{
+
+            }
+        } catch (err) {
+            // console.log(err);
+            return returnRes(res, 500, { error: 'Internal Server Error!' });
+        }
+    }
 }
 
 export default new Post();
