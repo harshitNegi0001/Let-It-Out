@@ -1,11 +1,14 @@
 import { Box, Stack, Typography } from "@mui/material";
-import { useLocation } from "react-router-dom";
+import { useState } from "react";
+import { useLocation, useParams } from "react-router-dom";
 
 
 
 function ConnectionPage() {
 
-    const { listType } = useLocation()
+    const [usersList,setUsersList] = useState([]);
+    const [isLoading,setIsLoading] = useState(false);
+    const { listType,username } = useParams();
 
 
     return (

@@ -19,6 +19,7 @@ const DeactivateAccount = lazy(()=>import('../../views/SettingsPages/DeactivateA
 const VisitProfile = lazy(()=>import('../../views/VisitProfile.jsx'));
 const SearchPage = lazy(()=>import('../../views/SearchPage.jsx'));
 const PostsActivityPage = lazy(()=>import('../../views/SettingsPages/PostsActivityPage.jsx'));
+const ConnectionPage = lazy(()=>import('../../views/ConnectionPage.jsx'));
 
 
 
@@ -68,6 +69,11 @@ export const authorizedRoutes=[
     {
         path:'/profile/:username',
         element:<VisitProfile/>,
+        needAuth:true
+    },
+    {
+        path:'/profile/:username/:list_type',
+        element:<ConnectionPage/>,
         needAuth:true
     },
     {
