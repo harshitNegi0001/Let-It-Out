@@ -4,6 +4,7 @@ import Posts from "./components/Posts";
 import Replies from "./components/Replied";
 import Bookmarked from "./components/Bookmarked";
 import { useSelector } from "react-redux";
+import { useNavigate } from "react-router-dom";
 
 function CustomPannel(props) {
     const { children, keyValue, value, ...other } = props;
@@ -21,6 +22,7 @@ function Profile() {
     const [isLoading, setIsLoading] = useState(false);
     const [value, setValue] = useState('posts');
     const { userInfo } = useSelector(state => state.auth);
+    const navigate = useNavigate();
     const handleChange = (_, newValue) => {
         setValue(newValue);
 
@@ -64,8 +66,8 @@ function Profile() {
                                         {userInfo?.bio}
                                     </Typography>
                                     <Box width={'100%'} sx={{ display: 'flex', gap: 4, pb: 2 }}>
-                                        <Button variant="text" color="secondary">{userInfo?.followers||0} Follower</Button>
-                                        <Button variant="text" color="secondary">{userInfo?.followings||0} Following</Button>
+                                        <Button variant="text" onClick={()=>navigate(`/profile/${userInfo?.username}/followers`)} color="secondary">{userInfo?.followers||0} Follower</Button>
+                                        <Button variant="text" onClick={()=>navigate(`/profile/${userInfo?.username}/followings`)} color="secondary">{userInfo?.followings||0} Following</Button>
                                     </Box>
                                 </Box>
 

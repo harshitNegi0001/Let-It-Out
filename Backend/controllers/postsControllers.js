@@ -705,7 +705,7 @@ class Post {
                 return returnRes(res, 200, { message: 'Success', postsList: result.rows });
             }
             else{
-
+return returnRes(res,400,{message:'Feature not availible'});
             }
         } catch (err) {
             // console.log(err);

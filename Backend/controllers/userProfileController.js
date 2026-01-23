@@ -162,7 +162,6 @@ class UserProfile {
                 LIMIT $2`,
                 [userFollowing, 10]
             );
-            // console.log(result.rows);
             const usersList = result.rows.map(u => {
                 return {
                     id: u.id,
@@ -219,14 +218,14 @@ class UserProfile {
                         `SELECT
                         COUNT(id)
                         FROM followers
-                        WHERE following_id = $1`,
+                        WHERE following_id = $1 AND status ='accepted'`,
                         [user.id]
                     )
                     const countFollowings = await db.query(
                         `SELECT
                         COUNT(id)
                         FROM followers
-                        WHERE follower_id = $1`,
+                        WHERE follower_id = $1 AND status ='accepted'`,
                         [user.id]
                     )
                     const followingStatus = (isFollower.rows.length > 0) ? isFollower.rows[0].status : 'not_followed'
@@ -313,10 +312,9 @@ class UserProfile {
             );
 
             searchResult.push(...fakenameSearch.rows);
-            console.log(searchResult);
             return returnRes(res, 200, { searchResults: searchResult });
         } catch (err) {
-            console.log(err);
+            // console.log(err);
             return returnRes(res, 500, { error: 'Internal Server Error!' });
 
         }

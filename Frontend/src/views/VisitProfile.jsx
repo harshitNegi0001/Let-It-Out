@@ -146,8 +146,8 @@ function VisitProfile() {
                                         {userProfileData?.bio}
                                     </Typography>
                                     <Box width={'100%'} sx={{ display: 'flex', gap: 4, pb: 2 }}>
-                                        <Button variant="text" color="secondary">{restriction?.isRestrictred ? '0' : `${userProfileData?.followers}`} Follower</Button>
-                                        <Button variant="text" color="secondary">{restriction?.isRestrictred ? '0' : `${userProfileData?.followings}`} Following</Button>
+                                        <Button variant="text" onClick={()=>{if(restriction?.isRestrictred){return;} else{navigate(`/profile/${userProfileData?.username}/followers`)}}}  color="secondary">{restriction?.isRestrictred ? '0' : `${userProfileData?.followers}`} Follower</Button>
+                                        <Button variant="text" onClick={()=>{if(restriction?.isRestrictred){return;} else{navigate(`/profile/${userProfileData?.username}/followings`)}}} color="secondary">{restriction?.isRestrictred ? '0' : `${userProfileData?.followings}`} Following</Button>
                                     </Box>
                                 </Box>
 

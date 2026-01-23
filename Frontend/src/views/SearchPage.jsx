@@ -29,14 +29,17 @@ function SearchPage() {
 
     const searchUsers = async () => {
         try {
+            setIsLoading(true);
             const result = await axios.get(
                 `${backend_url}/api/search-user?query=${query}`,
                 { withCredentials: true }
             )
             setSearchResults(result?.data?.searchResults);
+            setIsLoading(false);
 
         } catch (err) {
-            console.log(err);
+            // console.log(err);
+            setIsLoading(false);
             dispatch(setState({ error: err?.response?.data?.error || "Something went wrong." }));
         }
     }
@@ -58,7 +61,7 @@ function SearchPage() {
                         <Box width={'100%'} p={1} height={'45px'} sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-evenly', borderRadius: 1 }} bgcolor={'primary.light'}>
 
 
-                            <InputBase value={searchValue} onChange={(e) => setSearchValue(e.target.value)} variant='outlined' size="small" sx={{ width: 'calc(100% - 100px)' }} placeholder="Search user..." />
+                            <InputBase value={searchValue} onChange={(e) => setSearchValue(e.target.value)} variant='outlined' size="small" sx={{ width: 'calc(100% - 100px)' }} placeholder="Search user..." autoComplete="Search-users"/>
                             <Divider orientation='vertical' />
                             <IconButton type='submit' size="small">
                                 <SearchButtonIcon />
@@ -69,14 +72,14 @@ function SearchPage() {
                 <Divider sx={{ width: '100%' }} />
                 {query&&<Box width={'100%'} sx={{ display: 'flex', flexDirection: 'column', alignItems: 'start', gap: 1 }}>
                     <Typography width={'100%'} textAlign={'start'} variant="body1" color="#fff" fontSize={{ xs: '20px', sm: '26px' }} fontWeight={'400'}>
-                        Search Results
+                        {isLoading?'Searching...':'Search Results'}
                     </Typography>
                     <Typography width={'100%'} textAlign={'start'} variant="body2" color="text.secondary" fontSize={{ xs: '10px', sm: '14px' }} fontWeight={'300'}>
-                        {`Showing results for : "${query}"`}
+                        {isLoading?'':`Showing results for : "${query}"`}
 
                     </Typography>
                     <Typography width={'100%'} textAlign={'start'} variant="body2" color="text.secondary" fontSize={{ xs: '10px', sm: '14px' }} fontWeight={'300'}>
-                        {`About ${searchResults?.length} results found`}
+                        {isLoading?'':`About ${searchResults?.length} results found`}
 
                     </Typography>
 

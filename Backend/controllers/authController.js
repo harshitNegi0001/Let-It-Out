@@ -165,14 +165,14 @@ class Auth {
         `SELECT
         COUNT(id)
         FROM followers
-        WHERE following_id = $1`,
+        WHERE following_id = $1 AND status ='accepted'`,
         [userId]
       )
       const countFollowings = await db.query(
         `SELECT
         COUNT(id)
         FROM followers
-        WHERE follower_id = $1`,
+        WHERE follower_id = $1 AND status ='accepted'`,
         [userId]
       )
       const user =result.rows[0];
