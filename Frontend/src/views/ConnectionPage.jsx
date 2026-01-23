@@ -6,6 +6,31 @@ import axios from 'axios';
 import { useDispatch, useSelector } from 'react-redux';
 import { setState } from "../store/authReducer/authReducer";
 
+const RestrectedPostHandler = {
+    'PRIVATE_ACCOUNT': {
+        image: 'https://res.cloudinary.com/dns5lxuvy/image/upload/v1767880329/ffaril9idaw7ln5xqsyg.png',
+        headingMsg: 'This account is Private',
+        detailMsg: 'Follow this account to see their informations.',
+
+    },
+    'DEACTIVATED_ACCOUNT': {
+        image: 'https://res.cloudinary.com/dns5lxuvy/image/upload/v1767884508/nd3lir2au0iijzpxv4wk.png',
+        headingMsg: 'This account has been Temporarily Deactivated',
+        detailMsg: 'This account has been temporarily deactivated by the user, it will restored when the user logs back in.',
+
+    },
+    'SUSPENDED_ACCOUNT': {
+        image: 'https://res.cloudinary.com/dns5lxuvy/image/upload/v1767883872/ugawmofhb7scnu4mozws.png',
+        headingMsg: 'This account has been Suspended',
+        detailMsg: 'This account has been Suspended. this could due to violation of our Community Guildlines or other Policies.',
+
+    },
+    'USER_NOT_FOUND': {
+        image: 'https://res.cloudinary.com/dns5lxuvy/image/upload/v1768114434/nbbj6vdpb8rahvsejoiz.png',
+        headingMsg: 'User Not Found',
+        detailMsg: 'There is no user exists with this username'
+    }
+}
 
 function ConnectionPage() {
 
@@ -21,7 +46,7 @@ function ConnectionPage() {
         isRestricted: false,
         reason: ''
 
-    })
+    });
     const { userInfo } = useSelector(state => state.auth);
     const backend_url = import.meta.env.VITE_BACKEND_URL;
     const navigate = useNavigate();
@@ -90,7 +115,7 @@ function ConnectionPage() {
                                     {basicDetail?.name}
                                 </Typography>
                                     <Typography variant="body2" width={'100%'} noWrap textOverflow={'ellipsis'} fontSize={{ xs: '12px', sm: '15px' }} color="text.secondary" >
-                                        @{username}
+                                        @{basicDetail?.username}
                                     </Typography></>}
                         </Box>
 
@@ -111,75 +136,90 @@ function ConnectionPage() {
 
 
                 </Box>
+                {(restriction?.isRestricted) ?
+                    <Box width={'100%'} py={4} sx={{ display: 'flex', flexDirection: 'column', gap: 1, alignItems: 'center' }}>
+                        <Box width={'90%'} maxWidth={{ xs: "200px", sm: '330px' }} >
+                            <img src={RestrectedPostHandler[restriction.reason]?.image} style={{ width: '100%', objectFit: 'contain' }} alt="" />
 
-                {
-                    reqestList.length > 0 && <Box width={'100%'} sx={{ display: 'flex', flexDirection: 'column', gap: 1 }} pt={2} >
-                        <Typography variant="body1" >
-                            Following Requests
+                        </Box>
+                        <Typography variant="body1" fontSize={{ xs: '18px', sm: '26px' }} fontWeight={600} color="#fff" textAlign={'center'} >
+                            {RestrectedPostHandler[restriction.reason]?.headingMsg}
                         </Typography>
-                        {
-                            reqestList.map(u =>
-                                <Box width={'100%'} key={u.key} p={1} onClick={() => navigate(`/profile/${u.username}`)} sx={{ display: 'flex', gap: 1, '&:hover': { bgcolor: '#10151f38' }, '&:active': { bgcolor: '#1f2c4938', transition: 'all 100ms', transform: 'scale(0.99)' }, borderRadius: 3 }} >
-                                    <Box height={{ xs: '55px', sm: '65px' }} sx={{ aspectRatio: 1 }}  >
-                                        <Avatar sx={{ width: '100%', height: '100%' }}>
-                                            {u.image && <img src={u.image} style={{ width: '100%', height: '100%', borderRadius: '50%', objectFit: 'cover' }} alt="" />}
-                                        </Avatar>
-                                    </Box>
-                                    <Box width={'calc(100% - 80px)'} sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
-                                        <Box width={'100%'} sx={{ display: 'flex', flexDirection: 'column' }}>
-                                            <Typography variant="body1" width={'100%'} textAlign={'start'} noWrap textOverflow={'ellipsis'} fontSize={{ xs: '14px', sm: '18px' }} >
-                                                {u.name}
-                                            </Typography>
-                                            <Typography variant="body1" width={'100%'} textAlign={'start'} color="text.secondary" noWrap textOverflow={'ellipsis'} fontSize={{ xs: '10px', sm: '14px' }} >
-                                                @{u.username}
-                                            </Typography>
-                                        </Box>
-                                        <Box width={'100%'} maxWidth={{ xs: '240px', sm: '370px' }} sx={{ display: 'flex', justifyContent: 'start', gap: 2 }}>
-                                            <Button variant="contained" sx={{ textTransform: 'none', height: '25px' }} color="secondary" size="small">
-                                                Accept
-                                            </Button>
-                                            <Button variant="contained" sx={{ textTransform: 'none', height: '25px' }} color="error" size="small">
-                                                Reject
-                                            </Button>
-                                        </Box>
-                                    </Box>
-                                </Box>
-                            )
-                        }
-                    </Box>
-                }
-                {
-                    usersList.length > 0 && <Box width={'100%'} sx={{ display: 'flex', flexDirection: 'column', gap: 1 }} pt={2} >
-                        <Typography variant="body1" >
-                            All {`${list_type}`}
+                        <Typography variant="body2" fontSize={{ xs: '13px', sm: '16px' }} color="text.primary" textAlign={'center'}>
+                            {RestrectedPostHandler[restriction.reason].detailMsg}
                         </Typography>
-                        {
-                            usersList.map(u =>
-                                <Box key={u.id} width={'100%'} p={'4px'} height={{ xs: '60px', sm: '70px' }} onClick={() => navigate(`/profile/${u.username}`)} sx={{ display: 'flex', gap: 1, alignItems: 'center', '&:hover': { bgcolor: '#10151f38' }, '&:active': { bgcolor: '#1f2c4938', transition: 'all 100ms', transform: 'scale(0.99)' }, borderRadius: 3 }} >
-                                    <Box height={'100%'} sx={{ aspectRatio: 1 }} >
-                                        <Avatar sx={{ width: '100%', height: '100%' }}>
-                                            {u.image && <img src={u.image} style={{ width: '100%', height: '100%', borderRadius: '50%', objectFit: 'cover' }} alt="" />}
-                                        </Avatar>
-
-                                    </Box>
-                                    <Box width={{ xs: 'calc(100% - 140px)', sm: 'calc(100% - 160px)' }} sx={{ display: 'flex', flexDirection: 'column' }}>
-                                        <Typography variant="body1" width={'100%'} textAlign={'start'} noWrap color="#fff" textOverflow={'ellipsis'} fontSize={{ xs: '14px', sm: '18px' }} >
-                                            {u.name}
-                                        </Typography>
-                                        <Typography variant="body1" width={'100%'} textAlign={'start'} color="text.secondary" noWrap textOverflow={'ellipsis'} fontSize={{ xs: '10px', sm: '14px' }} >
-                                            @{u.username}
-                                        </Typography>
-                                        {u.bio && <Typography variant="body1" width={'100%'} textAlign={'start'} color="text.secondary" noWrap textOverflow={'ellipsis'} fontSize={{ xs: '10px', sm: '14px' }} >
-                                            {u.bio}
-                                        </Typography>}
-                                    </Box>
-                                    {(userInfo.username != u.username) && <Button variant={`${(u.followingstatus == 'accepted' || u.followingstatus == 'pending') ? 'outlined' : 'contained'}`} size="small" sx={{ fontSize: { xs: '10px', sm: '14px' }, textTransform: 'none', width: { xs: '70px', sm: '90px' } }} color="secondary">{(!u.followingstatus) ? 'Follow' : (u.followingstatus == 'accepted') ? 'following' : 'requested'}</Button>}
-                                </Box>
-                            )
-                        }
 
                     </Box>
-                }
+
+                    : <>
+                        {
+                            reqestList.length > 0 && <Box width={'100%'} sx={{ display: 'flex', flexDirection: 'column', gap: 1 }} pt={2} >
+                                <Typography variant="body1" >
+                                    Following Requests
+                                </Typography>
+                                {
+                                    reqestList.map(u =>
+                                        <Box width={'100%'} key={u.key} p={1} onClick={() => navigate(`/profile/${u.username}`)} sx={{ display: 'flex', gap: 1, '&:hover': { bgcolor: '#10151f38' }, '&:active': { bgcolor: '#1f2c4938', transition: 'all 100ms', transform: 'scale(0.99)' }, borderRadius: 3 }} >
+                                            <Box height={{ xs: '55px', sm: '65px' }} sx={{ aspectRatio: 1 }}  >
+                                                <Avatar sx={{ width: '100%', height: '100%' }}>
+                                                    {u.image && <img src={u.image} style={{ width: '100%', height: '100%', borderRadius: '50%', objectFit: 'cover' }} alt="" />}
+                                                </Avatar>
+                                            </Box>
+                                            <Box width={'calc(100% - 80px)'} sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
+                                                <Box width={'100%'} sx={{ display: 'flex', flexDirection: 'column' }}>
+                                                    <Typography variant="body1" width={'100%'} textAlign={'start'} noWrap textOverflow={'ellipsis'} fontSize={{ xs: '14px', sm: '18px' }} >
+                                                        {u.name}
+                                                    </Typography>
+                                                    <Typography variant="body1" width={'100%'} textAlign={'start'} color="text.secondary" noWrap textOverflow={'ellipsis'} fontSize={{ xs: '10px', sm: '14px' }} >
+                                                        @{u.username}
+                                                    </Typography>
+                                                </Box>
+                                                <Box width={'100%'} maxWidth={{ xs: '240px', sm: '370px' }} sx={{ display: 'flex', justifyContent: 'start', gap: 2 }}>
+                                                    <Button variant="contained" sx={{ textTransform: 'none', height: '25px' }} color="secondary" size="small">
+                                                        Accept
+                                                    </Button>
+                                                    <Button variant="contained" sx={{ textTransform: 'none', height: '25px' }} color="error" size="small">
+                                                        Reject
+                                                    </Button>
+                                                </Box>
+                                            </Box>
+                                        </Box>
+                                    )
+                                }
+                            </Box>
+                        }
+                        {
+                            usersList.length > 0 && <Box width={'100%'} sx={{ display: 'flex', flexDirection: 'column', gap: 1 }} pt={2} >
+                                <Typography variant="body1" >
+                                    All {`${list_type}`}
+                                </Typography>
+                                {
+                                    usersList.map(u =>
+                                        <Box key={u.id} width={'100%'} p={'4px'} height={{ xs: '60px', sm: '70px' }} onClick={() => navigate(`/profile/${u.username}`)} sx={{ display: 'flex', gap: 1, alignItems: 'center', '&:hover': { bgcolor: '#10151f38' }, '&:active': { bgcolor: '#1f2c4938', transition: 'all 100ms', transform: 'scale(0.99)' }, borderRadius: 3 }} >
+                                            <Box height={'100%'} sx={{ aspectRatio: 1 }} >
+                                                <Avatar sx={{ width: '100%', height: '100%' }}>
+                                                    {u.image && <img src={u.image} style={{ width: '100%', height: '100%', borderRadius: '50%', objectFit: 'cover' }} alt="" />}
+                                                </Avatar>
+
+                                            </Box>
+                                            <Box width={{ xs: 'calc(100% - 140px)', sm: 'calc(100% - 160px)' }} sx={{ display: 'flex', flexDirection: 'column' }}>
+                                                <Typography variant="body1" width={'100%'} textAlign={'start'} noWrap color="#fff" textOverflow={'ellipsis'} fontSize={{ xs: '14px', sm: '18px' }} >
+                                                    {u.name}
+                                                </Typography>
+                                                <Typography variant="body1" width={'100%'} textAlign={'start'} color="text.secondary" noWrap textOverflow={'ellipsis'} fontSize={{ xs: '10px', sm: '14px' }} >
+                                                    @{u.username}
+                                                </Typography>
+                                                {u.bio && <Typography variant="body1" width={'100%'} textAlign={'start'} color="text.secondary" noWrap textOverflow={'ellipsis'} fontSize={{ xs: '10px', sm: '14px' }} >
+                                                    {u.bio}
+                                                </Typography>}
+                                            </Box>
+                                            {(userInfo.username != u.username) && <Button variant={`${(u.followingstatus == 'accepted' || u.followingstatus == 'pending') ? 'outlined' : 'contained'}`} size="small" sx={{ fontSize: { xs: '10px', sm: '14px' }, textTransform: 'none', width: { xs: '70px', sm: '90px' } }} color="secondary">{(!u.followingstatus) ? 'Follow' : (u.followingstatus == 'accepted') ? 'following' : 'requested'}</Button>}
+                                        </Box>
+                                    )
+                                }
+
+                            </Box>
+                        }</>}
 
             </Stack>
         </>
