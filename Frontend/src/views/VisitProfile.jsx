@@ -27,7 +27,7 @@ function VisitProfile() {
 
     const [userProfileData, setUserProfileData] = useState(null);
     const [restriction, setRestriction] = useState({
-        isRestrictred: false,
+        isRestricted: false,
         reason: '',
         message: ''
 
@@ -45,7 +45,7 @@ function VisitProfile() {
 
     useEffect(() => {
         if (username) {
-            if (username == userInfo.lio_userid) {
+            if (username == userInfo.username) {
                 navigate('/profile');
             }
             getUserProfileData();
@@ -121,7 +121,7 @@ function VisitProfile() {
                     </Box>
                 </Box>
                 <Box width={'100%'} p={1} pt={{ xs: '60px', sm: '100px', display: 'flex', flexDirection: "column", gap: 2 }} position={'relative'}>
-                    {!isLoading && !restriction?.isRestrictred && <Box height={'50px'} position={'absolute'} sx={{ top: 8, right: 8, display: 'flex', gap: 1, alignItems: "center" }}>
+                    {!isLoading && !restriction?.isRestricted && <Box height={'50px'} position={'absolute'} sx={{ top: 8, right: 8, display: 'flex', gap: 1, alignItems: "center" }}>
                         <IconButton onClick={() => navigate(`/chats/${userProfileData.username}`, { state: { userData: userProfileData | {} } })}>
                             <SmsOutlinedIcon />
                         </IconButton>
@@ -146,8 +146,8 @@ function VisitProfile() {
                                         {userProfileData?.bio}
                                     </Typography>
                                     <Box width={'100%'} sx={{ display: 'flex', gap: 4, pb: 2 }}>
-                                        <Button variant="text" onClick={()=>{if(restriction?.isRestrictred){return;} else{navigate(`/profile/${userProfileData?.username}/followers`)}}}  color="secondary">{restriction?.isRestrictred ? '0' : `${userProfileData?.followers}`} Follower</Button>
-                                        <Button variant="text" onClick={()=>{if(restriction?.isRestrictred){return;} else{navigate(`/profile/${userProfileData?.username}/followings`)}}} color="secondary">{restriction?.isRestrictred ? '0' : `${userProfileData?.followings}`} Following</Button>
+                                        <Button variant="text" onClick={()=>{if(restriction?.isRestricted){return;} else{navigate(`/profile/${userProfileData?.username}/followers`)}}}  color="secondary">{restriction?.isRestricted ? '0' : `${userProfileData?.followers}`} Follower</Button>
+                                        <Button variant="text" onClick={()=>{if(restriction?.isRestricted){return;} else{navigate(`/profile/${userProfileData?.username}/followings`)}}} color="secondary">{restriction?.isRestricted ? '0' : `${userProfileData?.followings}`} Following</Button>
                                     </Box>
                                 </Box>
 

@@ -1,9 +1,9 @@
-import { Box, Button, Divider, IconButton, Skeleton, Stack, Typography } from "@mui/material";
+import { Avatar, Box, Button, Divider, IconButton, Skeleton, Stack, Typography } from "@mui/material";
 import { useEffect, useState } from "react";
 import { useLocation, useNavigate, useParams } from "react-router-dom";
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import axios from 'axios';
-import { useDispatch } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
 import { setState } from "../store/authReducer/authReducer";
 
 
@@ -17,6 +17,12 @@ function ConnectionPage() {
         name: '',
         username: ''
     });
+    const [restriction, setRestriction] = useState({
+        isRestricted: false,
+        reason: ''
+
+    })
+    const { userInfo } = useSelector(state => state.auth);
     const backend_url = import.meta.env.VITE_BACKEND_URL;
     const navigate = useNavigate();
     const dispatch = useDispatch();
@@ -41,20 +47,22 @@ function ConnectionPage() {
                     withCredentials: true
                 }
             );
-
-            if(result?.data?.restriction){
+            setIsLoading(false);
+            if (result?.data?.restriction) {
+                setRestriction(result?.data?.restriction)
                 return;
             }
-            if(result?.data?.basicDetail){
+            if (result?.data?.basicDetail) {
+
                 setBasicDetail(result.data.basicDetail);
             }
-            if(result?.data?.requests_list){
+            if (result?.data?.requests_list) {
                 setRequestList(result.data.requests_list);
             }
-
+            console.log(result?.data?.user_list)
             setUsersList(result?.data?.user_list);
-            setIsLoading(false);
-            
+
+
         } catch (err) {
             // console.log(err);
             setIsLoading(false);
@@ -110,18 +118,20 @@ function ConnectionPage() {
                             Following Requests
                         </Typography>
                         {
-                            reqestList.map(i =>
-                                <Box width={'100%'} key={i} p={1} sx={{ display: 'flex', gap: 1, bgcolor: '#05236438', borderRadius: 3 }} >
+                            reqestList.map(u =>
+                                <Box width={'100%'} key={u.key} p={1} onClick={() => navigate(`/profile/${u.username}`)} sx={{ display: 'flex', gap: 1, '&:hover': { bgcolor: '#10151f38' }, '&:active': { bgcolor: '#1f2c4938', transition: 'all 100ms', transform: 'scale(0.99)' }, borderRadius: 3 }} >
                                     <Box height={{ xs: '55px', sm: '65px' }} sx={{ aspectRatio: 1 }}  >
-                                        <img src={basicDetail?.image} style={{ width: '100%', height: '100%', borderRadius: '50%', objectFit: 'cover' }} alt="" />
+                                        <Avatar sx={{ width: '100%', height: '100%' }}>
+                                            {u.image && <img src={u.image} style={{ width: '100%', height: '100%', borderRadius: '50%', objectFit: 'cover' }} alt="" />}
+                                        </Avatar>
                                     </Box>
                                     <Box width={'calc(100% - 80px)'} sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
                                         <Box width={'100%'} sx={{ display: 'flex', flexDirection: 'column' }}>
                                             <Typography variant="body1" width={'100%'} textAlign={'start'} noWrap textOverflow={'ellipsis'} fontSize={{ xs: '14px', sm: '18px' }} >
-                                                {basicDetail?.name}
+                                                {u.name}
                                             </Typography>
                                             <Typography variant="body1" width={'100%'} textAlign={'start'} color="text.secondary" noWrap textOverflow={'ellipsis'} fontSize={{ xs: '10px', sm: '14px' }} >
-                                                @{basicDetail?.username}
+                                                @{u.username}
                                             </Typography>
                                         </Box>
                                         <Box width={'100%'} maxWidth={{ xs: '240px', sm: '370px' }} sx={{ display: 'flex', justifyContent: 'start', gap: 2 }}>
@@ -144,20 +154,26 @@ function ConnectionPage() {
                             All {`${list_type}`}
                         </Typography>
                         {
-                            usersList.map(i =>
-                                <Box width={'100%'} p={'4px'} height={{ xs: '60px', sm: '70px' }} onClick={() => navigate(`/profile/${username}`)} sx={{ display: 'flex', gap: 1, alignItems: 'center', '&:hover': { bgcolor: '#10151f38' }, '&:active': { bgcolor: '#1f2c4938', transition: 'all 100ms', transform: 'scale(0.99)' }, borderRadius: 3 }} >
+                            usersList.map(u =>
+                                <Box key={u.id} width={'100%'} p={'4px'} height={{ xs: '60px', sm: '70px' }} onClick={() => navigate(`/profile/${u.username}`)} sx={{ display: 'flex', gap: 1, alignItems: 'center', '&:hover': { bgcolor: '#10151f38' }, '&:active': { bgcolor: '#1f2c4938', transition: 'all 100ms', transform: 'scale(0.99)' }, borderRadius: 3 }} >
                                     <Box height={'100%'} sx={{ aspectRatio: 1 }} >
-                                        <img src={basicDetail?.image} style={{ width: '100%', height: '100%', borderRadius: '50%', objectFit: 'cover' }} alt="" />
+                                        <Avatar sx={{ width: '100%', height: '100%' }}>
+                                            {u.image && <img src={u.image} style={{ width: '100%', height: '100%', borderRadius: '50%', objectFit: 'cover' }} alt="" />}
+                                        </Avatar>
+
                                     </Box>
                                     <Box width={{ xs: 'calc(100% - 140px)', sm: 'calc(100% - 160px)' }} sx={{ display: 'flex', flexDirection: 'column' }}>
-                                        <Typography variant="body1" width={'100%'} textAlign={'start'} noWrap textOverflow={'ellipsis'} fontSize={{ xs: '14px', sm: '18px' }} >
-                                            Harshit
+                                        <Typography variant="body1" width={'100%'} textAlign={'start'} noWrap color="#fff" textOverflow={'ellipsis'} fontSize={{ xs: '14px', sm: '18px' }} >
+                                            {u.name}
                                         </Typography>
                                         <Typography variant="body1" width={'100%'} textAlign={'start'} color="text.secondary" noWrap textOverflow={'ellipsis'} fontSize={{ xs: '10px', sm: '14px' }} >
-                                            @Harshit
+                                            @{u.username}
                                         </Typography>
+                                        {u.bio && <Typography variant="body1" width={'100%'} textAlign={'start'} color="text.secondary" noWrap textOverflow={'ellipsis'} fontSize={{ xs: '10px', sm: '14px' }} >
+                                            {u.bio}
+                                        </Typography>}
                                     </Box>
-                                    <Button variant="outlined" size="small" sx={{ fontSize: { xs: '10px', sm: '14px' }, textTransform: 'none', width: { xs: '70px', sm: '90px' } }} color="secondary">Requested</Button>
+                                    {(userInfo.username != u.username) && <Button variant={`${(u.followingstatus == 'accepted' || u.followingstatus == 'pending') ? 'outlined' : 'contained'}`} size="small" sx={{ fontSize: { xs: '10px', sm: '14px' }, textTransform: 'none', width: { xs: '70px', sm: '90px' } }} color="secondary">{(!u.followingstatus) ? 'Follow' : (u.followingstatus == 'accepted') ? 'following' : 'requested'}</Button>}
                                 </Box>
                             )
                         }

@@ -255,7 +255,7 @@ class UserProfile {
                     return returnRes(res, 200, {
                         userDetail: filtered_info,
                         restriction: {
-                            isRestrictred: true,
+                            isRestricted: true,
                             reason: (user.acc_status == 'deactive') ? 'DEACTIVATED_ACCOUNT' : 'SUSPENDED_ACCOUNT',
                             message: (user.acc_status == 'deactive') ? 'This user has been deactivated this account' : 'This user has been suspended.'
                         }

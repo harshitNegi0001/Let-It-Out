@@ -64,8 +64,7 @@ class Followers {
                 `SELECT
                     id,
                     lio_userid as username,
-                    fake_name,
-                    first_name,
+                    COALESCE(NULLIF(fake_name, ''), first_name) AS name,
                     acc_type,
                     acc_status
                 FROM users
@@ -105,7 +104,7 @@ class Followers {
                     1
                 FROM followers
                 WHERE follower_id=$1
-                    AND following_is=$2
+                    AND following_id=$2
                     AND status ='accepted'
                 `,
                 [visitorId, userId]
@@ -164,21 +163,21 @@ class Followers {
                                 SELECT 
                                     status
                                 FROM followers AS f2
-                                WHERE f2.follower_id =4
+                                WHERE f2.follower_id =$1
                                     AND f2.following_id =u.id
                             ) AS followingStatus,
                             EXISTS (
                                 SELECT 1
                                 FROM followers AS f3
                                 WHERE f3.follower_id = u.id
-                                    AND f3.following_id =4
+                                    AND f3.following_id =$1
 									AND f3.status='accepted'
                             ) AS isFollower
 
                         FROM followers AS f
                         JOIN users AS u
                         ON u.id = f.follower_id
-                        WHERE f.following_id = 2
+                        WHERE f.following_id = $2
                             AND f.status = 'accepted'
                         `,
                         [visitorId, userId]
@@ -229,7 +228,7 @@ class Followers {
 
 
         } catch (err) {
-            // console.log(err);
+            console.log(err);
             return returnRes(res, 500, { error: 'Internal Server Error!' });
 
         }
