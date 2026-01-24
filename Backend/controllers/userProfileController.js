@@ -52,8 +52,8 @@ class UserProfile {
             const dob = userBasicDetail?.dob || null;
 
             await db.query(`UPDATE users SET fake_name=$1, dob=$2, bio=$3, image=$4, bg_image=$5 WHERE id=$6`, [userBasicDetail?.fake_name, dob, userBasicDetail?.bio, profileImage, coverImage, userId]);
-            
-            const userInfo =await Auth.getUserDetail(userId);
+
+            const userInfo = await Auth.getUserDetail(userId);
 
             return returnRes(res, 200, { message: "SuccessFull", userInfo });
         } catch (err) {
@@ -183,7 +183,7 @@ class UserProfile {
 
     getProfileData = async (req, res) => {
         try {
-            const visiterId = req.id;
+            const visitorId = req.id;
             // store visiter
             const { username } = req.query;
 
@@ -203,7 +203,6 @@ class UserProfile {
                 , [username]
             );
 
-            // you are follower or not check here.
 
             // if deactive than don't sent image , name, bg image,bio,
             if (result.rows.length > 0) {
@@ -212,7 +211,7 @@ class UserProfile {
                     const isFollower = await db.query(
                         `SELECT status FROM followers
                         WHERE follower_id = $1 AND following_id =$2`,
-                        [visiterId, user.id]
+                        [visitorId, user.id]
                     );
                     const countFollowers = await db.query(
                         `SELECT
@@ -228,6 +227,7 @@ class UserProfile {
                         WHERE follower_id = $1 AND status ='accepted'`,
                         [user.id]
                     )
+
                     const followingStatus = (isFollower.rows.length > 0) ? isFollower.rows[0].status : 'not_followed'
                     const filtered_info = {
                         id: user.id,
@@ -242,7 +242,16 @@ class UserProfile {
                         followers: countFollowers.rows[0].count,
                         followings: countFollowings.rows[0].count
                     }
-
+                    if (visitorId != user.id) {
+                        await db.query(
+                            `
+                            INSERT INTO visitors (user_id, visitor_id)
+                            VALUES ($1, $2)
+                            ON CONFLICT (user_id, visitor_id, visited_date)
+                            DO NOTHING;
+                            `,[user.id,visitorId]
+                        )
+                    }
                     return returnRes(res, 200, { message: 'User Info fetched', userDetail: filtered_info });
                 }
                 else {
@@ -268,7 +277,7 @@ class UserProfile {
 
 
         } catch (err) {
-            // console.log(err);
+            console.log(err);
             return returnRes(res, 500, { error: 'Internal Server Error!' });
         }
     }
@@ -317,6 +326,57 @@ class UserProfile {
             // console.log(err);
             return returnRes(res, 500, { error: 'Internal Server Error!' });
 
+        }
+    }
+
+    // controller function to get profile visitor.
+    getProfileVisitor = async(req,res)=>{
+        const userId = req.id;
+        try {
+            const result = await db.query(
+                `SELECT 
+ 					v.visited_date AS visited_date,
+                    json_agg(
+						json_build_object(
+							'id',v.id ,
+							'user_info',
+                    		json_build_object(
+                        		'id',u.id,
+                        		'name',COALESCE(NULLIF(u.fake_name, ''), u.first_name),
+                        		'image',u.image,
+                        		'username',u.lio_userid,
+                        		'bio',u.bio,
+                        		'following_status',(
+                            		SELECT f.status 
+                            		FROM followers AS f
+                            		WHERE f.follower_id =$1
+                                	AND f.following_id = u.id
+                        		),
+                        		'is_follower',EXISTS(
+                            		SELECT 1
+                            		FROM followers AS f2
+                            		WHERE f2.follower_id =u.id
+                                		AND f2.following_id = $1
+                                		AND f2.status='accepted'
+                           			)
+                    		) ,
+                    		'visited_data',v.visited_date ,
+                    		'created_at',v.created_at
+						)
+					) AS users_list
+                FROM visitors AS v
+                JOIN users AS u
+                ON u.id = v.visitor_id
+                WHERE v.user_id = $1
+				GROUP BY v.visited_date
+                ORDER BY v.visited_date DESC`,
+                [userId]
+            );
+            return returnRes(res,200,{message:'visitors list fetched',visitorsList:result.rows});
+
+        } catch (err) {
+            // console.log(err);
+            return returnRes(res, 500, { error: 'Internal Server Error!' });
         }
     }
 }

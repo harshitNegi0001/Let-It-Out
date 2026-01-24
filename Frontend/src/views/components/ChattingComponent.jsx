@@ -12,6 +12,7 @@ import { useDispatch, useSelector } from "react-redux";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
 import { setState } from "../../store/authReducer/authReducer";
+import { formatDate,formatTime } from "../../utils/formatDateTime";
 
 function TypingDots() {
     return (
@@ -59,54 +60,11 @@ function ChattingComponent({ username, getChatlist }) {
     const navigate = useNavigate();
     const dispatch = useDispatch();
 
-    const formatChatDate = (dateStr) => {
-        if (!dateStr) return '';
-
-        // Normalize to YYYY-MM-DD
-        const dateOnly = dateStr.split('T')[0];
-
-        const today = new Date();
-        const todayStr = [
-            today.getFullYear(),
-            String(today.getMonth() + 1).padStart(2, '0'),
-            String(today.getDate()).padStart(2, '0'),
-        ].join('-');
-
-        const yesterday = new Date();
-        yesterday.setDate(yesterday.getDate() - 1);
-        const yesterdayStr = [
-            yesterday.getFullYear(),
-            String(yesterday.getMonth() + 1).padStart(2, '0'),
-            String(yesterday.getDate()).padStart(2, '0'),
-        ].join('-');
-
-        if (dateOnly === todayStr) return 'Today';
-        if (dateOnly === yesterdayStr) return 'Yesterday';
-
-        const [y, m, d] = dateOnly.split('-').map(Number);
-
-        return new Date(y, m - 1, d).toLocaleDateString('en-US', {
-            month: 'long',
-            day: 'numeric',
-            year: 'numeric',
-        });
-    };
+    
 
 
 
-    const formatTime = (dateStr) => {
-        if (!dateStr) return '';
-
-        // remove microseconds + force UTC
-        const cleaned = dateStr.split('.')[0] + 'Z';
-        const date = new Date(cleaned);
-
-        return date.toLocaleTimeString('en-US', {
-            hour: 'numeric',
-            minute: '2-digit',
-            hour12: true,
-        }).toLowerCase();
-    };
+    
 
     useEffect(() => {
         if (username) {
@@ -265,7 +223,7 @@ function ChattingComponent({ username, getChatlist }) {
 
                         {!isLoading && messagesList?.map((m, i) => <Stack key={i} width={'100%'} spacing={2}>
                             <Box width={'100%'} pt={1} sx={{ display: 'flex', justifyContent: 'center' }}>
-                                <Chip label={formatChatDate(m.message_date)} size="small" />
+                                <Chip label={formatDate(m.message_date)} size="small" />
                             </Box>
 
                             {m?.messages?.map(msg => <Box key={msg.id} width={'100%'} sx={{ display: 'flex', justifyContent: `${(msg.receiver_id == userInfo.id) ? 'start' : 'end'}`, px: '8px' }}>

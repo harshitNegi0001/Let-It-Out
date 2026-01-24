@@ -10,7 +10,7 @@ class Post {
         const userId = req.id;
 
         try {
-            const { content = "", post_type, mood = "unsure" } = req.body;
+            const { content = "", post_type, mood  } = req.body;
             const files = req.files || [];
 
             if (!content.trim() && files.length === 0) {

@@ -5,6 +5,6 @@ const router = express.Router();
 
 router.post('/req-follow',authMiddleware,Followers.requestToFollow);
 
-router.get('/get-connection-list',authMiddleware,Followers.getConnectivityList)
+router.get('/get-connection-list',authMiddleware,Followers.getConnectivityList);
 
 export default router;

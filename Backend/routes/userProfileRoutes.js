@@ -16,5 +16,6 @@ router.post('/check-username',authMiddleware,UserProfile.checkUsername);
 router.get('/get-new-users',authMiddleware,UserProfile.getNewUsers);
 router.get('/get-profile-data',authMiddleware,UserProfile.getProfileData);
 router.get('/search-user',authMiddleware,UserProfile.searchUsers);
+router.get('/get-profile-visitor',authMiddleware,UserProfile.getProfileVisitor);
 
 export default router;
