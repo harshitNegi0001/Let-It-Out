@@ -95,7 +95,7 @@ function ConfirmBox({ setUserPost, userPost }) {
             const result = await axios.post(`${backend_url}/api/block-user`,
                 {
                     blocked_id: confirmComponent.payload,
-                    operation:'block'
+                    operation: 'block'
                 },
                 {
                     withCredentials: true,
@@ -104,12 +104,12 @@ function ConfirmBox({ setUserPost, userPost }) {
                     }
                 }
             );
-            const filteredPost = userPost.filter(p => p.id != confirmComponent.payload && p?.post_data?.id != confirmComponent.payload);
+            const filteredPost = userPost.filter(p => p.user_id != confirmComponent.payload && p?.user_data?.id != confirmComponent.payload);
             setUserPost([...filteredPost]);
             setIsLoading(false);
             handleCancleConfirmation();
 
-            dispatch(setState({ success: 'User has been blocked. \nYou will not see the posts.' }));
+            dispatch(setState({ success: 'User has been blocked. \nYou will not see the posts from this user.' }));
         } catch (err) {
             setIsLoading(false);
             dispatch(setState({ error: err?.response?.data?.error || "Internal Server Error!" }));

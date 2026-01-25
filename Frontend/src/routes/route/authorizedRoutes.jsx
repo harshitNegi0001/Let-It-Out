@@ -21,6 +21,7 @@ const SearchPage = lazy(()=>import('../../views/SearchPage.jsx'));
 const PostsActivityPage = lazy(()=>import('../../views/SettingsPages/PostsActivityPage.jsx'));
 const ConnectionPage = lazy(()=>import('../../views/ConnectionPage.jsx'));
 const VisibilityPage = lazy(()=>import('../../views/SettingsPages/VisibilityPage.jsx'));
+const BlockedUsers = lazy(()=>import('../../views/SettingsPages/BlockedUsers.jsx'));
 
 
 
@@ -98,8 +99,13 @@ export const authorizedRoutes=[
         needAuth:true
     },
     {
-        path:'/settings/connections/:req_type',
+        path:'/settings/connections/account-visitors',
         element:<VisibilityPage/>,
+        needAuth:true
+    },
+    {
+        path:'/settings/connections/blocked',
+        element:<BlockedUsers/>,
         needAuth:true
     },
     {

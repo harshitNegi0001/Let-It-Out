@@ -12,7 +12,7 @@ class Block {
                 u.id AS user_id,
                 u.lio_userid AS username,
                 u.image AS image,
-                COALESCE(NULLIF(u.fake_name, ''), u.first_name)
+                COALESCE(NULLIF(u.fake_name, ''), u.first_name) AS name
                 FROM blocked_accounts AS b
                 JOIN users AS u
                 ON u.id = b.blocked_id
@@ -66,7 +66,7 @@ class Block {
             return returnRes(res, 404, { error: 'Only block & unblock operation allowed!' });
 
         } catch (err) {
-            console.log(err);
+            // console.log(err);
             return returnRes(res, 500, { error: 'Internal Server Error!' });
 
         }
