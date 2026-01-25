@@ -13,6 +13,7 @@ import { useNavigate } from "react-router-dom";
 import axios from "axios";
 import { setState } from "../../store/authReducer/authReducer";
 import { formatDate,formatTime } from "../../utils/formatDateTime";
+import ChatOptionsComponent from "./ChatOptionsComponent";
 
 function TypingDots() {
     return (
@@ -47,7 +48,6 @@ function Dot({ delay }) {
 
 
 function ChattingComponent({ username, getChatlist }) {
-    const [anchorEl, setAnchorEl] = useState(null);
     const [isTyping, setIsTyping] = useState(false);
     const [messagesList, setMessagesList] = useState([]);
     const [sendMessageBox, setSendMessageBox] = useState("");
@@ -55,15 +55,9 @@ function ChattingComponent({ username, getChatlist }) {
     const [isLoading, setIsLoading] = useState(true);
     const [userData, setUserData] = useState({});
     const { userInfo } = useSelector(state => state.auth);
-    const openMenu = Boolean(anchorEl);
     const backend_url = import.meta.env.VITE_BACKEND_URL;
     const navigate = useNavigate();
     const dispatch = useDispatch();
-
-    
-
-
-
     
 
     useEffect(() => {
@@ -79,16 +73,12 @@ function ChattingComponent({ username, getChatlist }) {
         }
     }, [userData])
 
-    const handleMenuChange = (event) => {
-        setAnchorEl(event.currentTarget);
-    }
-    const handleCloseMenu = () => {
-        setAnchorEl(null);
-    }
+    
+    
     const getUserData = async () => {
         try {
             const result = await axios.get(
-                `${backend_url}/api/get-profile-data?username=${username}`,
+                `${backend_url}/msg/get-user-basic-data?username=${username}`,
                 { withCredentials: true }
             );
 
@@ -188,23 +178,9 @@ function ChattingComponent({ username, getChatlist }) {
                         {isLoading?<Skeleton width={'120px'}  />:<Typography variant="body1" color="text.primary" component={'div'} noWrap textOverflow={'ellipsis'}>{userData?.name}</Typography>}
                         {isLoading?<Skeleton width={'45px'}  />:<Typography variant="body2" color="text.secondary" fontSize={12} component={'div'} noWrap textOverflow={'ellipsis'}>online </Typography>}
                     </Box>
-                    <IconButton size="small" onClick={handleMenuChange} id="user-chatting-options-btn" aria-haspopup='true' aria-expanded={openMenu ? 'true' : undefined} aria-controls={openMenu ? 'user-chatting-option-menu' : undefined}> <MoreHorizIcon sx={{ color: 'text.primary' }} /> </IconButton>
+                    <ChatOptionsComponent  userData={userData} getUserData={getUserData} />
                 </Box>
-                <Menu id="user-chatting-option-menu" anchorEl={anchorEl} open={openMenu} onClose={handleCloseMenu} slotProps={{ list: { 'aria-labelledby': 'user-chatting-options-btn' } }}>
-                    <MenuItem onClick={handleCloseMenu}>
-                        <ListItemIcon>
-                            <BlockIcon />
-                        </ListItemIcon>
-                        <ListItemText>Block</ListItemText>
-                    </MenuItem>
-                    <MenuItem onClick={handleCloseMenu}>
-                        <ListItemIcon>
-                            <ReportIcon />
-                        </ListItemIcon>
-                        <ListItemText>Report</ListItemText>
-                    </MenuItem>
-
-                </Menu>
+                
                 {isLoading ? <Stack width={'100%'} height={'calc(100% - 70px)'} direction={'column-reverse'} sx={{ overflowY: 'scroll' }} spacing={2} pb={'55px'}>
                     <Stack width={'100%'} spacing={2}>
                         <Box width={'100%'} pt={1} sx={{ display: 'flex', justifyContent: 'center' }}>
@@ -271,14 +247,14 @@ function ChattingComponent({ username, getChatlist }) {
                             </Box>
                         )}
                     </Stack>}
-                <Box width={'100%'} position={'absolute'} display={'flex'} bottom={'5px'} gap={1} px={1} alignItems={'end'} >
+                {!userData?.is_blocked&& !userData?.blocked_me&&<Box width={'100%'} position={'absolute'} display={'flex'} bottom={'5px'} gap={1} px={1} alignItems={'end'} >
                     <Box width={'calc(100% - 50px)'} sx={{ bgcolor: '#3f3f3fff' }} borderRadius={1}>
                         <TextField fullWidth value={sendMessageBox} onChange={(e) => { setSendMessageBox(e.target.value) }} multiline minRows={1} maxRows={3} onKeyDown={(e) => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); sendMessage() } }} placeholder="write message..." color="secondary" size="small" />
                     </Box>
                     <IconButton loading={sendingMsg} size="small" disabled={!sendMessageBox?.trim()} onClick={() => sendMessage()}>
                         <SendIcon color={(sendMessageBox?.trim()) ? "secondary" : ""} fontSize="large" />
                     </IconButton>
-                </Box>
+                </Box>}
             </Stack>
         </>
     )

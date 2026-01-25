@@ -37,10 +37,10 @@ const authSlice = createSlice({
     name: "auth",
     initialState: {
         userInfo: null,
-        isLoading: false,
+        isLoading: true,
         error: null,
         success: null,
-        confirmComponent:null
+        confirmComponent: null
     },
     reducers: {
         reset: (state) => {
@@ -65,7 +65,7 @@ const authSlice = createSlice({
                 state.success = action.payload.success
             }
         },
-        requiredAction : (state,action)=>{
+        requiredAction: (state, action) => {
             state.confirmComponent = action.payload
         }
     },
@@ -97,5 +97,5 @@ const authSlice = createSlice({
 
 
 
-export const { login, reset, setState ,requiredAction} = authSlice.actions;
+export const { login, reset, setState, requiredAction } = authSlice.actions;
 export default authSlice.reducer;

@@ -277,7 +277,7 @@ class UserProfile {
 
 
         } catch (err) {
-            console.log(err);
+            // console.log(err);
             return returnRes(res, 500, { error: 'Internal Server Error!' });
         }
     }
@@ -372,7 +372,7 @@ class UserProfile {
                 ORDER BY v.visited_date DESC`,
                 [userId]
             );
-            return returnRes(res,200,{message:'visitors list fetched',visitorsList:result.rows});
+            return returnRes(res,200,{message:'visitors list fetched',usersList:result.rows});
 
         } catch (err) {
             // console.log(err);

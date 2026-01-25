@@ -9,9 +9,9 @@ import { useNavigate } from "react-router-dom";
 
 
 function NewUserSetup() {
-    const { userInfo } = useSelector(state => state.auth);
+    const { userInfo, isLoading } = useSelector(state => state.auth);
     const navigate = useNavigate();
-    const [isLoading, setIsLoading] = useState(false);
+    const [btnLoading, setIsLoading] = useState(false);
     const [username, setUsername] = useState("");
     const [usernameStatus, setUsernameStatus] = useState({
         loading: false,
@@ -31,6 +31,15 @@ function NewUserSetup() {
     const profileRef = useRef();
     const backend_url = import.meta.env.VITE_BACKEND_URL;
 
+    useEffect(() => {
+        if(!isLoading&&!userInfo?.id){
+            navigate('/login');
+        }
+        if(userInfo?.username){
+            navigate('/');
+        }
+
+    }, [userInfo,isLoading])
 
     useEffect(() => {
         if (!username) {
@@ -190,11 +199,11 @@ function NewUserSetup() {
                                             <Avatar sx={{ width: '120px', height: '120px' }}>{newUserDetail?.image && <img src={newUserDetail?.image} style={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: '50%' }} alt="" />}</Avatar>
                                             <input type="file" name="" ref={profileRef} id="get-profile" onChange={handleImageChange} style={{ display: 'none' }} />
 
-                                            <Button loading={isLoading} variant="contained" onClick={() => profileRef.current.click()} sx={{ textTransform: 'none' }} color="secondary" size="small" >Upload Image </Button>
+                                            <Button loading={btnLoading} variant="contained" onClick={() => profileRef.current.click()} sx={{ textTransform: 'none' }} color="secondary" size="small" >Upload Image </Button>
                                         </Box>
                                     </Box>
                                     <Divider />
-                                    <Button loading={isLoading || usernameStatus.loading } type="submit" fullWidth color="secondary" sx={{ textTransform: 'none' }} variant="contained">Complete Setup</Button>
+                                    <Button loading={btnLoading || usernameStatus.loading} type="submit" fullWidth color="secondary" sx={{ textTransform: 'none' }} variant="contained">Complete Setup</Button>
                                 </Stack>
                             </form>
                         </Box>

@@ -43,7 +43,7 @@ function Sidebar() {
                 <Stack width={'100%'} height={'calc(100% - 210px)'} sx={{ overflowY: 'auto', scrollbarWidth: 'none' }} p={3} spacing={1}>
 
                     {
-                        sidebarNavs.map((nav) => <Button key={nav.id} onClick={() => navigate(nav.path)} color={`${pathname === nav.path ? 'secondary' : 'text.primary'}`} sx={{ display: 'flex', alignItems: 'center', justifyContent: 'start', fontSize: '16px' }} startIcon={<Badge variant={nav.badgeStyle} color={nav.badgeColor} badgeContent={nav.path != pathname ? 2 : 0}>{nav.activeIcon}</Badge>}  >{nav.name}</Button>)
+                        sidebarNavs.map((nav) => <Button key={nav.id} onClick={() => navigate(nav.path)} color={`${pathname === nav.path ? 'secondary' : 'text.primary'}`} sx={{ display: 'flex', alignItems: 'center', justifyContent: 'start', fontSize: '16px' }} startIcon={<Badge variant={nav.badgeStyle} color={nav.badgeColor} badgeContent={nav.path != pathname ? 0 : 0}>{nav.activeIcon}</Badge>}  >{nav.name}</Button>)
                     }
                 </Stack>
                 <Box display={'flex'} gap={1} zIndex={1} width={'100%'} height={60} flexDirection={'row'} justifyContent={'center'} alignItems={"center"} position={'absolute'} bottom={0} p={'0px 15px'} bgcolor={'primary.main'}>

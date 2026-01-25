@@ -2,21 +2,33 @@ import { Box, Typography, Button, Backdrop, Stack, Divider } from "@mui/material
 import axios from 'axios';
 import { useNavigate } from "react-router-dom";
 import appLogo from "../../assets/letitout_logo.png";
-import { useDispatch } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 import { setState } from "../../store/authReducer/authReducer";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 
 function DeactiveAccount() {
+    const {userInfo,isLoading} = useSelector(state=>state.auth);
     const dispatch = useDispatch();
     const navigate = useNavigate();
     const [openBackdrop, setOpenBackdrop] = useState(false);
-    const [isLoading, setIsLoading] = useState(false);
+    const [loadingBtn, setIsLoading] = useState(false);
     const backend_url = import.meta.env.VITE_BACKEND_URL;
     const handleCloseBackdrop = () => {
         document.activeElement?.blur();
         setOpenBackdrop(false);
     }
+
+    useEffect(() => {
+            if(!isLoading&&!userInfo?.id){
+                navigate('/login');
+            }
+            if(userInfo?.acc_status!='deactive'){
+                navigate('/');
+            }
+    
+        }, [userInfo,isLoading])
+
     const reactivateAccount = async () => {
         setIsLoading(true);
         try {
@@ -81,7 +93,7 @@ function DeactiveAccount() {
                         <Box width={'100%'} display={'flex'} gap={2} justifyContent={'end'}>
 
                             <Button variant="text" color="secondary" onClick={handleCloseBackdrop}>Cancle</Button>
-                            <Button variant="contained" color="secondary" loading={isLoading} onClick={reactivateAccount}>Confirm</Button>
+                            <Button variant="contained" color="secondary" loading={loadingBtn} onClick={reactivateAccount}>Confirm</Button>
                         </Box>
                     </Box>
                 </Backdrop>

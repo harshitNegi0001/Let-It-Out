@@ -57,7 +57,7 @@ function ConfirmBox({ setUserPost, userPost }) {
 
             setIsLoading(false);
             handleCancleConfirmation();
-            const filteredPost = userPost.filter(p => p.id != confirmComponent.payload && p?.post_data?.id!=confirmComponent.payload);
+            const filteredPost = userPost.filter(p => p.id != confirmComponent.payload && p?.post_data?.id != confirmComponent.payload);
             setUserPost([...filteredPost]);
             dispatch(setState({ success: 'Post has been deleted.' }));
 
@@ -68,7 +68,7 @@ function ConfirmBox({ setUserPost, userPost }) {
         }
 
     }
-    const reportPost = async()=>{
+    const reportPost = async () => {
         try {
 
             const postId = confirmComponent.payload;
@@ -84,7 +84,7 @@ function ConfirmBox({ setUserPost, userPost }) {
         } catch (err) {
             // console.log(err);
             setIsLoading(false);
-            dispatch(setState({error:err?.response?.data?.error|| 'Internal Server Error!'}));
+            dispatch(setState({ error: err?.response?.data?.error || 'Internal Server Error!' }));
         }
     }
     const blockUser = async () => {
@@ -92,11 +92,23 @@ function ConfirmBox({ setUserPost, userPost }) {
             const userId = confirmComponent.payload;
             setIsLoading(true);
 
-            // Api call
-
+            const result = await axios.post(`${backend_url}/api/block-user`,
+                {
+                    blocked_id: confirmComponent.payload,
+                    operation:'block'
+                },
+                {
+                    withCredentials: true,
+                    headers: {
+                        "Content-Type": 'application/json'
+                    }
+                }
+            );
+            const filteredPost = userPost.filter(p => p.id != confirmComponent.payload && p?.post_data?.id != confirmComponent.payload);
+            setUserPost([...filteredPost]);
             setIsLoading(false);
             handleCancleConfirmation();
-            
+
             dispatch(setState({ success: 'User has been blocked. \nYou will not see the posts.' }));
         } catch (err) {
             setIsLoading(false);

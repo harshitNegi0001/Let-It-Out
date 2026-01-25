@@ -46,7 +46,7 @@ function VisibilityPage() {
             );
 
             setIsLoading(false);
-            setUsersList(result?.data?.visitorsList);
+            setUsersList(result?.data?.usersList);
         } catch (err) {
             // console.log(err);
             setIsLoading(false);
@@ -112,7 +112,7 @@ function VisibilityPage() {
                                         {u?.user_info?.bio}
                                     </Typography>}
                                 </Box>
-                                <Button variant={`${(u?.user_info?.following_status == 'accepted' || u?.user_info?.following_status == 'pending') ? 'outlined' : 'contained'}`} size="small" sx={{ fontSize: { xs: '10px', sm: '14px' }, textTransform: 'none', width: { xs: '70px', sm: '90px' } }} color="secondary">{(!u?.user_info?.following_status) ? 'Follow' : (u?.user_info?.following_status == 'accepted') ? 'following' : 'requested'}</Button>
+                                {req_type=='account-visitors'&&<Button variant={`${(u?.user_info?.following_status == 'accepted' || u?.user_info?.following_status == 'pending') ? 'outlined' : 'contained'}`} size="small" sx={{ fontSize: { xs: '10px', sm: '14px' }, textTransform: 'none', width: { xs: '70px', sm: '90px' } }} color="secondary">{(!u?.user_info?.following_status) ? 'Follow' : (u?.user_info?.following_status == 'accepted') ? 'following' : 'requested'}</Button>}
                             </Box>)}
                         </Stack>
                     )

@@ -24,8 +24,7 @@ function MainLayout() {
                     <MuiAppbar />
                     <Outlet />
                     <BottomNavigation sx={{ display: { xs: 'flex', sm: 'none' }, bgcolor: 'primary.dark', position: 'absolute', bottom: 0, width: '100%', '& .MuiBottomNavigationAction-root.Mui-selected': { color: 'secondary.main' } }} showLabels value={activeTab} onChange={handleTabs}>
-                        {BottomNavs.map((nav) => <BottomNavigationAction key={nav.id} label={nav.name} value={nav.path} icon={<Badge variant={nav.badgeStyle} color={nav.badgeColor} badgeContent={(activeTab == nav.path) ? 0 : 2}>{nav.activeIcon}</Badge>} onClick={() => navigate(nav.path)} />)}
-
+                        {BottomNavs.map((nav) => <BottomNavigationAction key={nav.id} label={nav.name} value={nav.path} icon={<Badge variant={nav.badgeStyle} color={nav.badgeColor} badgeContent={(activeTab == nav.path) ? 0 : 0}>{nav.activeIcon}</Badge>} onClick={() => navigate(nav.path)} />)}
                     </BottomNavigation>
                 </Stack>
                 <Divider orientation="vertical" sx={{ height: '100vh', display: { xs: 'none', md: 'flex' } }} />

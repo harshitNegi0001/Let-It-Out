@@ -21,7 +21,7 @@ function Settings() {
         <>
             <Stack width={'100%'} height={{ sm: '100%', xs: 'calc(100% - 60px)' }} spacing={2} p={2} >
                 <Stack width={'100%'} direction={'column'} height={'100%'} sx={{pb:{xs:'60px',sm:'10px'},overflowY:'scroll'}} >
-                    <Box width={'100%'} height={{ xs: '180px', sm: '250px' }} sx={{ display: 'flex', flexDirection: 'column', gap: 4, alignItems: 'center' }} pt={3}>
+                    <Box width={'100%'} height={{ xs: '180px', sm: '250px' }} pb={1} sx={{ display: 'flex', flexDirection: 'column', gap: 4, alignItems: 'center' }} pt={3}>
                         <Box width={'100%'} height={{ xs: '75px', sm: '120px' }} sx={{ display: 'flex', gap: 1 }}>
                             {userInfo.image ? <img src={userInfo.image} style={{ height: '100%', aspectRatio: '1/1', objectFit: 'cover', borderRadius: '50%' }} alt="" /> : <Box height={'100%'} sx={{ aspectRatio: '1' }}><Avatar sx={{ width: '100%', height: '100%' }} /></Box>}
                             <Box width={{ xs: 'calc(100% - 85px)', sm: 'calc(100% - 130px)' }} sx={{ display: 'flex', flexDirection: 'column', gap: 1, alignItems: 'start', justifyContent: 'center' }} height={'100%'} >
@@ -34,7 +34,7 @@ function Settings() {
 
                             </Box>
                         </Box>
-                        <Button variant="contained" color="secondary" sx={{ textTransform: 'none' }} onClick={() => navigate('/edit-profile')} endIcon={<EditOutlinedIcon />}>Edit profile</Button>
+                        <Button variant="contained" color="secondary"  sx={{ textTransform: 'none' }} onClick={() => navigate('/edit-profile')} endIcon={<EditOutlinedIcon />}>Edit profile</Button>
                     </Box>
                     <Divider />
                     <Stack width={'100%'} direction={'column'} spacing={1} py={1}>

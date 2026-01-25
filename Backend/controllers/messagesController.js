@@ -167,6 +167,42 @@ class Messages {
             return returnRes(res, 500, { error: 'Internal Server Error!' });
         }
     }
+    // controller function to get user's data for opened chat.
+
+    getUserBasicData = async (req, res) => {
+        const visitorId = req.id;
+        const {username} = req.query;
+        try {
+            // other checkup here....
+            const result = await db.query(
+                `SELECT
+                u.id AS id,
+                u.lio_userid AS username,
+                u.image AS image,
+                COALESCE(NULLIF(u.fake_name,''),u.first_name) AS name,
+                EXISTS(
+                    SELECT 1
+                    FROM blocked_accounts AS b1
+                    WHERE b1.blocker_id = $1
+                        AND b1.blocked_id = u.id
+                ) AS is_blocked,
+                EXISTS(
+                    SELECT 1
+                    FROM blocked_accounts AS b2
+                    WHERE b2.blocker_id = u.id
+                        AND b2.blocked_id = $1
+                ) AS blocked_me
+                FROM users AS u
+                WHERE u.lio_userid = $2
+                `,[visitorId,username]
+            );
+
+            return returnRes(res,200,{message:'Got user basic detail for chat.',userDetail:result.rows[0]});
+        } catch (err) {
+            console.log(err);
+            return returnRes(res, 500, { error: 'Internal Server Error!' });
+        }
+    }
 }
 
 

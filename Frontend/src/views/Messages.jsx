@@ -69,7 +69,7 @@ function Messages() {
     
     useEffect(() => {
         getChatlist();
-
+        return(()=>setChatlist([]));
         
     }, [])
 
