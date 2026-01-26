@@ -1,15 +1,29 @@
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
-import { Stack, Box, Skeleton, IconButton, Button, Divider, Avatar, Typography, Chip } from "@mui/material";
+import { Stack, Box, Skeleton, IconButton, Button, Divider, Avatar, Typography, Chip, Menu, MenuItem, ListItemIcon, ListItemText, Backdrop } from "@mui/material";
 import { useState, useEffect } from "react";
 import { useDispatch } from "react-redux";
 import { useNavigate } from "react-router-dom";
 import axios from 'axios';
 import { setState } from '../../store/authReducer/authReducer';
+import MoreVertIcon from '@mui/icons-material/MoreVert';
+import BlockIcon from '@mui/icons-material/Block';
+import DoneIcon from '@mui/icons-material/Done';
+import ClearIcon from '@mui/icons-material/Clear';
+
+
 
 function BlockedUsers() {
     const [usersList, setUsersList] = useState([]);
+    const [loadingBtn, setLoadinBtn] = useState(false);
     const [isLoading, setIsLoading] = useState(false);
+    const [anchorEl, setAnchorEl] = useState(null);
+    const [actionData, setActionData] = useState({
+        backdropOpen: false,
+        label: '',
+        payload: ''
+    });
 
+    const open = Boolean(anchorEl);
     const backend_url = import.meta.env.VITE_BACKEND_URL;
     const navigate = useNavigate();
     const dispatch = useDispatch();
@@ -35,6 +49,54 @@ function BlockedUsers() {
             setIsLoading(false);
             dispatch(setState({ error: err?.response?.data?.error || 'Something Went Wrong!' }));
         }
+    }
+
+    const unblockUser = async () => {
+        try {
+            setLoadinBtn(true);
+            const result = await axios.post(
+                `${backend_url}/api/block-user`,
+                {
+                    blocked_id: actionData?.payload,
+                    operation: 'unblock'
+                },
+                { withCredentials: true }
+            );
+            const filterList = usersList.filter(u => u.user_id != actionData.payload);
+            setUsersList(filterList)
+            setLoadinBtn(false);
+            cancleAction();
+        } catch (err) {
+            setLoadinBtn(false);
+            dispatch(setState({ error: err?.response?.data?.error || 'Something Went Wrong!' }));
+        }
+    }
+
+    const handleMenuChange = (event) => {
+        setAnchorEl(event.currentTarget);
+    }
+    const handleCloseMenu = () => {
+        document.activeElement?.blur();
+        setAnchorEl(null);
+
+    }
+    const handleAction = (data) => {
+        setActionData({
+            backdropOpen: true,
+            label: data.label,
+            payload: data.payload
+        });
+        handleCloseMenu();
+
+    }
+    const cancleAction = () => {
+        document.activeElement?.blur();
+
+        setActionData({
+            backdropOpen: false,
+            label: '',
+            payload: ''
+        });
     }
     return (
         <>
@@ -75,14 +137,14 @@ function BlockedUsers() {
 
                 {
                     usersList.map((u) =>
-                        <Box key={u.id} width={'100%'} p={'4px'} height={{ xs: '60px', sm: '70px' }} onClick={() => navigate(`/profile/${u?.username}`)} sx={{ display: 'flex', gap: 1, alignItems: 'center', '&:hover': { bgcolor: '#10151f38' }, '&:active': { bgcolor: '#1f2c4938', transition: 'all 100ms', transform: 'scale(0.99)' }, borderRadius: 3 }} >
+                        <Box key={u.id} width={'100%'} p={'4px'} height={{ xs: '60px', sm: '70px' }} onClick={() => navigate(`/profile/${u?.username}`)} sx={{ display: 'flex', gap: 1, alignItems: 'center', '&:hover': { bgcolor: '#10151f38' }, '&:active': { bgcolor: '#1f2c4938' }, borderRadius: 3 }} >
                             <Box height={'100%'} sx={{ aspectRatio: 1 }} >
                                 <Avatar sx={{ width: '100%', height: '100%' }}>
                                     {u?.image && <img src={u?.image} style={{ width: '100%', height: '100%', borderRadius: '50%', objectFit: 'cover' }} alt="" />}
                                 </Avatar>
 
                             </Box>
-                            <Box width={{ xs: 'calc(100% - 140px)', sm: 'calc(100% - 160px)' }} sx={{ display: 'flex', flexDirection: 'column' }}>
+                            <Box width={{ xs: 'calc(100% - 100px)', sm: 'calc(100% - 120px)' }} sx={{ display: 'flex', flexDirection: 'column' }}>
                                 <Typography variant="body1" width={'100%'} textAlign={'start'} noWrap color="#fff" textOverflow={'ellipsis'} fontSize={{ xs: '14px', sm: '18px' }} >
                                     {u?.name}
                                 </Typography>
@@ -91,11 +153,39 @@ function BlockedUsers() {
                                 </Typography>
 
                             </Box>
+                            <Box width={'40px'} height={'40px'} sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center' }} onClick={(e) => e.stopPropagation()}>
+                                <IconButton size='small' onClick={handleMenuChange} id="unblock-menu-btn" aria-haspopup='true' aria-expanded={open ? 'true' : undefined} aria-controls={open ? 'unblock-menu' : undefined}>
+                                    <MoreVertIcon />
+                                </IconButton>
+                                <Menu id="unblock-menu" anchorEl={anchorEl} open={open} onClose={handleCloseMenu} slotProps={{ list: { 'aria-labelledby': 'unblock-menu-btn' } }}>
+                                    <MenuItem onClick={() => handleAction({ label: 'Are you sure to unblock user', payload: u.user_id })} >
+                                        <ListItemIcon>
+                                            <BlockIcon fontSize='small' />
+                                        </ListItemIcon>
+                                        <ListItemText primary={<Typography variant='body2' fontSize={{ xs: "14px", sm: '16px' }} color='#fff'>Unblock</Typography>} />
+                                    </MenuItem>
+                                </Menu>
+                            </Box>
+
 
                         </Box>
 
+
                     )
                 }
+                {actionData?.backdropOpen && <Backdrop open={actionData?.backdropOpen} onClick={cancleAction} sx={{ zIndex: 9999 }}>
+                    <Box width={'280px'} onClick={(e) => e.stopPropagation()} bgcolor={'primary.light'} borderRadius={2} display={'flex'} flexDirection={'column'} gap={2} p={2}>
+                        <Box width={'100%'} >
+                            <Typography variant="body1" component={'div'}>{actionData?.label}</Typography>
+                        </Box>
+                        <Box width={'100%'} display={'flex'} gap={2} justifyContent={'end'}>
+
+                            <Button variant="text" sx={{ color: '#fff' }} disabled={loadingBtn} onClick={cancleAction}><ClearIcon /></Button>
+                            <Button variant="contained" color="error" loading={loadingBtn} onClick={unblockUser}><DoneIcon /></Button>
+                        </Box>
+                    </Box>
+                </Backdrop>}
+
             </Stack>
 
         </>

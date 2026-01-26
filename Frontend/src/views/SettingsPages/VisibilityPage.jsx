@@ -14,6 +14,7 @@ import { formatDate } from '../../utils/formatDateTime';
 function VisibilityPage() {
     const [usersList, setUsersList] = useState([]);
     const [isLoading, setIsLoading] = useState(false);
+    const [loadingBtn, setLoadingBtn] = useState(false);
 
     const backend_url = import.meta.env.VITE_BACKEND_URL;
     const navigate = useNavigate();
@@ -38,6 +39,40 @@ function VisibilityPage() {
         } catch (err) {
             // console.log(err);
             setIsLoading(false);
+            dispatch(setState({ error: err?.response?.data?.error || 'Something Went Wrong!' }));
+        }
+    }
+    const handleFollowingBtn = async (e, userData) => {
+        e.stopPropagation();
+        try {
+            const status = userData?.following_status;
+            const following_id = userData?.id;
+            
+            setLoadingBtn(true);
+            const operation = (status == 'accepted'||status=='pending') ? 'cancel' : 'follow';
+console.log(following_id,operation,status)
+            const result = await axios.post(
+                `${backend_url}/api/req-follow`,
+                {
+                    operation,
+                    following_id
+                },
+                { withCredentials: true }
+            );
+
+            const updatedList = usersList.map(l => {
+                const filtered_list = l.users_list?.map(u => {
+                    return (u.user_info.id == following_id) ? { ...u, user_info:{...u.user_info,following_status:(result.data.followingStatus == 'not_followed')?null:result?.data?.followingStatus} } : u
+                });
+                return {...l,users_list:filtered_list}
+            })
+            
+            
+            setUsersList([...updatedList]);
+            setLoadingBtn(false);
+
+        } catch (err) {
+            setLoadingBtn(false);
             dispatch(setState({ error: err?.response?.data?.error || 'Something Went Wrong!' }));
         }
     }
@@ -82,7 +117,7 @@ function VisibilityPage() {
                             <Box width={'100%'} sx={{ display: 'flex', justifyContent: 'center' }}>
                                 <Chip label={`${formatDate(l.visited_date)}`} />
                             </Box>
-                            {l?.users_list?.map(u => <Box key={u.id} width={'100%'} p={'4px'} height={{ xs: '60px', sm: '70px' }} onClick={() => navigate(`/profile/${u?.user_info?.username}`)} sx={{ display: 'flex', gap: 1, alignItems: 'center', '&:hover': { bgcolor: '#10151f38' }, '&:active': { bgcolor: '#1f2c4938', transition: 'all 100ms', transform: 'scale(0.99)' }, borderRadius: 3 }} >
+                            {l?.users_list?.map(u => <Box key={u.id} width={'100%'} p={'4px'} height={{ xs: '60px', sm: '70px' }} onClick={() => navigate(`/profile/${u?.user_info?.username}`)} sx={{ display: 'flex', gap: 1, alignItems: 'center', '&:hover': { bgcolor: '#10151f38' }, '&:active': { bgcolor: '#1f2c4938' }, borderRadius: 3 }} >
                                 <Box height={'100%'} sx={{ aspectRatio: 1 }} >
                                     <Avatar sx={{ width: '100%', height: '100%' }}>
                                         {u?.user_info?.image && <img src={u?.user_info?.image} style={{ width: '100%', height: '100%', borderRadius: '50%', objectFit: 'cover' }} alt="" />}
@@ -100,7 +135,7 @@ function VisibilityPage() {
                                         {u?.user_info?.bio}
                                     </Typography>}
                                 </Box>
-                                <Button variant={`${(u?.user_info?.following_status == 'accepted' || u?.user_info?.following_status == 'pending') ? 'outlined' : 'contained'}`} size="small" sx={{ fontSize: { xs: '10px', sm: '14px' }, textTransform: 'none', width: { xs: '70px', sm: '90px' } }} color="secondary">{(!u?.user_info?.following_status) ? 'Follow' : (u?.user_info?.following_status == 'accepted') ? 'following' : 'requested'}</Button>
+                                <Button loading={loadingBtn} onClick={(e) => handleFollowingBtn(e, u.user_info)} variant={`${(u?.user_info?.following_status == 'accepted' || u?.user_info?.following_status == 'pending') ? 'outlined' : 'contained'}`} size="small" sx={{ fontSize: { xs: '10px', sm: '14px' }, textTransform: 'none', width: { xs: '70px', sm: '90px' } }} color="secondary">{(!u?.user_info?.following_status) ? 'Follow' : (u?.user_info?.following_status == 'accepted') ? 'following' : 'requested'}</Button>
                             </Box>)}
                         </Stack>
                     )

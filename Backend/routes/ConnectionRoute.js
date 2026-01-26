@@ -5,6 +5,7 @@ import Block from '../controllers/blockController.js';
 const router = express.Router();
 
 router.post('/req-follow',authMiddleware,Followers.requestToFollow);
+router.post('/handle-follow-req',authMiddleware,Followers.handleFollowReq)
 
 router.get('/get-connection-list',authMiddleware,Followers.getConnectivityList);
 

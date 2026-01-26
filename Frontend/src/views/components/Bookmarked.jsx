@@ -113,14 +113,14 @@ export default function Bookmarked({ userData }) {
                                 No posts yet.
                             </Typography>
                             <Typography variant="body2" fontSize={{ xs: '13px', sm: '16px' }} color="text.primary" textAlign={'center'}>
-                                This user hasn't shared any post yet.
+                               There are no posts saved from this profile yet.
 
                             </Typography>
 
                             <Box sx={{ display: 'flex', flexDirection: "column", gap: 1 }} >
                                 <Divider sx={{ width: '100%' }} />
                                 <Typography variant="body2" fontSize={{ xs: '10px', sm: '12px' }} color="text.secondary" textAlign={'center'}>
-                                    When they share posts, you'll see them here.
+                                    When posts are saved, they’ll appear here.
                                 </Typography>
                             </Box>
 

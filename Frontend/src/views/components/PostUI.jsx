@@ -7,7 +7,10 @@ import CommentsIcon from '@mui/icons-material/Forum';
 import RepostIcon from '@mui/icons-material/Repeat';
 import BookmarkBorderIcon from '@mui/icons-material/BookmarkBorder';
 import BookmarkIcon from '@mui/icons-material/Bookmark';
+import PersonAddAlt1Icon from '@mui/icons-material/PersonAddAlt1';
 import getPostActions from "../../utils/postActions";
+import CancelOutlinedIcon from '@mui/icons-material/CancelOutlined';
+import PersonRemoveIcon from '@mui/icons-material/PersonRemove';
 import ImageGrid from "./ImageGrid";
 import { useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
@@ -22,7 +25,7 @@ import { deleteLikeTarget, likeTarget, savePost, undoSavedPost } from "../../uti
 
 
 
-function PostUI({ followed, postData, userData }) {
+function PostUI({ followed = false, postData, userData }) {
 
     const { userInfo } = useSelector(state => state.auth);
     const [likeCount, setLikeCount] = useState({
@@ -53,6 +56,7 @@ function PostUI({ followed, postData, userData }) {
 
     function formatPostTime(createdAt) {
         // Remove microseconds if present
+        
         const cleaned = createdAt.split(".")[0] + "Z"; // force UTC
 
         const postDate = new Date(cleaned);
@@ -106,15 +110,15 @@ function PostUI({ followed, postData, userData }) {
     const handleClose = () => {
         setAnchorEl(null);
     }
-    const handleBookmark =async () => {
-        if(isSaved){
+    const handleBookmark = async () => {
+        if (isSaved) {
             undoSavedPost(postData.id);
         }
-        else{
+        else {
             savePost(postData.id);
         }
         setIsSaved(prev => !prev);
-        
+
         handleClose();
     }
     return (
@@ -164,6 +168,14 @@ function PostUI({ followed, postData, userData }) {
                         </ListItemIcon>
                         <ListItemText>{isSaved ? 'Remove boookmark' : 'Bookmark'}</ListItemText>
                     </MenuItem>
+                    {(userInfo.id!=userData.id)&&<MenuItem >
+                        <ListItemIcon>
+                            {
+                                !followed?<PersonAddAlt1Icon fontSize="small"/>:(followed=='accepted')?<PersonRemoveIcon fontSize="small"/>:<CancelOutlinedIcon fontSize="small"/>
+                            }
+                        </ListItemIcon>
+                        <ListItemText>{!followed?`Follow ${userData.name}`:(followed=='accepted')?`Unfollow ${userData.name}`:'Cancle follow request'}</ListItemText>
+                    </MenuItem>}
                 </Menu>
                 <Box width={'100%'} p={1} sx={{ display: 'flex', flexDirection: 'column' }}>
 

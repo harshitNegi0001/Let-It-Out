@@ -3,6 +3,7 @@ import { useEffect, useState } from "react";
 import { useLocation, useNavigate, useParams } from "react-router-dom";
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import axios from 'axios';
+import SearchIcon from '@mui/icons-material/Search';
 import { useDispatch, useSelector } from 'react-redux';
 import { setState } from "../store/authReducer/authReducer";
 
@@ -35,8 +36,12 @@ const RestrectedPostHandler = {
 function ConnectionPage() {
 
     const [usersList, setUsersList] = useState([]);
-    const [reqestList, setRequestList] = useState([]);
+    const [requestList, setRequestList] = useState([]);
     const [isLoading, setIsLoading] = useState(true);
+    const [loadingBtn, setLoadingBtn] = useState({
+        id: null,
+        btn_type: ""
+    })
     const { list_type, username } = useParams();
     const [basicDetail, setBasicDetail] = useState({
         name: '',
@@ -73,18 +78,18 @@ function ConnectionPage() {
                 }
             );
             setIsLoading(false);
-            if (result?.data?.restriction) {
-                setRestriction(result?.data?.restriction)
-                return;
-            }
             if (result?.data?.basicDetail) {
 
                 setBasicDetail(result.data.basicDetail);
             }
+            if (result?.data?.restriction) {
+                setRestriction(result?.data?.restriction)
+                return;
+            }
+
             if (result?.data?.requests_list) {
                 setRequestList(result.data.requests_list);
             }
-            console.log(result?.data?.user_list)
             setUsersList(result?.data?.user_list);
 
 
@@ -95,6 +100,81 @@ function ConnectionPage() {
         }
     }
 
+    const handleFollowingBtn = async (e, userData) => {
+        e.stopPropagation();
+        try {
+            const status = userData?.followingstatus;
+            const following_id = userData?.id;
+            setLoadingBtn({
+                id: following_id,
+                btn_type: 'following'
+            })
+            const operation = (status == 'accepted' || status == 'pending') ? 'cancel' : 'follow';
+
+            const result = await axios.post(
+                `${backend_url}/api/req-follow`,
+                {
+                    operation,
+                    following_id
+                },
+                { withCredentials: true }
+            );
+
+            const updatedList = usersList.map((u) => {
+                return (u.id == following_id) ? { ...u, followingstatus: (result.data.followingStatus == 'not_followed') ? null : result.data.followingStatus } : u
+            });
+
+            setUsersList([...updatedList]);
+            setLoadingBtn({
+                id: null,
+                btn_type: ''
+            })
+
+        } catch (err) {
+            setLoadingBtn({
+                btn_type: "",
+                id: null
+            });
+            dispatch(setState({ error: err?.response?.data?.error || 'Something Went Wrong!' }));
+        }
+    }
+    const handleFollowRequest = async (req_type, reqId) => {
+        try {
+            setLoadingBtn({
+                btn_type: req_type,
+                id: reqId
+            });
+            const result = await axios.post(
+                `${backend_url}/api/handle-follow-req`,
+                {
+                    reqId: reqId,
+                    operation: req_type
+                },
+                {
+                    withCredentials: true
+                }
+            )
+
+            setLoadingBtn({
+                btn_type: "",
+                id: null
+            });
+            const filteredList = requestList.filter((u) => u.req_id != reqId);
+            if (result?.data?.status == 'ACCEPTED') {
+                const acceptedReq = requestList.filter((u) => u.req_id == reqId);
+                setUsersList(prev => ([...acceptedReq, ...prev]));
+            }
+            setRequestList([...filteredList]);
+
+
+        } catch (err) {
+            setLoadingBtn({
+                btn_type: "",
+                id: null
+            });
+            dispatch(setState({ error: err?.response?.data?.error || 'Something Went Wrong!' }));
+        }
+    }
 
     return (
         <>
@@ -153,13 +233,13 @@ function ConnectionPage() {
 
                     : <>
                         {
-                            reqestList.length > 0 && <Box width={'100%'} sx={{ display: 'flex', flexDirection: 'column', gap: 1 }} pt={2} >
+                            requestList.length > 0 && <Box width={'100%'} sx={{ display: 'flex', flexDirection: 'column', gap: 1 }} pt={2} >
                                 <Typography variant="body1" >
                                     Following Requests
                                 </Typography>
                                 {
-                                    reqestList.map(u =>
-                                        <Box width={'100%'} key={u.key} p={1} onClick={() => navigate(`/profile/${u.username}`)} sx={{ display: 'flex', gap: 1, '&:hover': { bgcolor: '#10151f38' }, '&:active': { bgcolor: '#1f2c4938', transition: 'all 100ms', transform: 'scale(0.99)' }, borderRadius: 3 }} >
+                                    requestList.map(u =>
+                                        <Box width={'100%'} key={u.req_id} p={1} onClick={() => navigate(`/profile/${u.username}`)} sx={{ display: 'flex', gap: 1, '&:hover': { bgcolor: '#10151f38' }, '&:active': { bgcolor: '#1f2c4938', }, borderRadius: 3 }} >
                                             <Box height={{ xs: '55px', sm: '65px' }} sx={{ aspectRatio: 1 }}  >
                                                 <Avatar sx={{ width: '100%', height: '100%' }}>
                                                     {u.image && <img src={u.image} style={{ width: '100%', height: '100%', borderRadius: '50%', objectFit: 'cover' }} alt="" />}
@@ -174,11 +254,11 @@ function ConnectionPage() {
                                                         @{u.username}
                                                     </Typography>
                                                 </Box>
-                                                <Box width={'100%'} maxWidth={{ xs: '240px', sm: '370px' }} sx={{ display: 'flex', justifyContent: 'start', gap: 2 }}>
-                                                    <Button variant="contained" sx={{ textTransform: 'none', height: '25px' }} color="secondary" size="small">
+                                                <Box width={'100%'} onClick={(e) => e.stopPropagation()} maxWidth={{ xs: '240px', sm: '370px' }} sx={{ display: 'flex', justifyContent: 'start', gap: 2 }}>
+                                                    <Button loading={(loadingBtn.id == u.req_id && loadingBtn.btn_type == 'accept') ? true : false} disabled={(loadingBtn.id == u.req_id && loadingBtn.btn_type == 'reject') ? true : false} variant="contained" sx={{ textTransform: 'none', height: '25px' }} onClick={() => handleFollowRequest('accept', u.req_id)} color="secondary" size="small">
                                                         Accept
                                                     </Button>
-                                                    <Button variant="contained" sx={{ textTransform: 'none', height: '25px' }} color="error" size="small">
+                                                    <Button loading={(loadingBtn.id == u.req_id && loadingBtn.btn_type == 'reject') ? true : false} disabled={(loadingBtn.id == u.req_id && loadingBtn.btn_type == 'accept') ? true : false} variant="contained" sx={{ textTransform: 'none', height: '25px' }} onClick={() => handleFollowRequest('reject', u.req_id)} color="error" size="small">
                                                         Reject
                                                     </Button>
                                                 </Box>
@@ -195,7 +275,7 @@ function ConnectionPage() {
                                 </Typography>
                                 {
                                     usersList.map(u =>
-                                        <Box key={u.id} width={'100%'} p={'4px'} height={{ xs: '60px', sm: '70px' }} onClick={() => navigate(`/profile/${u.username}`)} sx={{ display: 'flex', gap: 1, alignItems: 'center', '&:hover': { bgcolor: '#10151f38' }, '&:active': { bgcolor: '#1f2c4938', transition: 'all 100ms', transform: 'scale(0.99)' }, borderRadius: 3 }} >
+                                        <Box key={u.id} width={'100%'} p={'4px'} height={{ xs: '60px', sm: '70px' }} onClick={() => navigate(`/profile/${u.username}`)} sx={{ display: 'flex', gap: 1, alignItems: 'center', '&:hover': { bgcolor: '#10151f38' }, '&:active': { bgcolor: '#1f2c4938' }, borderRadius: 3 }} >
                                             <Box height={'100%'} sx={{ aspectRatio: 1 }} >
                                                 <Avatar sx={{ width: '100%', height: '100%' }}>
                                                     {u.image && <img src={u.image} style={{ width: '100%', height: '100%', borderRadius: '50%', objectFit: 'cover' }} alt="" />}
@@ -213,13 +293,35 @@ function ConnectionPage() {
                                                     {u.bio}
                                                 </Typography>}
                                             </Box>
-                                            {(userInfo.username != u.username) && <Button variant={`${(u.followingstatus == 'accepted' || u.followingstatus == 'pending') ? 'outlined' : 'contained'}`} size="small" sx={{ fontSize: { xs: '10px', sm: '14px' }, textTransform: 'none', width: { xs: '70px', sm: '90px' } }} color="secondary">{(!u.followingstatus) ? 'Follow' : (u.followingstatus == 'accepted') ? 'following' : 'requested'}</Button>}
+                                            {(userInfo.username != u.username) && <Button loading={(loadingBtn.id == u.id && loadingBtn.btn_type == 'following') ? true : false} onClick={(e) => handleFollowingBtn(e, u)} variant={`${(u.followingstatus == 'accepted' || u.followingstatus == 'pending') ? 'outlined' : 'contained'}`} size="small" sx={{ fontSize: { xs: '10px', sm: '14px' }, textTransform: 'none', width: { xs: '70px', sm: '90px' } }} color="secondary">{(!u.followingstatus) ? 'Follow' : (u.followingstatus == 'accepted') ? 'following' : 'requested'}</Button>}
                                         </Box>
                                     )
                                 }
 
                             </Box>
                         }</>}
+
+                {!isLoading && usersList.length == 0 && requestList.length == 0&&!restriction?.isRestricted &&
+                    <Box width={'100%'} sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 2 }} p={1} >
+                        <Box width={'100%'} maxWidth={{ xs: '280px', sm: '350px' }}>
+                            <img src="https://res.cloudinary.com/dns5lxuvy/image/upload/v1768990892/pahraxrxhocdy6zn5aqd.png" style={{ width: '100%', objectFit: 'contain' }} alt="" />
+                        </Box>
+                        <Box width={'100%'} sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
+                            <Typography width={'100%'} textAlign={'center'} variant="body1" color="#fff" fontSize={{ xs: '18px', sm: '24px' }} fontWeight={'500'}>
+                                No {list_type} yet
+                            </Typography>
+                            <Typography width={'100%'} textAlign={'center'} variant="body2" color="text.secondary" fontSize={{ xs: '10px', sm: '14px' }} fontWeight={'300'}>
+                                {list_type=='followings'?'Accounts followed by this profile will appear here.':'Followers of this profile will appear here.'}
+                            </Typography>
+                        </Box>
+                        {userInfo.username==username&&<Box width={'100%'} maxWidth={{ xs: '280px', sm: '350px' }}>
+                            <Button fullWidth color="secondary" sx={{ borderRadius: 4, textTransform: 'none' }} onClick={() => navigate('/search')} endIcon={<SearchIcon />} variant="contained" >
+                                Explore people
+                            </Button>
+                        </Box>}
+                        
+                    </Box>
+                }
 
             </Stack>
         </>

@@ -54,7 +54,7 @@ function ExploreFeed({ moods = [] }) {
                 </Box>
                 {postslist.map(p => {
 
-                    return (<PostUI key={p.post_data.id} followed={true} postData={p.post_data} userData={p.user_data} />)
+                    return (<PostUI key={p.post_data.id} followed={p.user_data?.following_status} postData={p.post_data} userData={p.user_data} />)
                 }
                 )}
 

@@ -10,7 +10,7 @@ class Post {
         const userId = req.id;
 
         try {
-            const { content = "", post_type, mood  } = req.body;
+            const { content = "", post_type, mood } = req.body;
             const files = req.files || [];
 
             if (!content.trim() && files.length === 0) {
@@ -223,7 +223,20 @@ class Post {
 
 
             const isPrivate = userDetail.acc_type == 'private';
-            const isFollowing = false;
+            const followingResult =await db.query(
+                `SELECT (
+                    EXISTS(
+                    SELECT 1
+                    FROM followers
+                    WHERE follower_id=$1
+                        AND following_id=$2
+                        AND status ='accepted'
+                    )
+                )`,
+                [visiterId,userId]
+            );
+            
+            const isFollowing = followingResult.rows[0]?.exists;
             if (isPrivate && !isFollowing) {
                 return returnRes(res, 200, {
                     user: {
@@ -428,8 +441,13 @@ class Post {
                         'id', u.id,
                         'name', COALESCE(NULLIF(u.fake_name, ''), u.first_name),
                         'username', u.lio_userid,
-                        'image', u.image
-
+                        'image', u.image,
+                        'following_status',(
+                            SELECT status
+                            FROM followers AS f
+                            WHERE f.follower_id =$4
+                                AND f.following_id = u.id
+                        )
 
                     ) AS user_data
                     FROM posts AS p
@@ -483,8 +501,13 @@ class Post {
                     'id', u.id,
                     'name', COALESCE(NULLIF(u.fake_name, ''), u.first_name),
                     'username', u.lio_userid,
-                    'image', u.image
-
+                    'image', u.image,
+                    'following_status',(
+                            SELECT status
+                            FROM followers AS f
+                            WHERE f.follower_id =$4
+                                AND f.following_id = u.id
+                        )
 
                 ) AS user_data
                 FROM posts AS p
@@ -533,7 +556,13 @@ class Post {
                     'id', u.id,
                     'name', COALESCE(NULLIF(u.fake_name, ''), u.first_name),
                     'username', u.lio_userid,
-                    'image', u.image
+                    'image', u.image,
+                    'following_status',(
+                            SELECT status
+                            FROM followers AS f
+                            WHERE f.follower_id =$3
+                                AND f.following_id = u.id
+                        )
 
 
                 ) AS user_data
@@ -610,11 +639,11 @@ class Post {
     }
     // controller function to server users their interected posts.
 
-    getActivityPosts = async(req,res)=>{
+    getActivityPosts = async (req, res) => {
         const userId = req.id;
-        const {req_type,currPage,limit,lastFeedId } = req.query;
+        const { req_type, currPage, limit, lastFeedId } = req.query;
         try {
-            if(req_type=='liked-posts'){
+            if (req_type == 'liked-posts') {
                 const result = await db.query(
                     `SELECT 
                         json_build_object(
@@ -655,11 +684,11 @@ class Post {
                     ORDER BY l.id DESC
                     `,
                     [userId]
-                        
+
                 );
                 return returnRes(res, 200, { message: 'Success', postsList: result.rows });
             }
-            else if(req_type=='saved-posts'){
+            else if (req_type == 'saved-posts') {
                 const result = await db.query(
                     `SELECT 
                         json_build_object(
@@ -700,12 +729,12 @@ class Post {
                     WHERE b.user_id=$1
                     ORDER BY b.id DESC`,
                     [userId]
-                        
+
                 );
                 return returnRes(res, 200, { message: 'Success', postsList: result.rows });
             }
-            else{
-return returnRes(res,400,{message:'Feature not availible'});
+            else {
+                return returnRes(res, 400, { message: 'Feature not availible' });
             }
         } catch (err) {
             // console.log(err);

@@ -57,12 +57,12 @@ function VisitProfile() {
         if (!userProfileData?.followingStatus) {
             return;
         }
-        const reqFor = (userProfileData.followingStatus == 'not_followed') ? 'follow' : 'cancle';
+        const operation = (userProfileData.followingStatus == 'not_followed') ? 'follow' : 'cancel';
         try {
             setLoadingFollowBtn(true);
             const result = await axios.post(
                 `${backend_url}/api/req-follow`, {
-                reqFor,
+                operation,
                 following_id: userProfileData?.id
             }, {
                 withCredentials: true

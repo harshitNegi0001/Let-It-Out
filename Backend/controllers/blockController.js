@@ -47,6 +47,7 @@ class Block {
                         $1,
                         $2
                     )
+                        ON CONFLICT (blocker_id, blocked_id) DO NOTHING
                     `,
                     [blocker_id,blocked_id]
                 );
@@ -54,6 +55,7 @@ class Block {
             }
 
             if (operation == 'unblock') {
+                console.log('going to unblock')
                 await db.query(
                     `DELETE FROM
                     blocked_accounts

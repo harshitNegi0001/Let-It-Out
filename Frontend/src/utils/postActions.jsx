@@ -1,7 +1,7 @@
 import DeleteForeverIcon from '@mui/icons-material/DeleteForever';
 import BlockIcon from '@mui/icons-material/Block';
 import ReportIcon from '@mui/icons-material/Report';
-
+import ThumbDownAltIcon from '@mui/icons-material/ThumbDownAlt';
 
 
 
@@ -37,7 +37,16 @@ function getPostActions(postUploaderId, currUserId, postId) {
             type: 'REPORT_POST',
             payload: postId
 
-        }
+        },
+        {
+            id: 3,
+            content: 'Not Interested',
+            label: 'Do you really disliked this post?',
+            icon: <ThumbDownAltIcon fontSize='small' />,
+            type: 'NOT_INTERESTED',
+            payload: postId
+
+        },
     ]
 
     return (postUploaderId == currUserId) ? actionsOpt1 : actionOpt2;
