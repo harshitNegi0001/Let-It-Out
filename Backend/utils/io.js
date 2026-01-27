@@ -34,26 +34,36 @@ io.on('connection', async (socket) => {
     }
     // for typing event.
     socket.on('typing', async ({ userId, receiverId }) => {
-        const result = await db.query(
-            `SELECT curr_socket_id
+        try {
+            const result = await db.query(
+                `SELECT curr_socket_id
             FROM users
             WHERE id = $1`,
-            [receiverId]
-        );
-        const socket_id = result.rows[0]?.curr_socket_id;
+                [receiverId]
+            );
+            const socket_id = result.rows[0]?.curr_socket_id;
 
-        socket.to(socket_id).emit('typing', { userId: userId });
+            socket.to(socket_id).emit('typing', { userId: userId });
+        }
+        catch (err) {
+            console.log(err)
+        }
     });
-    socket.on('stop_typing', async({ userId, receiverId }) => {
-        const result = await db.query(
-            `SELECT curr_socket_id
+    socket.on('stop_typing', async ({ userId, receiverId }) => {
+        try {
+            const result = await db.query(
+                `SELECT curr_socket_id
             FROM users
             WHERE id = $1`,
-            [receiverId]
-        );
-        const socket_id = result.rows[0]?.curr_socket_id;
+                [receiverId]
+            );
+            const socket_id = result.rows[0]?.curr_socket_id;
 
-        socket.to(socket_id).emit('stop_typing', { userId: userId });
+            socket.to(socket_id).emit('stop_typing', { userId: userId });
+        }
+        catch (err) {
+            console.log(err);
+        }
     })
     // socket.broadcast.emit('typing',{userId});
     // for received msg.
