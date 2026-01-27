@@ -17,55 +17,40 @@ const io = new Server(server, {
     }
 });
 
-
+const userSocketMap = new Map();
 
 io.on('connection', async (socket) => {
     const { userId } = socket.handshake.auth;
+    userSocketMap.set(userId, socket.id);
     try {
         await db.query(
             `UPDATE users
-            SET online_status = TRUE,
-            curr_socket_id = $1
-            WHERE id=$2`,
-            [socket.id, userId]
+            SET online_status = TRUE
+            WHERE id=$1`,
+            [userId]
         );
     } catch (err) {
         console.log(err);
     }
     // for typing event.
-    socket.on('typing', async ({ userId, receiverId }) => {
-        try {
-            const result = await db.query(
-                `SELECT curr_socket_id
-            FROM users
-            WHERE id = $1`,
-                [receiverId]
-            );
-            const socket_id = result.rows[0]?.curr_socket_id;
-
+    socket.on('typing', ({ userId, receiverId }) => {
+        const socket_id = userSocketMap.get(receiverId);
+        if (socket_id) {
             socket.to(socket_id).emit('typing', { userId: userId });
+
         }
-        catch (err) {
-            console.log(err)
-        }
+
     });
     socket.on('stop_typing', async ({ userId, receiverId }) => {
-        try {
-            const result = await db.query(
-                `SELECT curr_socket_id
-            FROM users
-            WHERE id = $1`,
-                [receiverId]
-            );
-            const socket_id = result.rows[0]?.curr_socket_id;
 
+        const socket_id = userSocketMap.get(receiverId);
+        if (socket_id) {
             socket.to(socket_id).emit('stop_typing', { userId: userId });
+
         }
-        catch (err) {
-            console.log(err);
-        }
+
     })
-    // socket.broadcast.emit('typing',{userId});
+
     // for received msg.
 
     // for message seen.
@@ -80,11 +65,11 @@ io.on('connection', async (socket) => {
     socket.on('disconnect', async () => {
         // console.log('user disconnected', username);
         try {
+            userSocketMap.delete(userId);
             await db.query(
                 `UPDATE users
                 SET online_status = FALSE,
-                last_login = CURRENT_TIMESTAMP,
-                curr_socket_id=null
+                last_login = CURRENT_TIMESTAMP
                 WHERE id=$1`,
                 [userId]
             );
