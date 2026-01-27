@@ -12,7 +12,7 @@ export const server = http.createServer(app);
 const frontend_url = process.env.FRONTEND_URL;
 const io = new Server(server, {
     cors: {
-        origin: [frontend_url],
+        origin: ["https://let-it-out-omega.vercel.app","http://localhost:5173"],
         credentials: true
     }
 });
