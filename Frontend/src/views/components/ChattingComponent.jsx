@@ -12,8 +12,9 @@ import { useDispatch, useSelector } from "react-redux";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
 import { setState } from "../../store/authReducer/authReducer";
-import { formatDate,formatTime } from "../../utils/formatDateTime";
+import { formatDate, formatTime } from "../../utils/formatDateTime";
 import ChatOptionsComponent from "./ChatOptionsComponent";
+import socket from "../../utils/socket";
 
 function TypingDots() {
     return (
@@ -58,7 +59,7 @@ function ChattingComponent({ username, getChatlist }) {
     const backend_url = import.meta.env.VITE_BACKEND_URL;
     const navigate = useNavigate();
     const dispatch = useDispatch();
-    
+
 
     useEffect(() => {
         if (username) {
@@ -70,11 +71,34 @@ function ChattingComponent({ username, getChatlist }) {
         if (userData.id) {
             setSendMessageBox("");
             getMessages();
+            socket.on('typing', ({ userId }) => {
+                if (userId == userData?.id) {
+                    setIsTyping(true);
+                }
+
+            });
+
+            socket.on('stop_typing', ({ userId }) => {
+                if (userId == userData?.id) {
+                    setIsTyping(false);
+                }
+
+            });
+            return () => {
+                socket.off('typing');
+                socket.off('stop_typing');
+            }
         }
+
     }, [userData])
 
-    
-    
+    const emitTyping = () => {
+
+        socket.emit('typing', { userId: userInfo?.id, receiverId: userData?.id });
+    }
+    const emitStopTyping = () => {
+        socket.emit('stop_typing', { userId: userInfo?.id, receiverId: userData?.id });
+    }
     const getUserData = async () => {
         try {
             const result = await axios.get(
@@ -113,6 +137,7 @@ function ChattingComponent({ username, getChatlist }) {
 
     const sendMessage = async () => {
 
+        document.activeElement.blur();
         try {
             if (!sendMessageBox.trim() || !userData?.id) {
                 return;
@@ -175,12 +200,12 @@ function ChattingComponent({ username, getChatlist }) {
                         {userData?.image && <img src={userData.image} style={{ width: '45px', height: '45px', objectFit: 'cover', borderRadius: '25px' }} alt="" />}
                     </Avatar>
                     <Box sx={{ width: 'calc(100% - 140px)', height: '50px' }} >
-                        {isLoading?<Skeleton width={'120px'}  />:<Typography variant="body1" color="text.primary" component={'div'} noWrap textOverflow={'ellipsis'}>{userData?.name}</Typography>}
-                        {isLoading?<Skeleton width={'45px'}  />:<Typography variant="body2" color="text.secondary" fontSize={12} component={'div'} noWrap textOverflow={'ellipsis'}>online </Typography>}
+                        {isLoading ? <Skeleton width={'120px'} /> : <Typography variant="body1" color="text.primary" component={'div'} noWrap textOverflow={'ellipsis'}>{userData?.name}</Typography>}
+                        {isLoading ? <Skeleton width={'45px'} /> : <Typography variant="body2" color={`${isTyping ? 'secondary.main' : userData?.online_status ? "#2fa500" : '#fff'}`} fontSize={12} component={'div'} noWrap textOverflow={'ellipsis'}>{isTyping ? 'typing...' : (userData?.online_status) ? "Online" : `${formatDate(userData?.last_login)} ${formatTime(userData?.last_login)}`} </Typography>}
                     </Box>
-                    <ChatOptionsComponent  userData={userData} getUserData={getUserData} />
+                    <ChatOptionsComponent userData={userData} getUserData={getUserData} />
                 </Box>
-                
+
                 {isLoading ? <Stack width={'100%'} height={'calc(100% - 70px)'} direction={'column-reverse'} sx={{ overflowY: 'scroll' }} spacing={2} pb={'55px'}>
                     <Stack width={'100%'} spacing={2}>
                         <Box width={'100%'} pt={1} sx={{ display: 'flex', justifyContent: 'center' }}>
@@ -196,7 +221,24 @@ function ChattingComponent({ username, getChatlist }) {
                     </Stack>
                 </Stack> :
                     <Stack width={'100%'} height={'calc(100% - 70px)'} direction={'column-reverse'} sx={{ overflowY: 'scroll' }} spacing={2} pb={'55px'}>
-
+                        {isTyping && (
+                            <Box width="100%" sx={{ display: 'flex', justifyContent: 'start', px: '8px' }}>
+                                <Box
+                                    maxWidth="100px"
+                                    height={'35px'}
+                                    borderRadius="10px"
+                                    p="8px 12px"
+                                    sx={{
+                                        background: "linear-gradient(135deg, #2b2b2bff, #444346ff)",
+                                        display: 'flex',
+                                        alignItems: 'center',
+                                        justifyContent: 'center'
+                                    }}
+                                >
+                                    <TypingDots />
+                                </Box>
+                            </Box>
+                        )}
                         {!isLoading && messagesList?.map((m, i) => <Stack key={i} width={'100%'} spacing={2}>
                             <Box width={'100%'} pt={1} sx={{ display: 'flex', justifyContent: 'center' }}>
                                 <Chip label={formatDate(m.message_date)} size="small" />
@@ -228,28 +270,11 @@ function ChattingComponent({ username, getChatlist }) {
                             </Typography>
                         </Stack>}
 
-                        {isTyping && (
-                            <Box width="100%" sx={{ display: 'flex', justifyContent: 'start', px: '8px' }}>
-                                <Box
-                                    maxWidth="100px"
-                                    height={'35px'}
-                                    borderRadius="10px"
-                                    p="8px 12px"
-                                    sx={{
-                                        background: "linear-gradient(135deg, #2b2b2bff, #444346ff)",
-                                        display: 'flex',
-                                        alignItems: 'center',
-                                        justifyContent: 'center'
-                                    }}
-                                >
-                                    <TypingDots />
-                                </Box>
-                            </Box>
-                        )}
+
                     </Stack>}
-                {!userData?.is_blocked&& !userData?.blocked_me&&<Box width={'100%'} position={'absolute'} display={'flex'} bottom={'5px'} gap={1} px={1} alignItems={'end'} >
+                {!userData?.is_blocked && !userData?.blocked_me && <Box width={'100%'} position={'absolute'} display={'flex'} bottom={'5px'} gap={1} px={1} alignItems={'end'} >
                     <Box width={'calc(100% - 50px)'} sx={{ bgcolor: '#3f3f3fff' }} borderRadius={1}>
-                        <TextField fullWidth value={sendMessageBox} onChange={(e) => { setSendMessageBox(e.target.value) }} multiline minRows={1} maxRows={3} onKeyDown={(e) => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); sendMessage() } }} placeholder="write message..." color="secondary" size="small" />
+                        <TextField onFocus={() => emitTyping()} onBlur={() => emitStopTyping()} fullWidth value={sendMessageBox} onChange={(e) => { setSendMessageBox(e.target.value) }} multiline minRows={1} maxRows={3} onKeyDown={(e) => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); sendMessage() } }} placeholder="write message..." color="secondary" size="small" />
                     </Box>
                     <IconButton loading={sendingMsg} size="small" disabled={!sendMessageBox?.trim()} onClick={() => sendMessage()}>
                         <SendIcon color={(sendMessageBox?.trim()) ? "secondary" : ""} fontSize="large" />

@@ -15,6 +15,8 @@ class Messages {
                         u.fake_name,
                         u.first_name AS name,
                         u.image,
+                        u.last_login,
+                        u.online_status,
                         u.lio_userid AS username,
                         json_build_object(
                             'id', m.id,
@@ -179,6 +181,8 @@ class Messages {
                 u.id AS id,
                 u.lio_userid AS username,
                 u.image AS image,
+                u.online_status AS online_status,
+                u.last_login AS last_login,
                 COALESCE(NULLIF(u.fake_name,''),u.first_name) AS name,
                 EXISTS(
                     SELECT 1

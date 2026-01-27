@@ -314,9 +314,7 @@ class Post {
                     'id', u.id,
                     'name', COALESCE(NULLIF(u.fake_name, ''), u.first_name),
                     'username', u.lio_userid,
-                    'image', u.image
-
-
+                    'image', u.imagey
                 ) AS user_data
                 FROM posts AS p
                 JOIN bookmarks AS b

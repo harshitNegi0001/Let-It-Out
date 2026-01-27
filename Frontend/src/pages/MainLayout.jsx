@@ -28,7 +28,7 @@ function MainLayout() {
                     </BottomNavigation>
                 </Stack>
                 <Divider orientation="vertical" sx={{ height: '100vh', display: { xs: 'none', md: 'flex' } }} />
-                <Stack width={{ xl: '440px', lg: '350px', md: '280px' }} height={'100vh'} display={{ xs: 'none', md: 'flex' }}>
+                <Stack width={{ xl: '440px', lg: '350px', md: '280px' }} height={'100vh'} overflow={'scroll'} display={{ xs: 'none', md: 'flex' }}>
                     <LayoutExplore />
                 </Stack>
             </Stack>

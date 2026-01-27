@@ -55,40 +55,42 @@ function PostUI({ followed = false, postData, userData }) {
     }, [postData])
 
     function formatPostTime(createdAt) {
-        // Remove microseconds if present
-        
-        const cleaned = createdAt.split(".")[0] + "Z"; // force UTC
+        if (!createdAt) return '';
 
-        const postDate = new Date(cleaned);
+        const postDate = new Date(createdAt);
         const now = new Date();
 
         const diffMs = now - postDate;
 
-        const diffMinutes = Math.floor(diffMs / 60000);
-        const diffHours = Math.floor(diffMinutes / 60);
-        const diffDays = Math.floor(diffHours / 24);
-        const diffMonths = Math.floor(diffDays / 30);
-        const diffYears = Math.floor(diffDays / 365);
+        const minute = 60 * 1000;
+        const hour = 60 * minute;
+        const day = 24 * hour;
+        const month = 30 * day;
+        const year = 365 * day;
 
-        // Same local day
+        // 🔹 Recent first (priority)
+        if (diffMs < minute) return 'just now';
+        if (diffMs < hour) return `${Math.floor(diffMs / minute)}m ago`;
+        if (diffMs < day) return `${Math.floor(diffMs / hour)}h ago`;
+
+        // 🔹 Same calendar day but older
         if (postDate.toDateString() === now.toDateString()) {
             return `today at ${postDate
-                .toLocaleTimeString([], {
-                    hour: "numeric",
-                    minute: "2-digit",
+                .toLocaleTimeString('en-US', {
+                    hour: 'numeric',
+                    minute: '2-digit',
                     hour12: true,
                 })
                 .toLowerCase()}`;
         }
 
-        if (diffYears >= 1) return `${diffYears}yr ago`;
-        if (diffMonths >= 1) return `${diffMonths}mon ago`;
-        if (diffDays >= 1) return `${diffDays}d ago`;
-        if (diffHours >= 1) return `${diffHours}h ago`;
-        if (diffMinutes >= 1) return `${diffMinutes}m ago`;
+        // 🔹 Older dates
+        if (diffMs < month) return `${Math.floor(diffMs / day)}d ago`;
+        if (diffMs < year) return `${Math.floor(diffMs / month)}mon ago`;
 
-        return "just now";
+        return `${Math.floor(diffMs / year)}yr ago`;
     }
+
 
 
     const handleLikeBtn = () => {
@@ -168,13 +170,13 @@ function PostUI({ followed = false, postData, userData }) {
                         </ListItemIcon>
                         <ListItemText>{isSaved ? 'Remove boookmark' : 'Bookmark'}</ListItemText>
                     </MenuItem>
-                    {(userInfo.id!=userData.id)&&<MenuItem >
+                    {(userInfo.id != userData.id) && <MenuItem >
                         <ListItemIcon>
                             {
-                                !followed?<PersonAddAlt1Icon fontSize="small"/>:(followed=='accepted')?<PersonRemoveIcon fontSize="small"/>:<CancelOutlinedIcon fontSize="small"/>
+                                !followed ? <PersonAddAlt1Icon fontSize="small" /> : (followed == 'accepted') ? <PersonRemoveIcon fontSize="small" /> : <CancelOutlinedIcon fontSize="small" />
                             }
                         </ListItemIcon>
-                        <ListItemText>{!followed?`Follow ${userData.name}`:(followed=='accepted')?`Unfollow ${userData.name}`:'Cancle follow request'}</ListItemText>
+                        <ListItemText>{!followed ? `Follow ${userData.name}` : (followed == 'accepted') ? `Unfollow ${userData.name}` : 'Cancle follow request'}</ListItemText>
                     </MenuItem>}
                 </Menu>
                 <Box width={'100%'} p={1} sx={{ display: 'flex', flexDirection: 'column' }}>

@@ -15,7 +15,7 @@ export const createPostsTable = async (pool) => {
 	            post_type VARCHAR(20) NOT NULL DEFAULT 'text',
                 comments_count INT NOT NULL DEFAULT 0,
                 shares_count INT NOT NULL DEFAULT 0,
-	            created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+	            created_at TIMESTAMPZ NOT NULL DEFAULT now(),
     
 
 	            CONSTRAINT fk_user FOREIGN KEY (user_id)

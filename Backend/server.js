@@ -8,14 +8,14 @@ import msgRoute from './routes/messagesRoute.js';
 import userProfileRoute from './routes/userProfileRoutes.js';
 import cookieParser from 'cookie-parser';
 import cors from 'cors';
+import { app,server } from './utils/io.js';
 import setupTables from './utils/setupTables.js';
 dotenv.config();
-const port = process.env.PORT || 5000;
-
-const app = express();
+const frontend_url = process.env.FRONTEND_URL;
+const port = process.env.PORT||5000
 
 app.use(cors({
-    origin: ["http://localhost:5173", "https://let-it-out-omega.vercel.app"],
+    origin: [frontend_url],
     credentials: true
 }))
 app.use(express.json());
@@ -36,7 +36,7 @@ async function startServer() {
 
     try {
         await setupTables();
-        app.listen(port, () => {
+        server.listen(port, () => {
             console.log(`Server running on port ${port} !`);
         });
     } catch (err) {
