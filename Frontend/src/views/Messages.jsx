@@ -99,9 +99,20 @@ function Messages() {
                 })
             })
         };
-
+        const handleSeen = ({ userId }) => {
+            setChatlist(prev => {
+                return prev.map(u => (u.id == userId) ? { ...u, last_message: { ...u.last_message, is_read: true } } : u)
+            })
+        }
+        const handleDoubletTick = ({ userId }) => {
+            setChatlist(prev => {
+                return prev.map(u => (u.id == userId) ? { ...u, last_message: { ...u.last_message, is_delivered: true } } : u)
+            })
+        }
         socket.on('typing', handleTyping);
         socket.on('stop_typing', handleStopTyping);
+        socket.on('user_get_msg', handleDoubletTick);
+        socket.on('user_read_msg', handleSeen);
         socket.on('receive_msg', async ({ wrappedMessage }) => {
             try {
                 const result = await axios.get(`${backend_url}/msg/get-my-chatlist`,
@@ -125,7 +136,9 @@ function Messages() {
             socket.off('add-online');
             socket.off('receive_msg');
             socket.off('remove-online');
-
+            socket.off('typing', handleTyping);
+            socket.off('stop_typing', handleStopTyping);
+            socket.off('user_read_msg', handleSeen);
         });
 
     }, [])
@@ -178,7 +191,7 @@ function Messages() {
                                             <Typography variant="body2" fontSize={10} component={'span'} color="text.secondary">{formatChatDate(u?.last_message?.created_at)}</Typography>
                                         </Box>
                                         <Box sx={{ width: '100%', mt: 1, alignItems: 'center', justifyContent: 'start', display: 'flex', gap: '4px' }}>
-                                            {(!u?.isTyping) ? <>{(u?.last_message?.sender_id == u.id) ? null : (u?.last_message?.is_read) ? <VisibilityIcon sx={{ fontSize: 14, mt: '2px', color: '#fff' }} /> : (u?.last_message?.is_received) ? <DoneAllIcon sx={{ fontSize: 14, mt: '2px', color: '#fff' }} /> : <DoneIcon sx={{ fontSize: 14, mt: '2px', color: '#fff' }} />}
+                                            {(!u?.isTyping) ? <>{(u?.last_message?.sender_id == u.id) ? null : (u?.last_message?.is_read) ? <VisibilityIcon sx={{ fontSize: 14, mt: '2px', color: '#fff' }} /> : (u?.last_message?.is_delivered) ? <DoneAllIcon sx={{ fontSize: 14, mt: '2px', color: '#fff' }} /> : <DoneIcon sx={{ fontSize: 14, mt: '2px', color: '#fff' }} />}
                                                 <Typography variant="body2" width={'calc(100% - 70px)'} noWrap textOverflow={'ellipsis'} textAlign={'start'} fontSize={12} color="text.primary" >
                                                     {u?.last_message?.message}
                                                 </Typography></> :

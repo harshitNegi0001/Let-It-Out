@@ -1,9 +1,6 @@
-import { Avatar, Box, Chip, IconButton, ListItemIcon, ListItemText, Menu, MenuItem, Skeleton, Stack, TextField, Typography } from "@mui/material";
-import MoreHorizIcon from '@mui/icons-material/MoreHoriz';
+import { Avatar, Box, Chip, IconButton,  Skeleton, Stack, TextField, Typography } from "@mui/material";
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import SendIcon from '@mui/icons-material/Send';
-import ReportIcon from '@mui/icons-material/Report';
-import BlockIcon from '@mui/icons-material/Block';
 import VisibilityIcon from '@mui/icons-material/Visibility';
 import DoneIcon from '@mui/icons-material/Done';
 import DoneAllIcon from '@mui/icons-material/DoneAll';
@@ -46,14 +43,11 @@ function Dot({ delay }) {
 }
 
 
-
-
 function ChattingComponent({ username, getChatlist }) {
     const [isTyping, setIsTyping] = useState(false);
     const [isOnline, setIsOnline] = useState(false);
     const [lastOnline, setLastOnline] = useState(null);
     const [messagesList, setMessagesList] = useState([]);
-    // console.log(messagesList);
     const [sendMessageBox, setSendMessageBox] = useState("");
     const [sendingMsg, setSendingMsg] = useState(false);
     const [isLoading, setIsLoading] = useState(true);
@@ -217,6 +211,7 @@ function ChattingComponent({ username, getChatlist }) {
             )
 
             setMessagesList(result?.data?.messagesList);
+
             getChatlist();
             setIsLoading(false);
         } catch (err) {

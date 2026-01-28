@@ -194,6 +194,14 @@ class Messages {
                 WHERE receiver_id = $1 AND sender_id = $2 AND is_read!= true`,
                 [user1, user2]
             );
+            const receiverSockets = userSocketMap.get(user2);
+            if(receiverSockets){
+                receiverSockets.forEach(socketId=>{
+                    io.to(socketId).emit('user_read_msg',{
+                        userId:user1
+                    });
+                })
+            }
             return returnRes(res, 200, { messagesList: result.rows });
         } catch (err) {
             // console.log(err);
