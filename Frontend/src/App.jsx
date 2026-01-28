@@ -59,6 +59,8 @@ function App() {
                         </ThemeProvider>
 
                     )
+                },{
+                    duration:4000
                 })
             }
             const handleNotification = (data) => {
