@@ -8,14 +8,20 @@ import msgRoute from './routes/messagesRoute.js';
 import userProfileRoute from './routes/userProfileRoutes.js';
 import cookieParser from 'cookie-parser';
 import cors from 'cors';
-import { app,server } from './utils/io.js';
 import setupTables from './utils/setupTables.js';
+import http from 'http';
+import { initSocket } from './utils/io.js';
+
+export const app = express();
 dotenv.config();
+export const server = http.createServer(app);
 const frontend_url = process.env.FRONTEND_URL;
-const port = process.env.PORT||5000
+const port = process.env.PORT || 5000
+
+initSocket(server);
 
 app.use(cors({
-    origin: ["https://let-it-out-omega.vercel.app","http://localhost:5173"],
+    origin: ["https://let-it-out-omega.vercel.app", "http://localhost:5173"],
     credentials: true
 }))
 app.use(express.json());

@@ -1,5 +1,7 @@
 import { returnRes } from "../utils/returnRes.js";
 import db from '../utils/db.js';
+import { io, userSocketMap } from '../utils/io.js';
+
 
 class Messages {
     // Controller function to get chatlist related to current user.
@@ -56,7 +58,8 @@ class Messages {
                     username: u.username,
                     image: u.image,
                     last_message: u.last_message,
-                    unread_count: await getUnreadCount(u.id)
+                    unread_count: await getUnreadCount(u.id),
+                    online_status:u.online_status
                 }
             }))
 
@@ -100,23 +103,51 @@ class Messages {
         is_read,
         is_delivered,
         created_at,
-        DATE(created_at AT TIME ZONE 'UTC') AS message_date
+        created_at :: date AS message_date
       ;
       `,
                 [senderId, receiverId, message, "text", replyTo]
             );
 
             const msg = rows[0];
+            const wrappedMessage = {
+                message_date: msg.message_date,
+                messages: [msg]
+            }
+            const result = await db.query(
+                `SELECT 
+                u.lio_userid AS username,
+                u.id AS id,
+                u.image AS image,
+                m.message AS message,
+                m.id AS msg_id,
+                COALESCE(NULLIF(u.fake_name,''),u.first_name) AS name
+                FROM users AS u
+                JOIN messages AS m
+                ON m.sender_id=u.Id
+                WHERE m.id = $1`,
+                [msg.id]
+            );
+            const receiverSockets = userSocketMap.get(receiverId);
 
-            // 👇 SAME FORMAT AS getMessages
+            if(receiverSockets){
+                receiverSockets.forEach((socketId)=>{
+                    io.to(socketId).emit('receive_msg',{wrappedMessage:wrappedMessage});
+                    io.to(socketId).emit('get_notify',{
+                        data:{
+                            type:'chat',
+                            data:result.rows[0]
+                        }
+                    })
+                    
+                })
+            }
             return returnRes(res, 200, {
-                wrappedMessage: {
-                    message_date: msg.message_date,
-                    messages: [msg]
-                }
+                wrappedMessage
             });
 
         } catch (err) {
+            console.log(err);
             return returnRes(res, 500, { error: 'Internal Server Error!' });
         }
     };
@@ -145,7 +176,7 @@ class Messages {
                     ) AS messages
                 FROM (
                 SELECT *,
-                   DATE(created_at AT TIME ZONE 'UTC') AS msg_date
+                   created_at :: date AS msg_date
                    FROM messages
                    WHERE
                    (sender_id = $1 AND receiver_id = $2)
@@ -173,7 +204,7 @@ class Messages {
 
     getUserBasicData = async (req, res) => {
         const visitorId = req.id;
-        const {username} = req.query;
+        const { username } = req.query;
         try {
             // other checkup here....
             const result = await db.query(
@@ -198,10 +229,10 @@ class Messages {
                 ) AS blocked_me
                 FROM users AS u
                 WHERE u.lio_userid = $2
-                `,[visitorId,username]
+                `, [visitorId, username]
             );
 
-            return returnRes(res,200,{message:'Got user basic detail for chat.',userDetail:result.rows[0]});
+            return returnRes(res, 200, { message: 'Got user basic detail for chat.', userDetail: result.rows[0] });
         } catch (err) {
             console.log(err);
             return returnRes(res, 500, { error: 'Internal Server Error!' });

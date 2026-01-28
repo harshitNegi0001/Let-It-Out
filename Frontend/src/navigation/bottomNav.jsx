@@ -21,7 +21,8 @@ export const BottomNavs = [
         activeIcon:<HomeFilledIcon/>,
         inactiveIcon:<HomeOutlinedIcon/>,
         badgeStyle:'dot',
-        badgeColor:'info'
+        badgeColor:'info',
+        key:'home'
         
     },
     {
@@ -31,7 +32,8 @@ export const BottomNavs = [
         activeIcon:<ExploreFilledIcon/>,
         inactiveIcon:<ExploreOutlinedIcon/>,
         badgeStyle:'standard',
-        badgeColor:'secondary'
+        badgeColor:'secondary',
+        key:'explore'
         
     },
     
@@ -42,7 +44,8 @@ export const BottomNavs = [
         activeIcon:<ChatFilledIcon/>,
         inactiveIcon:<ChatOutlinedIcon/>,
         badgeStyle:'standard',
-        badgeColor:'secondary'
+        badgeColor:'secondary',
+        key:'chat'
         
         
     },
@@ -53,7 +56,8 @@ export const BottomNavs = [
         activeIcon:<SettingFilledIcon/>,
         inactiveIcon:<SettingOutlinedIcon/>,
         badgeStyle:'dot',
-        badgeColor:'info'
+        badgeColor:'info',
+        key:'setting'
         
     }
 ]

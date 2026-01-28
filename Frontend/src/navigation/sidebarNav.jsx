@@ -21,7 +21,8 @@ export const sidebarNavs = [
         activeIcon:<HomeFilledIcon/>,
         inactiveIcon:<HomeOutlinedIcon/>,
         badgeStyle:'dot',
-        badgeColor:'info'
+        badgeColor:'info',
+        key:'home'
         
     },
     {
@@ -31,7 +32,8 @@ export const sidebarNavs = [
         activeIcon:<ChatFilledIcon/>,
         inactiveIcon:<ChatOutlinedIcon/>,
         badgeStyle:'standard',
-        badgeColor:'secondary'
+        badgeColor:'secondary',
+        key:'chat'
         
     },
     {
@@ -41,7 +43,8 @@ export const sidebarNavs = [
         activeIcon:<ExploreFilledIcon/>,
         inactiveIcon:<ExploreOutlinedIcon/>,
         badgeStyle:'standard',
-        badgeColor:'secondary'
+        badgeColor:'secondary',
+        key:'explore'
         
     },
     {
@@ -51,7 +54,8 @@ export const sidebarNavs = [
         activeIcon:<NotificationFilledIcon/>,
         inactiveIcon:<NotificationOutlinedIcon/>,
         badgeStyle:'standard',
-        badgeColor:'secondary'
+        badgeColor:'secondary',
+        key:'notification'
         
     },
     {
@@ -61,7 +65,8 @@ export const sidebarNavs = [
         activeIcon:<ProfileFilledIcon/>,
         inactiveIcon:<ProfileOutlinedIcon/>,
         badgeStyle:'standard',
-        badgeColor:'secondary'
+        badgeColor:'secondary',
+        key:'profile'
         
         
     },
@@ -72,7 +77,8 @@ export const sidebarNavs = [
         activeIcon:<SettingFilledIcon/>,
         inactiveIcon:<SettingOutlinedIcon/>,
         badgeStyle:'dot',
-        badgeColor:'info'
+        badgeColor:'info',
+        key:'setting'
         
     }
 ]

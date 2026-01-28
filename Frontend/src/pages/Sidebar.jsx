@@ -11,10 +11,11 @@ import { logout } from "../store/authReducer/authReducer";
 
 function Sidebar() {
     const { pathname } = useLocation();
-    const {userInfo,isLoading} =useSelector(state=>state.auth);
+    const { userInfo, isLoading } = useSelector(state => state.auth);
+    const { notificationCount } = useSelector(state => state.notif);
     const navigate = useNavigate();
     const [anchorEl, setAnchorEl] = useState(null);
-    const [openBackdrop,setOpenBackdrop] =useState(false);
+    const [openBackdrop, setOpenBackdrop] = useState(false);
     const openMenu = Boolean(anchorEl);
     const dispatch = useDispatch();
     const handleOpenMenu = (event) => {
@@ -23,11 +24,11 @@ function Sidebar() {
     const handleCloseMenu = () => {
         setAnchorEl(null);
     }
-    const handleLogout = async()=>{
+    const handleLogout = async () => {
         setAnchorEl(null);
         setOpenBackdrop(true);
     }
-    const handleCloseBackdrop =()=>{
+    const handleCloseBackdrop = () => {
         document.activeElement?.blur();
         setOpenBackdrop(false);
     }
@@ -43,12 +44,12 @@ function Sidebar() {
                 <Stack width={'100%'} height={'calc(100% - 210px)'} sx={{ overflowY: 'auto', scrollbarWidth: 'none' }} p={3} spacing={1}>
 
                     {
-                        sidebarNavs.map((nav) => <Button key={nav.id} onClick={() => navigate(nav.path)} color={`${pathname === nav.path ? 'secondary' : 'text.primary'}`} sx={{ display: 'flex', alignItems: 'center', justifyContent: 'start', fontSize: '16px' }} startIcon={<Badge variant={nav.badgeStyle} color={nav.badgeColor} badgeContent={nav.path != pathname ? 0 : 0}>{nav.activeIcon}</Badge>}  >{nav.name}</Button>)
+                        sidebarNavs.map((nav) => <Button key={nav.id} onClick={() => navigate(nav.path)} color={`${pathname === nav.path ? 'secondary' : 'text.primary'}`} sx={{ display: 'flex', alignItems: 'center', justifyContent: 'start', fontSize: '16px' }} startIcon={<Badge variant={nav.badgeStyle} color={nav.badgeColor} badgeContent={nav.path != pathname ? notificationCount[nav.key]||0 : 0}>{nav.activeIcon}</Badge>}  >{nav.name}</Button>)
                     }
                 </Stack>
                 <Box display={'flex'} gap={1} zIndex={1} width={'100%'} height={60} flexDirection={'row'} justifyContent={'center'} alignItems={"center"} position={'absolute'} bottom={0} p={'0px 15px'} bgcolor={'primary.main'}>
                     <Avatar sx={{ width: '35px', height: '35px', bgcolor: 'secondary.light' }}>
-                        {userInfo?.image?<img src={userInfo?.image} style={{width:'100%',height:'100%',objectFit:'cover'}} alt="" />:null}
+                        {userInfo?.image ? <img src={userInfo?.image} style={{ width: '100%', height: '100%', objectFit: 'cover' }} alt="" /> : null}
                     </Avatar>
                     <Stack height={'45px'} width={'calc(100% - 65px)'} >
                         <Typography variant="body1" color="text.primary" component={'span'} textOverflow={'ellipsis'} overflow={"hidden"} noWrap>{userInfo?.name}</Typography>
@@ -64,12 +65,12 @@ function Sidebar() {
                     <MenuList dense>
                         <MenuItem onClick={handleLogout} >
 
-                            
-                                <ListItemIcon>
-                                    <LogoutIcon />
-                                </ListItemIcon>
-                                <ListItemText>Log out</ListItemText>
-                            
+
+                            <ListItemIcon>
+                                <LogoutIcon />
+                            </ListItemIcon>
+                            <ListItemText>Log out</ListItemText>
+
 
                         </MenuItem>
                         {/* <MenuItem onClick={handleCloseMenu} >
@@ -84,17 +85,17 @@ function Sidebar() {
                     </MenuList>
                 </Menu>
             </Stack>
-            <Backdrop sx={{zIndex:99}} open={openBackdrop} onClick={()=>setOpenBackdrop(false)}>
-                    <Box width={'280px'} onClick={(e)=>e.stopPropagation()}  bgcolor={'primary.light'}  borderRadius={2} display={'flex'} flexDirection={'column'} gap={2} p={2}>
-                            <Box width={'100%'} >
-                                <Typography variant="body1" component={'div'}>Are you sure to logout</Typography>
-                            </Box>
-                            <Box width={'100%'} display={'flex'} gap={2} justifyContent={'end'}>
-                               
-                                <Button variant="text" color="secondary" onClick={handleCloseBackdrop}>Cancle</Button> 
-                                <Button variant="contained" color="error" loading={isLoading} onClick={ ()=> dispatch(logout())}>Confirm</Button>
-                            </Box>
+            <Backdrop sx={{ zIndex: 99 }} open={openBackdrop} onClick={() => setOpenBackdrop(false)}>
+                <Box width={'280px'} onClick={(e) => e.stopPropagation()} bgcolor={'primary.light'} borderRadius={2} display={'flex'} flexDirection={'column'} gap={2} p={2}>
+                    <Box width={'100%'} >
+                        <Typography variant="body1" component={'div'}>Are you sure to logout</Typography>
                     </Box>
+                    <Box width={'100%'} display={'flex'} gap={2} justifyContent={'end'}>
+
+                        <Button variant="text" color="secondary" onClick={handleCloseBackdrop}>Cancle</Button>
+                        <Button variant="contained" color="error" loading={isLoading} onClick={() => dispatch(logout())}>Confirm</Button>
+                    </Box>
+                </Box>
             </Backdrop>
 
         </Drawer>

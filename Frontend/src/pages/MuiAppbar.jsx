@@ -3,10 +3,12 @@ import appLogo from '../assets/letitout_logo.png';
 
 import NotificationFilledIcon from '@mui/icons-material/Notifications';
 import { useLocation, useNavigate } from "react-router-dom";
+import { useSelector } from 'react-redux';
 
 function MuiAppbar() {
     const { pathname } = useLocation();
     const navigate = useNavigate();
+    const {notificationCount} = useSelector(state=>state.notif);
     return (
         <>
             <AppBar position="static" color='secondary' sx={{ display: { xs: 'flex', sm: 'none' },p:0,m:0 }}>
@@ -18,7 +20,7 @@ function MuiAppbar() {
                             <Typography variant="h6" component={'div'} textTransform={'uppercase'} fontFamily={'Winky Rough'}>let it out</Typography>
                             </Box>
                         <Box display={'flex'} gap={2}>
-                            <IconButton edge='start' size='large' onClick={() => navigate('/notification')} ><Badge variant='standard' badgeContent={(pathname=='/notification')?0:2}  color='secondary'><NotificationFilledIcon color={`${pathname == '/notification' ? 'secondary' : ''}`} /></Badge></IconButton>
+                            <IconButton edge='start' size='large' onClick={() => navigate('/notification')} ><Badge variant='standard' badgeContent={(pathname=='/notification')?0:notificationCount['notification']||0}  color='secondary'><NotificationFilledIcon color={`${pathname == '/notification' ? 'secondary' : ''}`} /></Badge></IconButton>
                             <IconButton edge='start' size='large' onClick={() => navigate('/profile')} ><Avatar sx={{width:'25px',height:'25px',bgcolor:'#fff'}}></Avatar></IconButton>
 
                         </Box>

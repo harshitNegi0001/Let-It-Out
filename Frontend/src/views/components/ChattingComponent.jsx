@@ -50,7 +50,10 @@ function Dot({ delay }) {
 
 function ChattingComponent({ username, getChatlist }) {
     const [isTyping, setIsTyping] = useState(false);
+    const [isOnline, setIsOnline] = useState(false);
+    const [lastOnline, setLastOnline] = useState(null);
     const [messagesList, setMessagesList] = useState([]);
+    // console.log(messagesList);
     const [sendMessageBox, setSendMessageBox] = useState("");
     const [sendingMsg, setSendingMsg] = useState(false);
     const [isLoading, setIsLoading] = useState(true);
@@ -60,37 +63,123 @@ function ChattingComponent({ username, getChatlist }) {
     const navigate = useNavigate();
     const dispatch = useDispatch();
 
+    useEffect(() => {
 
+    }, [])
     useEffect(() => {
         if (username) {
             getUserData();
         }
 
-    }, [username])
+    }, [username]);
     useEffect(() => {
-        if (userData.id) {
-            setSendMessageBox("");
-            getMessages();
-            socket.on('typing', ({ userId }) => {
-                if (userId == userData?.id) {
-                    setIsTyping(true);
+        if (!userData?.id) return;
+        setSendMessageBox("");
+        setIsOnline(userData?.online_status);
+        getMessages();
+        setLastOnline(userData?.last_login);
+
+        const handleTyping = ({ userId }) => {
+            if (userId === userData.id) setIsTyping(true);
+        };
+
+        const handleStopTyping = ({ userId }) => {
+            if (userId === userData.id) setIsTyping(false);
+        };
+
+        const handleReceiveMsg = ({ wrappedMessage }) => {
+            setMessagesList(prev => {
+                const lastGroup = prev[0];
+
+                if (lastGroup && lastGroup.message_date === wrappedMessage.message_date) {
+                    return [
+                        {
+                            ...lastGroup,
+                            messages: [...lastGroup.messages, ...wrappedMessage.messages]
+                        },
+                        ...prev.slice(1)
+                    ];
                 }
 
+                return [
+                    {
+                        message_date: wrappedMessage.message_date,
+                        messages: [...wrappedMessage.messages]
+                    },
+                    ...prev
+                ];
             });
 
-            socket.on('stop_typing', ({ userId }) => {
-                if (userId == userData?.id) {
-                    setIsTyping(false);
-                }
-
+            socket.emit('msg_seen', {
+                receiverId: userData.id,
+                userId: userInfo.id,
+                msgIds: wrappedMessage.messages.map(m => m.id)
             });
             return () => {
-                socket.off('typing');
-                socket.off('stop_typing');
+                socket.off('msg_seen');
+            }
+        };
+
+        const handleOnline = ({ online_userId }) => {
+            if (online_userId === userData.id) setIsOnline(true);
+        };
+
+        const handleOffline = ({ online_userId }) => {
+            if (online_userId === userData.id) {
+                setIsOnline(false);
+                setLastOnline(new Date());
+            }
+        };
+        const handleDoubletTick = ({ userId, msgIds }) => {
+            if (userId == userData.id) {
+                setMessagesList(prev => {
+                    return prev.map(grp => {
+
+                        return {
+                            ...grp, messages: grp.messages.map(m => {
+                                return { ...m, is_delivered: true }
+                            })
+                        };
+                    })
+                })
+            }
+        }
+        const handleSeen = ({ userId, msgIds }) => {
+            if (userId == userData.id) {
+                setMessagesList(prev => {
+                    return prev.map(grp => {
+
+                        return {
+                            ...grp, messages: grp.messages.map(m => {
+                                return { ...m, is_read: true }
+                            })
+                        };
+                    })
+                })
             }
         }
 
-    }, [userData])
+        socket.on('typing', handleTyping);
+        socket.on('stop_typing', handleStopTyping);
+        socket.on('receive_msg', handleReceiveMsg);
+        socket.on('add-online', handleOnline);
+        socket.on('remove-online', handleOffline);
+        socket.on('user_get_msg', handleDoubletTick);
+        socket.on('user_read_msg', handleSeen);
+
+
+        return () => {
+            socket.off('typing', handleTyping);
+            socket.off('stop_typing', handleStopTyping);
+            socket.off('receive_msg', handleReceiveMsg);
+            socket.off('add-online', handleOnline);
+            socket.off('remove-online', handleOffline);
+            socket.off('user_get_msg', handleDoubletTick);
+            socket.off('user_read_msg', handleSeen);
+
+        };
+    }, [userData?.id]);
+
 
     const emitTyping = () => {
 
@@ -128,6 +217,7 @@ function ChattingComponent({ username, getChatlist }) {
             )
 
             setMessagesList(result?.data?.messagesList);
+            getChatlist();
             setIsLoading(false);
         } catch (err) {
             setIsLoading(false);
@@ -201,7 +291,7 @@ function ChattingComponent({ username, getChatlist }) {
                     </Avatar>
                     <Box sx={{ width: 'calc(100% - 140px)', height: '50px' }} >
                         {isLoading ? <Skeleton width={'120px'} /> : <Typography variant="body1" color="text.primary" component={'div'} noWrap textOverflow={'ellipsis'}>{userData?.name}</Typography>}
-                        {isLoading ? <Skeleton width={'45px'} /> : <Typography variant="body2" color={`${isTyping ? 'secondary.main' : userData?.online_status ? "#2fa500" : '#fff'}`} fontSize={12} component={'div'} noWrap textOverflow={'ellipsis'}>{isTyping ? 'typing...' : (userData?.online_status) ? "Online" : `${formatDate(userData?.last_login)} ${formatTime(userData?.last_login)}`} </Typography>}
+                        {isLoading ? <Skeleton width={'45px'} /> : <Typography variant="body2" color={`${isTyping ? 'secondary.main' : isOnline ? "#2fa500" : '#fff'}`} fontSize={12} component={'div'} noWrap textOverflow={'ellipsis'}>{isTyping ? 'typing...' : (isOnline) ? "Online" : (lastOnline) ? `last seen ${formatDate(lastOnline)} ${formatTime(lastOnline)}` : `last seen ${formatDate(userData?.last_login)} ${formatTime(userData?.last_login)}`} </Typography>}
                     </Box>
                     <ChatOptionsComponent userData={userData} getUserData={getUserData} />
                 </Box>
