@@ -30,6 +30,9 @@ export const initSocket = (server) => {
         }
         userSocketMap.get(userId).add(socket.id);
 
+        // send notification that missed when offline
+        
+
         try {
             await db.query(
                 `UPDATE users
@@ -37,6 +40,30 @@ export const initSocket = (server) => {
             WHERE id=$1`,
                 [userId]
             );
+
+            const unReceived_msg = await db.query(
+                `SELECT 
+                    u.id AS id,
+                    u.image AS image,
+                    COALESCE(NULLIF(u.fake_name,''),u.first_name) AS name,
+                    u.lio_userid AS username,
+                    COUNT(m.id) AS msg_count,
+					ARRAY_AGG(m.id) AS msg_ids
+                    
+                FROM users AS u
+                JOIN messages AS m
+                ON m.sender_id = u.id
+                    AND m.receiver_id = $1
+                    AND m.is_delivered = false
+                GROUP BY u.id
+                
+                    `,
+                    [userId]
+            );
+
+            if(unReceived_msg.rows.length>0){
+                io.to(socket.id).emit('offline_notification',{type:'chat',data:unReceived_msg.rows});
+            }
 
         } catch (err) {
             console.log(err);

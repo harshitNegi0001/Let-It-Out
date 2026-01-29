@@ -9,7 +9,7 @@ import { getInitialState } from './store/authReducer/authReducer.js';
 import Toaster from './views/components/Toaster.jsx';
 
 import socket from './utils/socket.js';
-import NotificationSystem from './views/components/MessageSystem.jsx';
+import NotificationSystem from './views/components/NotificationSystem.jsx';
 
 function App() {
     const { userInfo } = useSelector(state => state.auth);
