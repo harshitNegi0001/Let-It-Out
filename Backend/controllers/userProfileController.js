@@ -70,7 +70,21 @@ class UserProfile {
             const { username, password, fakeName, profileImg } = req.body;
             const hashedPass = await bcrypt.hash(password, 10);
             await db.query("UPDATE users SET lio_userid = $1, password=$2,fake_name=$3,image=$4 WHERE id =$5", [username, hashedPass, fakeName, profileImg, userId]);
-            const result = await db.query(`SELECT id, email,first_name, name, google_uid, fake_name, lio_userid, image, bio, bg_image, dob, acc_status, created_at FROM users WHERE id = $1`, [userId]);
+            const result = await db.query(`
+                SELECT id, 
+                email,
+                first_name, 
+               COALESCE(NULLIF(fake_name,''),first_name), 
+               lio_userid AS username, 
+               image, 
+               bio,
+                bg_image, 
+                dob, 
+                acc_status, 
+                created_at 
+                FROM users 
+                WHERE id = $1`,
+                 [userId]);
             const userInfo = result.rows[0];
 
             return returnRes(res, 200, { message: "Success!", userInfo });

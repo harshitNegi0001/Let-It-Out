@@ -152,7 +152,9 @@ function NewUserSetup() {
                 headers: { "Content-Type": "application/json" }
             });
             setIsLoading(false);
-            dispatch(setState({ userInfo: result.data.userInfo, success: 'Profile created.' }));
+
+            dispatch(setState({ userInfo: result?.data?.userInfo, success: 'Profile created.' }));
+
 
             navigate('/');
         } catch (err) {

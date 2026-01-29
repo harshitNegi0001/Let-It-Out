@@ -175,7 +175,7 @@ class Auth {
         WHERE follower_id = $1 AND status ='accepted'`,
         [userId]
       )
-      const user =result.rows[0];
+      const user = result.rows[0];
       const user_info = {
         id: user.id,
         name: user.fake_name || user.first_name,
@@ -185,9 +185,9 @@ class Auth {
         cover_image: user.bg_image,
         acc_type: user.acc_type,
         acc_status: user.acc_status,
-        dob:user.dob,
-        email:user.email,
-        created_at:user.created_at,
+        dob: user.dob,
+        email: user.email,
+        created_at: user.created_at,
         followers: countFollowers.rows[0].count,
         followings: countFollowings.rows[0].count
       }
@@ -386,7 +386,7 @@ class Auth {
       return returnRes(res, 401, { error: 'Invalid credentials!' });
 
     } catch (err) {
-      // console.log(err);
+      console.log(err);
       return returnRes(res, 500, { error: 'Internal server error!' });
     }
   }
