@@ -1,0 +1,95 @@
+import { Avatar, Box, Button, Paper, Stack, Typography, ThemeProvider } from '@mui/material';
+import { useEffect, useRef } from 'react';
+import { useDispatch, useSelector } from 'react-redux';
+import { useNavigate } from 'react-router-dom';
+import socket from '../../utils/socket';
+import toast from 'react-hot-toast';
+
+
+function NotificationSystem({ customTheme }) {
+    const notificationSoundRef = useRef(null);
+    const { userInfo } = useSelector(state => state.auth);
+    const { openedPage } = useSelector(state => state.notif);
+    const navigate = useNavigate();
+
+
+
+    useEffect(() => {
+        notificationSoundRef.current = new Audio('/msg-notification-sound.mp3');
+        notificationSoundRef.current.volume = 0.6;
+        if (userInfo?.username) {
+            const handleNotification = (data) => {
+
+            }
+            const handleMessageRecived = (data) => {
+
+                if (notificationSoundRef.current) {
+                    notificationSoundRef.current.currentTime = 0;
+                    notificationSoundRef.current
+                        .play()
+                        .catch(() => {
+                            // Autoplay blocked — happens if user hasn’t interacted yet
+                        });
+                }
+
+
+                toast.custom((t) => {
+                    socket.emit('msg_received', {
+                        receiverId: data.id,
+                        userId: userInfo.id,
+                        msgIds: [data.msg_id]
+                    });
+                    return (
+                        <ThemeProvider theme={customTheme}>
+                            <Paper elevation={3} sx={{ maxWidth: '320px', width: "100%", pointerEvents: "auto", animation: t.visible ? "fadeIn 0.3s ease-out" : "fadeOut 0.3s ease-in" }}>
+                                <Stack direction="row" spacing={1} p={1} alignItems="center">
+                                    <Avatar src={data.image} sx={{ width: 30, height: 30 }} />
+                                    <Box flex={1} onClick={() => navigate(`/chats/${data.username}`)} sx={{ cursor: 'pointer' }}>
+                                        <Typography variant="body1" noWrap maxWidth={'150px'} textOverflow={'ellipsis'} fontSize={{ xs: '13px', sm: '15px' }} color='#fff' fontWeight={600}>
+                                            {data.name}
+                                        </Typography>
+                                        <Typography textOverflow={'ellipsis'} noWrap maxWidth={'150px'} variant="body2" fontSize={{ xs: '10px', sm: '13px' }} color="text.secondary">
+                                            {data.message}
+                                        </Typography>
+                                    </Box>
+                                    <Button
+                                        size="small"
+                                        color='secondary'
+                                        onClick={() => toast.dismiss(t.id)}
+                                    >
+                                        Close
+                                    </Button>
+                                </Stack>
+                            </Paper>
+                        </ThemeProvider>
+
+                    )
+                }, {
+                    duration: 4000
+                })
+
+            }
+            socket.on('get_notify', ({ data }) => {
+                if (data?.type == 'chat') {
+                    
+                    
+                    if(openedPage=='chat'){
+                        return;
+                    }
+                    handleMessageRecived(data.data);
+                }
+                if (data?.type == 'notification') {
+                    handleNotification(data);
+                }
+            })
+
+            return () => {
+                socket.off('get_notify')
+            }
+        }
+    }, [userInfo, openedPage]);
+
+
+}
+
+export default NotificationSystem;

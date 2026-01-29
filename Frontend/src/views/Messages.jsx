@@ -10,6 +10,7 @@ import { setState } from "../store/authReducer/authReducer";
 import axios from "axios";
 import ChattingComponent from "./components/ChattingComponent";
 import socket from "../utils/socket";
+import { setPage } from "../store/notificationReducer/notifReducer";
 
 
 const formatChatDate = (dateStr) => {
@@ -66,6 +67,8 @@ function Messages() {
 
 
     useEffect(() => {
+        dispatch(setPage('chat'));
+
         getChatlist();
         socket.on('add-online', ({ online_userId }) => {
             setChatlist(prev => {
@@ -132,6 +135,9 @@ function Messages() {
             }
         })
         return (() => {
+
+            dispatch(setPage(null));
+
             setChatlist([]);
             socket.off('add-online');
             socket.off('receive_msg');

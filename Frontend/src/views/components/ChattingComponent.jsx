@@ -1,4 +1,4 @@
-import { Avatar, Box, Chip, IconButton,  Skeleton, Stack, TextField, Typography } from "@mui/material";
+import { Avatar, Box, Chip, IconButton, Skeleton, Stack, TextField, Typography } from "@mui/material";
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import SendIcon from '@mui/icons-material/Send';
 import VisibilityIcon from '@mui/icons-material/Visibility';
@@ -63,6 +63,7 @@ function ChattingComponent({ username, getChatlist }) {
     useEffect(() => {
         if (username) {
             getUserData();
+           
         }
 
     }, [username]);
@@ -82,6 +83,9 @@ function ChattingComponent({ username, getChatlist }) {
         };
 
         const handleReceiveMsg = ({ wrappedMessage }) => {
+            if (wrappedMessage?.messages[0]?.sender_id != userData?.id) {
+                return;
+            }
             setMessagesList(prev => {
                 const lastGroup = prev[0];
 
