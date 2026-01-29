@@ -3,6 +3,7 @@ import { lazy } from "react";
 
 const Home = lazy(()=>import('../../views/Home.jsx'));
 const Messages = lazy(()=>import('../../views/Messages.jsx'));
+const NewChat = lazy(()=>import('../../views/components/NewChat.jsx'));
 const Explore = lazy(()=>import('../../views/Explore.jsx'));
 const Notifications = lazy(()=>import('../../views/Notifications.jsx'));
 const Profile = lazy(()=>import('../../views/Profile.jsx'));
@@ -36,6 +37,11 @@ export const authorizedRoutes=[
     {
         path:'/chats',
         element:<Messages/>,
+        needAuth:true
+    },
+    {
+        path:'/new-chat',
+        element:<NewChat/>,
         needAuth:true
     },
     {

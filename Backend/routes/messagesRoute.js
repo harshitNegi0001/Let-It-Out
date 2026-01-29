@@ -7,6 +7,7 @@ const router = e.Router();
 router.get('/get-my-chatlist',authMiddleware,Messages.getChatlist);
 router.post('/get-messages',authMiddleware,Messages.getMessages);
 router.get('/get-user-basic-data',authMiddleware,Messages.getUserBasicData);
+router.get('/get-connected-users',authMiddleware,Messages.getConnectedUsers);
 
 router.post('/send-message',authMiddleware,Messages.sendMessage);
 

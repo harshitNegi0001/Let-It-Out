@@ -59,7 +59,7 @@ class Messages {
                     image: u.image,
                     last_message: u.last_message,
                     unread_count: await getUnreadCount(u.id),
-                    online_status:u.online_status
+                    online_status: u.online_status
                 }
             }))
 
@@ -130,16 +130,16 @@ class Messages {
             );
             const receiverSockets = userSocketMap.get(receiverId);
 
-            if(receiverSockets){
-                receiverSockets.forEach((socketId)=>{
-                    io.to(socketId).emit('receive_msg',{wrappedMessage:wrappedMessage});
-                    io.to(socketId).emit('get_notify',{
-                        data:{
-                            type:'chat',
-                            data:result.rows[0]
+            if (receiverSockets) {
+                receiverSockets.forEach((socketId) => {
+                    io.to(socketId).emit('receive_msg', { wrappedMessage: wrappedMessage });
+                    io.to(socketId).emit('get_notify', {
+                        data: {
+                            type: 'chat',
+                            data: result.rows[0]
                         }
                     })
-                    
+
                 })
             }
             return returnRes(res, 200, {
@@ -195,10 +195,10 @@ class Messages {
                 [user1, user2]
             );
             const receiverSockets = userSocketMap.get(user2);
-            if(receiverSockets){
-                receiverSockets.forEach(socketId=>{
-                    io.to(socketId).emit('user_read_msg',{
-                        userId:user1
+            if (receiverSockets) {
+                receiverSockets.forEach(socketId => {
+                    io.to(socketId).emit('user_read_msg', {
+                        userId: user1
                     });
                 })
             }
@@ -240,7 +240,45 @@ class Messages {
                 `, [visitorId, username]
             );
 
+            if(result.rows.length==0){
+                return returnRes(res,404,{error:'User not found.',code:'USER_NOT_FOUND'});
+            }
+
             return returnRes(res, 200, { message: 'Got user basic detail for chat.', userDetail: result.rows[0] });
+        } catch (err) {
+            // console.log(err);
+            return returnRes(res, 500, { error: 'Internal Server Error!' });
+        }
+    }
+
+    // controller function to get connected user for chatting.
+
+    getConnectedUsers = async (req, res) => {
+        const userId = req.id;
+
+        try {
+            const result = await db.query(
+                `SELECT DISTINCT
+                    u.id AS id,
+                    COALESCE(NULLIF(u.fake_name,''),u.first_name) AS name,
+                    u.lio_userid AS username,
+                    u.image AS image
+                FROM followers f
+                JOIN users u
+                ON u.id = CASE
+                    WHEN f.follower_id = $1 THEN f.following_id
+                    ELSE f.follower_id
+                END
+                WHERE
+                f.status = 'accepted'
+                AND ($1 IN (f.follower_id, f.following_id))
+                AND u.id <> $1;
+                `,
+                [userId]
+            );
+
+            return returnRes(res,200,{connectedUsers:result.rows});
+
         } catch (err) {
             console.log(err);
             return returnRes(res, 500, { error: 'Internal Server Error!' });

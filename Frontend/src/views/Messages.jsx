@@ -1,9 +1,10 @@
-import { Avatar, Badge, Box, Button, Chip, Divider, Skeleton, Stack, Typography } from "@mui/material";
+import { Avatar, Badge, Box, Button, Chip, Divider, IconButton, Skeleton, Stack, Typography } from "@mui/material";
 import VisibilityIcon from '@mui/icons-material/Visibility';
 import DoneIcon from '@mui/icons-material/Done';
 import DoneAllIcon from '@mui/icons-material/DoneAll';
 import { useLocation, useNavigate, useParams } from "react-router-dom";
 import { useEffect, useState } from "react";
+import AddCommentIcon from '@mui/icons-material/AddComment';
 
 import { useDispatch } from "react-redux";
 import { setState } from "../store/authReducer/authReducer";
@@ -170,9 +171,12 @@ function Messages() {
 
     return (
         <>
-            <Stack width={'100%'} alignItems={"center"} height={{ sm: '100%', xs: 'calc(100% - 110px)' }} boxSizing={'border-box'}>
+            <Stack width={'100%'} alignItems={"center"} position={'relative'} height={{ sm: '100%', xs: 'calc(100% - 110px)' }} boxSizing={'border-box'}>
 
                 {!username && <Stack sx={{ boxSizing: 'border-box', overflowY: 'scroll', scrollbarWidth: 'none' }} direction={'column'} width={'100%'} height={'100%'}>
+                    <IconButton onClick={() => navigate('/new-chat')} size="large" title="New chat" sx={{ bgcolor: 'secondary.main', position: 'absolute', zIndex: 99, bottom: '15px', right: '15px', '&:hover': { bgcolor: 'secondary.dark', color: 'text.secondary' } }}>
+                        <AddCommentIcon />
+                    </IconButton>
                     <Box width={'100%'} sx={{ display: 'flex', flexDirection: "column", gap: '4px' }} p={1} pb={2} >
                         <Typography variant="h6" fontSize={{ xs: '24px', sm: '28px' }} color="#fff">
                             Messages
@@ -181,44 +185,45 @@ function Messages() {
                             Chats will appear here after you send or receive a message
                         </Typography>
 
-                    </Box><Divider />
-                    {
-                        chatlist.map(u =>
-                            <Button sx={{ p: 0, m: 0, borderRadius: '0' }} key={u.id} color="secondary" onClick={() => navigate(`/chats/${u.username}`)}>
-                                <Box width={'100%'} minHeight={'60px'} display={'flex'} justifyContent={'start'} p={1} gap={2} >
-                                    <Badge variant="dot" overlap="circular" invisible={!u.online_status} anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }} color="success">
-                                        <Avatar sx={{ width: '50px', height: "50px" }} src={u.image} >
-                                            {/* {u.image && <img src={u.image} style={{ width: '50px', height: '50px', objectFit: 'cover', borderRadius: '25px' }} alt="" />} */}
-                                        </Avatar>
-                                    </Badge>
-                                    <Box sx={{ display: 'flex', flexDirection: 'column', width: 'calc( 100% - 75px)', alignItems: 'start' }}>
-                                        <Box sx={{ width: '100%', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                                            <Typography variant="body1" color="text.primary" width={'calc(100% - 65px)'} noWrap textOverflow={'ellipsis'} textAlign={'start'} component={'span'}>{u.fake_name || u.name}</Typography>
-                                            <Typography variant="body2" fontSize={10} component={'span'} color="text.secondary">{formatChatDate(u?.last_message?.created_at)}</Typography>
-                                        </Box>
-                                        <Box sx={{ width: '100%', mt: 1, alignItems: 'center', justifyContent: 'start', display: 'flex', gap: '4px' }}>
-                                            {(!u?.isTyping) ? <>{(u?.last_message?.sender_id == u.id) ? null : (u?.last_message?.is_read) ? <VisibilityIcon sx={{ fontSize: 14, mt: '2px', color: '#fff' }} /> : (u?.last_message?.is_delivered) ? <DoneAllIcon sx={{ fontSize: 14, mt: '2px', color: '#fff' }} /> : <DoneIcon sx={{ fontSize: 14, mt: '2px', color: '#fff' }} />}
-                                                <Typography variant="body2" width={'calc(100% - 70px)'} noWrap textOverflow={'ellipsis'} textAlign={'start'} fontSize={12} color="text.primary" >
-                                                    {u?.last_message?.message}
-                                                </Typography></> :
-                                                <>
-                                                    <Typography variant="body2" width={'calc(100% - 70px)'} noWrap textOverflow={'ellipsis'} textAlign={'start'} fontSize={12} color="secondary.main" >
-                                                        typing...
-                                                    </Typography>
-                                                </>}
-                                            <Badge badgeContent={parseInt(u?.unread_count)} color="secondary" sx={{ width: '5px', ml: 1, height: '5px', mt: '6px' }} max={99}></Badge>
-                                            <Typography variant="body2" width={'55px'} fontSize={10} color="text.secondary">{formatTime(u?.last_message?.created_at)}</Typography>
-                                        </Box>
-
-
+                    </Box>
+                    <Divider />
+                    {chatlist.map(u =>
+                        <Button sx={{ p: 0, m: 0, borderRadius: '0' }} key={u.id} color="secondary" onClick={() => navigate(`/chats/${u.username}`)}>
+                            <Box width={'100%'} minHeight={'60px'} display={'flex'} justifyContent={'start'} p={1} gap={2} >
+                                <Badge variant="dot" overlap="circular" invisible={!u.online_status} anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }} color="success">
+                                    <Avatar sx={{ width: '50px', height: "50px" }} src={u.image} >
+                                        {/* {u.image && <img src={u.image} style={{ width: '50px', height: '50px', objectFit: 'cover', borderRadius: '25px' }} alt="" />} */}
+                                    </Avatar>
+                                </Badge>
+                                <Box sx={{ display: 'flex', flexDirection: 'column', width: 'calc( 100% - 75px)', alignItems: 'start' }}>
+                                    <Box sx={{ width: '100%', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                                        <Typography variant="body1" color="text.primary" width={'calc(100% - 65px)'} noWrap textOverflow={'ellipsis'} textAlign={'start'} component={'span'}>{u.fake_name || u.name}</Typography>
+                                        <Typography variant="body2" fontSize={10} component={'span'} color="text.secondary">{formatChatDate(u?.last_message?.created_at)}</Typography>
                                     </Box>
-                                </Box>
-                            </Button>
+                                    <Box sx={{ width: '100%', mt: 1, alignItems: 'center', justifyContent: 'start', display: 'flex', gap: '4px' }}>
+                                        {(!u?.isTyping) ? <>{(u?.last_message?.sender_id == u.id) ? null : (u?.last_message?.is_read) ? <VisibilityIcon sx={{ fontSize: 14, mt: '2px', color: '#fff' }} /> : (u?.last_message?.is_delivered) ? <DoneAllIcon sx={{ fontSize: 14, mt: '2px', color: '#fff' }} /> : <DoneIcon sx={{ fontSize: 14, mt: '2px', color: '#fff' }} />}
+                                            <Typography variant="body2" width={'calc(100% - 70px)'} noWrap textOverflow={'ellipsis'} textAlign={'start'} fontSize={12} color="text.primary" >
+                                                {u?.last_message?.message}
+                                            </Typography></> :
+                                            <>
+                                                <Typography variant="body2" width={'calc(100% - 70px)'} noWrap textOverflow={'ellipsis'} textAlign={'start'} fontSize={12} color="secondary.main" >
+                                                    typing...
+                                                </Typography>
+                                            </>}
+                                        <Badge badgeContent={parseInt(u?.unread_count)} color="secondary" sx={{ width: '5px', ml: 1, height: '5px', mt: '6px' }} max={99}></Badge>
+                                        <Typography variant="body2" width={'55px'} fontSize={10} color="text.secondary">{formatTime(u?.last_message?.created_at)}</Typography>
+                                    </Box>
 
-                        )
+
+                                </Box>
+                            </Box>
+                        </Button>
+
+                    )
+
                     }
                     {
-                        isLoading && <Stack width={'100%'}>
+                        isLoading ? <Stack width={'100%'}>
                             {[1, 2, 3, 4, 5].map(i => <Box width={'100%'} key={i} minHeight={'60px'} display={'flex'} justifyContent={'start'} p={1} gap={2} >
                                 <Skeleton variant="circular" height={'50px'} width={'50px'} />
 
@@ -234,8 +239,20 @@ function Messages() {
                                 </Box>
                             </Box>)}
 
-                        </Stack>
+                        </Stack> :
+                            (chatlist.length == 0) && <Stack width={'100%'} height={'100%'} justifyContent={'center'} alignItems={'center'}>
+                                <Box width={'90%'} maxWidth={{ xs: '320px', sm: '450px' }} >
+                                    <img src="https://res.cloudinary.com/dns5lxuvy/image/upload/v1768276563/uof3wqwlmc9tojb6yfk9.png" style={{ width: '100%', objectFit: 'contain' }} alt="" />
+                                </Box>
+                                <Typography variant="body1" fontWeight={'bold'} fontSize={{ xs: '24px', sm: '32px' }} color="#fff">
+                                    No conversations yet
+                                </Typography>
+                                <Typography variant="body2" fontSize={{ xs: '10px', sm: '15px' }} color="text.secondary">
+                                    Start a conversation and your messages will appear here.
+                                </Typography>
+                            </Stack>
                     }
+
                 </Stack>}
                 {username && <ChattingComponent username={username} getChatlist={getChatlist} />}
             </Stack>

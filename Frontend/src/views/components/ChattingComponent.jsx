@@ -62,8 +62,11 @@ function ChattingComponent({ username, getChatlist }) {
     }, [])
     useEffect(() => {
         if (username) {
+            if (username == userInfo.username) {
+                navigate('/chats')
+            }
             getUserData();
-           
+
         }
 
     }, [username]);
@@ -197,7 +200,11 @@ function ChattingComponent({ username, getChatlist }) {
 
         } catch (err) {
             // console.log(err);
+
             dispatch(setState({ error: err?.response?.data?.error || "Something went wrong!" }));
+            if (err?.response?.data?.code == 'USER_NOT_FOUND') {
+                navigate('/chats');
+            }
         }
     }
     const getMessages = async () => {
@@ -285,8 +292,7 @@ function ChattingComponent({ username, getChatlist }) {
                 <Box width={'100%'} bgcolor={'primary.dark'} sx={{ display: 'flex', alignItems: 'center' }} p={1} height={'65px'} gap={1}>
 
                     <IconButton size="small" onClick={() => navigate('/chats')}><ArrowBackIcon sx={{ color: 'text.primary' }} /></IconButton>
-                    <Avatar sx={{ width: '45px', height: "45px", bgcolor: '#aeaabb' }}>
-                        {userData?.image && <img src={userData.image} style={{ width: '45px', height: '45px', objectFit: 'cover', borderRadius: '25px' }} alt="" />}
+                    <Avatar src={userData?.image} sx={{ width: '45px', height: "45px", bgcolor: '#aeaabb' }}>
                     </Avatar>
                     <Box sx={{ width: 'calc(100% - 140px)', height: '50px' }} >
                         {isLoading ? <Skeleton width={'120px'} /> : <Typography variant="body1" color="text.primary" component={'div'} noWrap textOverflow={'ellipsis'}>{userData?.name}</Typography>}
