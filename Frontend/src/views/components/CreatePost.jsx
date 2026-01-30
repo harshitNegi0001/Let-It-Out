@@ -16,7 +16,7 @@ function CreatePost({ closeCreatePost }) {
     const dispatch = useDispatch();
     const MAX_IMAGES = 5;
     const [text, setText] = useState("");
-    const [mood,setMood] = useState("");
+    const [mood, setMood] = useState("");
     const [postImages, setPostImages] = useState([]);
     const [imageFiles, setImageFiles] = useState([]);
 
@@ -64,7 +64,7 @@ function CreatePost({ closeCreatePost }) {
             const formData = new FormData();
 
             formData.append("content", text);
-            formData.append("mood",mood);
+            formData.append("mood", mood);
 
             imageFiles.forEach((file) => {
                 formData.append("images", file);
@@ -127,7 +127,11 @@ function CreatePost({ closeCreatePost }) {
                         fullWidth
                         value={text}
                         onChange={(e) => setText(e.target.value)}
-
+                        sx={{
+                            '& input': {
+                                fontSize: { xs: '14px', sm: '18px' }
+                            }
+                        }}
                     />
                 </Stack>
 
@@ -173,9 +177,9 @@ function CreatePost({ closeCreatePost }) {
                         < Box width={'140px'}>
                             <FormControl fullWidth>
                                 <InputLabel size="small" color="secondary" id="mood-select-label" >Mood</InputLabel>
-                                <Select  size="small" color='secondary' MenuProps={{ disablePortal: true }} value={mood} onChange={(e)=>setMood(e.target.value)} labelId="mood-select-label" id="mood-select" label="mood">
-                                    {moods?.map((m)=><MenuItem key={m.id} value={m.value}>{m.label}</MenuItem>)}
-                                    
+                                <Select size="small" color='secondary' MenuProps={{ disablePortal: true }} value={mood} onChange={(e) => setMood(e.target.value)} labelId="mood-select-label" id="mood-select" label="mood">
+                                    {moods?.map((m) => <MenuItem key={m.id} value={m.value}>{m.label}</MenuItem>)}
+
                                 </Select>
                             </FormControl>
                         </Box>

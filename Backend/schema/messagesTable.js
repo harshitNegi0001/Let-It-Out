@@ -15,8 +15,8 @@ export const createMessagesTable = async (pool) => {
                 is_read BOOLEAN DEFAULT FALSE,
                 is_edited BOOLEAN DEFAULT FALSE,
                 reply_to_msg BIGINT DEFAULT NULL,
-                created_at TIMESTAMPZ DEFAULT now(),
-                updated_at TIMESTAMPZ DEFAULT now(),
+                created_at TIMESTAMPTZ DEFAULT now(),
+                updated_at TIMESTAMPTZ DEFAULT now(),
 
                 CONSTRAINT fk_messages_sender
                     FOREIGN KEY (sender_id) REFERENCES users(id) ON DELETE CASCADE,

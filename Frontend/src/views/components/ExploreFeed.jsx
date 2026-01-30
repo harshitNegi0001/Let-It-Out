@@ -84,7 +84,7 @@ function ExploreFeed({ moods = [] }) {
             {!isLoading && postslist.length == 0 && < Stack width={'100%'} spacing={1} pt={2}>
 
 
-                <Box width={'100%'} py={3} px={1} sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+                <Box width={'100%'} py={0} px={1} sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
                     <Box width={'100%'} maxWidth={{ xs: '250px', sm: '400px' }}>
                         <img src="https://res.cloudinary.com/dns5lxuvy/image/upload/v1768469024/rltbhfkuuvq7mxre6vjr.png" style={{ width: "100%", objectFit: "contain" }} alt="" />
 

@@ -223,7 +223,7 @@ class Post {
 
 
             const isPrivate = userDetail.acc_type == 'private';
-            const followingResult =await db.query(
+            const followingResult = await db.query(
                 `SELECT (
                     EXISTS(
                     SELECT 1
@@ -233,9 +233,9 @@ class Post {
                         AND status ='accepted'
                     )
                 )`,
-                [visiterId,userId]
+                [visiterId, userId]
             );
-            
+
             const isFollowing = followingResult.rows[0]?.exists;
             if (isPrivate && !isFollowing) {
                 return returnRes(res, 200, {
@@ -734,6 +734,120 @@ class Post {
             else {
                 return returnRes(res, 400, { message: 'Feature not availible' });
             }
+        } catch (err) {
+            // console.log(err);
+            return returnRes(res, 500, { error: 'Internal Server Error!' });
+        }
+    }
+
+    // contoller function to get info of post on fullScreen post.
+    getPostInfo = async (req, res) => {
+        const visitorId = req.id;
+        const { post_id } = req.query;
+        try {
+            const postData = await db.query(
+                `SELECT
+                    p.id AS id,
+                    p.user_id AS user_id,
+                    p.content AS content,
+                    p.mood_tag AS mood_tag,
+                    p.media_url AS media_url,
+                    p.post_type AS post_type,
+                    p.comments_count AS comments_count,
+                    (
+                        SELECT 
+                            COUNT(l2.id) 
+                        FROM likes AS l2
+                        WHERE l2.target_type='post' AND l2.target_id=p.id
+                    ) AS likes_count,
+                    p.shares_count AS shares_count,
+                    p.created_at AS created_at,
+                    EXISTS (
+						SELECT 1
+						FROM likes AS l
+						WHERE l.target_type='post' 
+							AND l.target_id = p.id 
+							AND l.user_id=$2
+					) AS is_liked,
+                    EXISTS (
+                        SELECT 1 
+                            FROM bookmarks AS b
+                            WHERE b.user_id=$2 AND b.post_id = p.id
+                    ) AS is_saved   
+                FROM posts AS p 
+                WHERE p.id = $1`,
+                [post_id, visitorId]
+            );
+
+            if (postData.rows.length == 0) {
+                return returnRes(res, 200, {
+                    restrictions: {
+                        is_restricted: true,
+                        reason: 'POST_NOT_EXISTS',
+                        message: 'This post does not exists.',
+                        title: 'Post not exists',
+                        image: 'https://res.cloudinary.com/dns5lxuvy/image/upload/v1768114434/nbbj6vdpb8rahvsejoiz.png'
+                    }
+                });
+            }
+            const userId = postData.rows[0]?.user_id;
+            const userData = await db.query(
+                `SELECT
+                    u.id AS id,
+                    u.lio_userid AS username,
+                    COALESCE(NULLIF(u.fake_name,''),u.first_name) AS name,
+                    u.image AS image,
+                    u.acc_type AS acc_type,
+                    u.acc_status AS acc_status,
+                    (
+                        SELECT f.status
+                        FROM followers AS f
+                        WHERE follower_id = $2 
+                            AND following_id = u.id
+                    ) AS following_status 
+                FROM users AS u
+                WHERE u.id=$1
+                `,
+                [userId, visitorId]
+            );
+            if (userData?.rows.length == 0) {
+                return returnRes(res, 200, {
+                    restrictions: {
+                        is_restricted: true,
+                        reason: 'POST_NOT_EXISTS',
+                        message: 'This post does not exists.',
+                        title: 'Post not exists',
+                        image: 'https://res.cloudinary.com/dns5lxuvy/image/upload/v1768114434/nbbj6vdpb8rahvsejoiz.png'
+                    }
+                });
+            }
+            const accStatus = userData.rows[0]?.acc_status
+            if (accStatus != 'active') {
+                return returnRes(res, 200, {
+                    restrictions: {
+                        is_restricted: true,
+                        reason: (accStatus == 'deactive') ? "DEACTIVATED_ACCOUNT" : "SUSPENDED_ACCOUNT",
+                        message: "Sorry! ,We can't show posts from this account.",
+                        title: (accStatus == 'deactive') ? "This account has been Temporarily Deactivated" : "This account has been Suspended",
+                        image: (accStatus == 'deactive') ? 'https://res.cloudinary.com/dns5lxuvy/image/upload/v1767884508/nd3lir2au0iijzpxv4wk.png' : 'https://res.cloudinary.com/dns5lxuvy/image/upload/v1767883872/ugawmofhb7scnu4mozws.png'
+                    }
+                })
+            }
+            const accType = userData.rows[0]?.acc_type;
+            const followingStatus = userData.rows[0]?.following_status;
+            if (accType == 'private' &&  followingStatus!='accepted') {
+                return returnRes(res, 200, {
+                    restrictions: {
+                        is_restricted: true,
+                        reason: "PRIVATE_ACCOUNT",
+                        message: "Follow this account to see their posts",
+                        title: 'This account is Private',
+                        image: 'https://res.cloudinary.com/dns5lxuvy/image/upload/v1767880329/ffaril9idaw7ln5xqsyg.png'
+                    }
+                })
+            }
+
+            return returnRes(res, 200, { postData: postData.rows[0], userData: userData.rows[0] });
         } catch (err) {
             // console.log(err);
             return returnRes(res, 500, { error: 'Internal Server Error!' });

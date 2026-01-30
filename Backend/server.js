@@ -3,6 +3,7 @@ import dotenv from 'dotenv';
 import authRoute from './routes/authRoute.js';
 import postRoute from './routes/postRoute.js';
 import likeRoute from './routes/likesRoute.js';
+import commentRoute from './routes/commentRoute.js';
 import connectionRoute from './routes/ConnectionRoute.js';
 import msgRoute from './routes/messagesRoute.js';
 import userProfileRoute from './routes/userProfileRoutes.js';
@@ -28,6 +29,7 @@ app.use(express.json());
 app.use(cookieParser())
 app.use('/api', authRoute);
 app.use('/like', likeRoute);
+app.use('/cmnt', commentRoute);
 app.use('/msg', msgRoute);
 app.use('/api', postRoute);
 app.use('/api', connectionRoute);

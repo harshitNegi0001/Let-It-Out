@@ -21,8 +21,8 @@ export const createUsersTable = async (pool) => {
           acc_status VARCHAR(20) DEFAULT 'active',
           acc_type VARCHAR(20) DEFAULT 'public' ,
           dob TEXT, 
-          created_at TIMESTAMPZ DEFAULT now(),
-          last_login TIMESTAMPZ );`
+          created_at TIMESTAMPTZ DEFAULT now(),
+          last_login TIMESTAMPTZ );`
         );
 
 

@@ -19,6 +19,7 @@ import { requiredAction } from "../../store/authReducer/authReducer";
 import { useNavigate } from "react-router-dom";
 import { moods } from "../../utils/moods";
 import { deleteLikeTarget, likeTarget, savePost, undoSavedPost } from "../../utils/postOperations";
+import { timeCount } from "../../utils/formatDateTime";
 
 
 
@@ -54,42 +55,7 @@ function PostUI({ followed = false, postData, userData }) {
 
     }, [postData])
 
-    function formatPostTime(createdAt) {
-        if (!createdAt) return '';
-
-        const postDate = new Date(createdAt);
-        const now = new Date();
-
-        const diffMs = now - postDate;
-
-        const minute = 60 * 1000;
-        const hour = 60 * minute;
-        const day = 24 * hour;
-        const month = 30 * day;
-        const year = 365 * day;
-
-        // 🔹 Recent first (priority)
-        if (diffMs < minute) return 'just now';
-        if (diffMs < hour) return `${Math.floor(diffMs / minute)}m ago`;
-        if (diffMs < day) return `${Math.floor(diffMs / hour)}h ago`;
-
-        // 🔹 Same calendar day but older
-        if (postDate.toDateString() === now.toDateString()) {
-            return `today at ${postDate
-                .toLocaleTimeString('en-US', {
-                    hour: 'numeric',
-                    minute: '2-digit',
-                    hour12: true,
-                })
-                .toLowerCase()}`;
-        }
-
-        // 🔹 Older dates
-        if (diffMs < month) return `${Math.floor(diffMs / day)}d ago`;
-        if (diffMs < year) return `${Math.floor(diffMs / month)}mon ago`;
-
-        return `${Math.floor(diffMs / year)}yr ago`;
-    }
+    
 
 
 
@@ -128,7 +94,7 @@ function PostUI({ followed = false, postData, userData }) {
         <>
 
 
-            <Stack width={'100%'} borderRadius={2} overflow={'hidden'} border={1} borderColor={'primary.dark'}>
+            <Stack width={'100%'} height={'fit-content'} borderRadius={2} overflow={'hidden'} border={1} borderColor={'primary.dark'}>
                 <Stack direction={'row'} width={'100%'} boxSizing={'border-box'} p={1} justifyContent={'space-between'} bgcolor={'primary.dark'} alignItems={'center'}>
                     <Stack direction={'row'} spacing={1} alignItems={'center'} width={'calc(100% - 40px)'}>
                         <Box width={{ xs: '40px', sm: '55px' }} onClick={() => navigate(`/profile/${userData.username}`)} height={{ xs: '40px', sm: '55px' }} overflow={'hidden'} borderRadius={'30px'} >
@@ -141,7 +107,7 @@ function PostUI({ followed = false, postData, userData }) {
                             <Typography variant="body2" component={'span'} fontWeight={'bold'} fontSize={{ xs: 12, sm: 16 }} textOverflow={'ellipsis'} noWrap color="text.primary">{userData?.fake_name || userData?.name}</Typography>
 
                             {postData?.created_at && <Typography variant="body2" fontSize={{ xs: 10, sm: 14 }}>
-                                {formatPostTime(postData?.created_at)}
+                                {timeCount(postData?.created_at)}
                             </Typography>}
 
 
@@ -179,7 +145,7 @@ function PostUI({ followed = false, postData, userData }) {
                         <ListItemText>{!followed ? `Follow ${userData.name}` : (followed == 'accepted') ? `Unfollow ${userData.name}` : 'Cancle follow request'}</ListItemText>
                     </MenuItem>}
                 </Menu>
-                <Box width={'100%'} p={1} sx={{ display: 'flex', flexDirection: 'column' }}>
+                <Box width={'100%'} p={1} sx={{ display: 'flex', flexDirection: 'column' }} onClick={()=>navigate(`/p/${postData.id}`)}>
 
                     <Typography mb={2} sx={{ whiteSpace: 'pre-wrap' }} fontSize={{ xs: 12, sm: 16 }}>
                         {postData.content}
@@ -220,7 +186,8 @@ function PostUI({ followed = false, postData, userData }) {
                         <IconButton title="repost">
                             <RepostIcon />
 
-                        </IconButton><Typography variant="body2" fontSize={12} component={'span'}>7k</Typography>
+                        </IconButton>
+                        <Typography variant="body2" fontSize={12} component={'span'}>7k</Typography>
                     </Box>
                 </Stack>
 

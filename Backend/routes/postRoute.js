@@ -16,7 +16,7 @@ router.post('/delete-post',authMiddleware,Post.deleteMyPost);
 router.post('/save-post',authMiddleware,Post.savePost);
 router.post('/undo-save-post',authMiddleware,Post.undoSavePost);
 
-
+router.get('/get-post-info',authMiddleware,Post.getPostInfo);
 
 
 

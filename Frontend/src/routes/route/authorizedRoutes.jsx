@@ -23,6 +23,7 @@ const PostsActivityPage = lazy(()=>import('../../views/SettingsPages/PostsActivi
 const ConnectionPage = lazy(()=>import('../../views/ConnectionPage.jsx'));
 const VisibilityPage = lazy(()=>import('../../views/SettingsPages/VisibilityPage.jsx'));
 const BlockedUsers = lazy(()=>import('../../views/SettingsPages/BlockedUsers.jsx'));
+const FullPagePost = lazy(()=>import('../../views/FullPagePost.jsx'));
 
 
 
@@ -148,6 +149,11 @@ export const authorizedRoutes=[
         path:'/settings/account/delete-permanent',
         element:<DeleteAccount/>,
         needAuth:true
-    }
+    },
+    {
+        path:'/p/:postId',
+        element:<FullPagePost/>,
+        needAuth:true
+    },
     
 ];

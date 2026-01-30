@@ -1,5 +1,6 @@
 import { createBlockedAccTable } from "../schema/blockedTable.js";
 import { createBookmarksTable } from "../schema/bookmarkTable.js";
+import { createCommentsTable } from "../schema/commentsTable.js";
 import { createUsersTable } from "../schema/createUsers.js";
 import { createFollowersTable } from "../schema/FollowersTable.js";
 import { createLikesTable } from "../schema/likesTable.js";
@@ -18,4 +19,5 @@ export default async function setupTables() {
     await createBookmarksTable(pool);
     await createVisitorTable(pool);
     await createBlockedAccTable(pool);
+    await  createCommentsTable(pool);
 }
