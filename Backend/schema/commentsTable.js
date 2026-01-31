@@ -11,6 +11,7 @@ export const createCommentsTable = async(pool)=>{
                 parent_id  BIGINT DEFAULT NULL,
                 content TEXT NOT NULL,
                 is_edited BOOLEAN DEFAULT FALSE,
+                replying_to TEXT DEFAULT NULL,
                 updated_at TIMESTAMPTZ DEFAULT now(),
                 created_at TIMESTAMPTZ DEFAULT now(),
 

@@ -133,6 +133,11 @@ class Post {
                         `SELECT 
                     p.*
                     ,count(l.id) AS likes_count,
+                    (
+                        SELECT COUNT(c.id)
+                        FROM comments AS c
+                        WHERE c.post_id=p.id
+                    ) AS comments_count,
                     EXISTS(
                         SELECT 1
                         FROM likes AS l2
@@ -172,7 +177,6 @@ class Post {
                     'media_url', p.media_url,
                     'post_type', p.post_type,
                     'likes_count',count(l.id),
-                    'comments_count', p.comments_count,
                     'share_count', p.shares_count,
                     'created_at', p.created_at,
                     'is_liked', EXISTS(
@@ -187,7 +191,13 @@ class Post {
 						FROM bookmarks as b
 						WHERE b.user_id = $1
 							AND b.post_id=p.id
-					)
+					),
+                    'comments_count',
+                    (
+                        SELECT COUNT(c.id)
+                        FROM comments AS c
+                        WHERE c.post_id=p.id
+                    ) 
                 ) AS post_data, 
                 json_build_object(
                     'id', u.id,
@@ -264,6 +274,11 @@ class Post {
                     AND l2.target_id = p.id
                     AND l2.user_id = $4
                 ) AS is_liked,
+                    (
+                        SELECT COUNT(c.id)
+                        FROM comments AS c
+                        WHERE c.post_id=p.id
+                    ) AS comments_count,
 				EXISTS(
 					SELECT 1
 					FROM bookmarks AS b
@@ -293,7 +308,6 @@ class Post {
                     'media_url', p.media_url,
                     'post_type', p.post_type,
                     'likes_count',count(l.id),
-                    'comments_count', p.comments_count,
                     'share_count', p.shares_count,
                     'created_at', p.created_at,
                     'is_liked', EXISTS(
@@ -308,7 +322,12 @@ class Post {
 						FROM bookmarks as b
 						WHERE b.user_id = $1
 							AND b.post_id=p.id
-					)
+					), 'comments_count',
+                    (
+                        SELECT COUNT(c.id)
+                        FROM comments AS c
+                        WHERE c.post_id=p.id
+                    )
                 ) AS post_data, 
                 json_build_object(
                     'id', u.id,
@@ -418,7 +437,6 @@ class Post {
                         'media_url', p.media_url,
                         'post_type', p.post_type,
                         'likes_count',count(l.id),
-                        'comments_count', p.comments_count,
                         'share_count', p.shares_count,
                         'created_at', p.created_at,
                         'is_liked', EXISTS(
@@ -433,7 +451,12 @@ class Post {
 						    FROM bookmarks as b
 						    WHERE b.user_id = $4
 							    AND b.post_id=p.id
-					    )
+					    ),'comments_count',
+                        (
+                            SELECT COUNT(c.id)
+                            FROM comments AS c
+                            WHERE c.post_id=p.id
+                        )
                     ) AS post_data, 
                     json_build_object(
                         'id', u.id,
@@ -478,7 +501,6 @@ class Post {
                     'media_url', p.media_url,
                     'post_type', p.post_type,
                     'likes_count',count(l.id),
-                    'comments_count', p.comments_count,
                     'share_count', p.shares_count,
                     'created_at', p.created_at,
                     'is_liked', EXISTS(
@@ -493,7 +515,12 @@ class Post {
 						FROM bookmarks as b
 						WHERE b.user_id = $4
 							AND b.post_id=p.id
-					)
+					),'comments_count',
+                    (
+                        SELECT COUNT(c.id)
+                        FROM comments AS c
+                        WHERE c.post_id=p.id
+                    )
                 ) AS post_data, 
                 json_build_object(
                     'id', u.id,
@@ -533,7 +560,6 @@ class Post {
                     'media_url', p.media_url,
                     'post_type', p.post_type,
                     'likes_count',count(l.id),
-                    'comments_count', p.comments_count,
                     'share_count', p.shares_count,
                     'created_at', p.created_at,
                     'is_liked', EXISTS(
@@ -548,7 +574,12 @@ class Post {
 						FROM bookmarks as b
 						WHERE b.user_id = $3
 							AND b.post_id=p.id
-					)
+					),'comments_count',
+                    (
+                        SELECT COUNT(c.id)
+                        FROM comments AS c
+                        WHERE c.post_id=p.id
+                    )
                 ) AS post_data, 
                 json_build_object(
                     'id', u.id,
@@ -651,7 +682,6 @@ class Post {
                             'mood_tag',p.mood_tag,
                             'media_url',p.media_url,
                             'post_type',p.post_type,
-                            'comments_count',p.comments_count,
                             'likes_count',(SELECT 
                                 COUNT(l2.id) 
                                 FROM likes AS l2
@@ -663,6 +693,11 @@ class Post {
                                 SELECT 1 
                                 FROM bookmarks AS b
                                 WHERE b.user_id=$1 AND b.post_id = p.id
+                            ),'comments_count',
+                            (
+                                SELECT COUNT(c.id)
+                                FROM comments AS c
+                                WHERE c.post_id=p.id
                             )
                         ) AS post_data,
                         json_build_object(  
@@ -696,7 +731,6 @@ class Post {
                             'mood_tag',p.mood_tag,
                             'media_url',p.media_url,
                             'post_type',p.post_type,
-                            'comments_count',p.comments_count,
                             'likes_count',(SELECT 
                                 COUNT(l2.id) 
                                 FROM likes AS l2
@@ -710,7 +744,13 @@ class Post {
 									AND l.target_id = p.id 
 									AND l.user_id=$1
 							),
-                            'is_saved',TRUE
+                            'is_saved',TRUE,
+                            'comments_count',
+                            (
+                                SELECT COUNT(c.id)
+                                FROM comments AS c
+                                WHERE c.post_id=p.id
+                            )
                         ) AS post_data,
                         json_build_object(
                             'id', u.id,
@@ -753,13 +793,17 @@ class Post {
                     p.mood_tag AS mood_tag,
                     p.media_url AS media_url,
                     p.post_type AS post_type,
-                    p.comments_count AS comments_count,
                     (
                         SELECT 
                             COUNT(l2.id) 
                         FROM likes AS l2
                         WHERE l2.target_type='post' AND l2.target_id=p.id
                     ) AS likes_count,
+                    (
+                        SELECT COUNT(c.id)
+                        FROM comments AS c
+                        WHERE c.post_id=p.id
+                    ) AS comments_count,
                     p.shares_count AS shares_count,
                     p.created_at AS created_at,
                     EXISTS (
@@ -835,7 +879,7 @@ class Post {
             }
             const accType = userData.rows[0]?.acc_type;
             const followingStatus = userData.rows[0]?.following_status;
-            if (accType == 'private' &&  followingStatus!='accepted') {
+            if (accType == 'private' && followingStatus != 'accepted') {
                 return returnRes(res, 200, {
                     restrictions: {
                         is_restricted: true,

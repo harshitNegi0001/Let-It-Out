@@ -163,7 +163,7 @@ function PostUI({ followed = false, postData, userData }) {
                         </IconButton><Typography variant="body2" fontSize={12} component={'span'}>{likeCount.count}</Typography>
                     </Box>
                     <Box display={'flex'} justifyContent={'center'} alignItems={'center'}>
-                        <IconButton title="comments">
+                        <IconButton title="comments"  onClick={()=>navigate(`/p/${postData.id}`)}>
                             <CommentsIcon />
 
                         </IconButton><Typography variant="body2" fontSize={12} component={'span'}>{postData.comments_count}</Typography>

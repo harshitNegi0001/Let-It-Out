@@ -13,7 +13,6 @@ export const createPostsTable = async (pool) => {
                 mood_tag VARCHAR(30),
 	            media_url TEXT[],
 	            post_type VARCHAR(20) NOT NULL DEFAULT 'text',
-                comments_count INT NOT NULL DEFAULT 0,
                 shares_count INT NOT NULL DEFAULT 0,
 	            created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
     

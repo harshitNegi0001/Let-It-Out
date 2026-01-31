@@ -126,10 +126,23 @@ function CreatePost({ closeCreatePost }) {
                         placeholder="How you feeling today?"
                         fullWidth
                         value={text}
+                        error={text.length > 3000}
+                        helperText={`${text.length}/3000 `}
+                        slotProps={{
+                            htmlInput: {
+                                maxLength: 3000
+                            }
+                        }}
                         onChange={(e) => setText(e.target.value)}
                         sx={{
                             '& input': {
                                 fontSize: { xs: '14px', sm: '18px' }
+                            },
+                            '& .MuiFormHelperText-root': {
+                                fontSize: { xs: '8px', sm: '10px' },
+                                lineHeight: 1,
+                                marginTop: '4px',
+                                textAlign: 'end'
                             }
                         }}
                     />
