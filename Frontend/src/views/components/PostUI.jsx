@@ -94,7 +94,7 @@ function PostUI({ followed = false, postData, userData }) {
         <>
 
 
-            <Stack width={'100%'} height={'fit-content'} borderRadius={2} overflow={'hidden'} border={1} borderColor={'primary.dark'}>
+            <Stack width={'100%'} height={'fit-content'} borderRadius={2} overflow={'hidden'} sx={{boxShadow:'1px 1px 2px 1px #0e0e0e5d'}} borderColor={'primary.dark'} bgcolor={'#221f2b'}>
                 <Stack direction={'row'} width={'100%'} boxSizing={'border-box'} p={1} justifyContent={'space-between'} bgcolor={'primary.dark'} alignItems={'center'}>
                     <Stack direction={'row'} spacing={1} alignItems={'center'} width={'calc(100% - 40px)'}>
                         <Box width={{ xs: '40px', sm: '55px' }} onClick={() => navigate(`/profile/${userData.username}`)} height={{ xs: '40px', sm: '55px' }} overflow={'hidden'} borderRadius={'30px'} >
