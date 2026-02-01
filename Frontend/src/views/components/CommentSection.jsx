@@ -1,10 +1,11 @@
-import { Box, Divider, Stack, Typography, Avatar, TextField, Button } from "@mui/material";
+import { Box, Divider, Stack, Typography, Avatar, TextField, Button, Backdrop } from "@mui/material";
 import axios from "axios";
 import { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import CommentItem from "./CommentItem";
 import { setState } from "../../store/authReducer/authReducer";
 import LoadingComment from "./LoadingComment";
+import CommentReplyCommponent from "./CommentReplyCommponent";
 
 
 function CommentSection({ postId }) {
@@ -12,8 +13,9 @@ function CommentSection({ postId }) {
     const [myComment, setMyComment] = useState('');
     const [shareBtnLoading, setShareBtnLoading] = useState(false);
     const [isLoading, setIsLoading] = useState(false);
-    const [commentList, setCommentList] = useState([])
-
+    const [commentList, setCommentList] = useState([]);
+    const [openCommentReply, setOpenCommentReply] = useState(false);
+    const [replyingCmntData,setReplyCmntData] = useState({});
     const { userInfo } = useSelector(state => state.auth);
     const dispatch = useDispatch();
     const backend_url = import.meta.env.VITE_BACKEND_URL;
@@ -74,7 +76,9 @@ function CommentSection({ postId }) {
     }
     return (
         <>
-
+            <Backdrop sx={{ zIndex: 9999, bgcolor: '#ffffff18', position: 'fixed', top: 0, left: 0,  }} open={openCommentReply} onClick={() => setOpenCommentReply(false)}>
+                <CommentReplyCommponent setOpenCommentReply={setOpenCommentReply} replyingCmntData={replyingCmntData} setReplyCmntData={setReplyCmntData} />
+            </Backdrop>
             <Stack width={'100%'} p={1} direction={'column'} spacing={2}>
                 <Divider sx={{ width: '100%' }} />
                 <Stack direction="row" alignItems={'center'} spacing={1}>
@@ -128,8 +132,9 @@ function CommentSection({ postId }) {
                     {isLoading ? [1, 2, 3].map(i => <LoadingComment key={i} />) :
                         <>
                             {commentList.map(c =>
-                                <CommentItem key={c.id} commentData={c} level={1} />
+                                <CommentItem key={c.id} commentData={c} level={1} setOpenCommentReply={setOpenCommentReply} setReplyCmntData={setReplyCmntData} setCommentList={setCommentList} />
                             )}
+
                             {commentList.length == 0 &&
                                 <Box width={'100%'} sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
                                     <Box width={'100%'} maxWidth={{ xs: '250px', sm: '380px' }} >
@@ -141,7 +146,7 @@ function CommentSection({ postId }) {
                                     <Typography width={'100%'} textAlign={'center'} variant="body2" color="text.secondary" fontSize={{ xs: '10px', sm: '14px' }} fontWeight={'300'}>
                                         This space is open for support and understanding.
                                     </Typography>
-                                    
+
                                     <Typography width={'100%'} textAlign={'center'} variant="body2" color="text.secondary" fontSize={{ xs: '10px', sm: '14px' }} fontWeight={'300'}>
                                         Your words might mean more than you think.
                                     </Typography>

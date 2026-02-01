@@ -29,17 +29,9 @@ function getPostActions(postUploaderId, currUserId, postId) {
             payload: postUploaderId
 
         },
+        
         {
-            id: 2,
-            content: 'Report',
-            label: 'Are you sure to report the post?',
-            icon: <ReportIcon fontSize='small' />,
-            type: 'REPORT_POST',
-            payload: postId
-
-        },
-        {
-            id: 3,
+            id: 1,
             content: 'Not Interested',
             label: 'Do you really disliked this post?',
             icon: <ThumbDownAltIcon fontSize='small' />,

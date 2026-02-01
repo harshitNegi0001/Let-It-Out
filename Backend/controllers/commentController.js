@@ -74,7 +74,7 @@ class Comment {
             return returnRes(res, 200, { message: 'Comment posted.', commentData: commentData.rows[0] });
 
         } catch (err) {
-            // console.log(err);
+            console.log(err);
             return returnRes(res, 500, { error: 'Internal Server Error!' });
         }
     }
@@ -83,7 +83,7 @@ class Comment {
     getComments = async (req, res) => {
         const visitorId = req.id;
         const { post_id, parent_id } = req.query;
-        
+
         try {
             if (parent_id) {
                 const result = await db.query(
@@ -201,6 +201,37 @@ class Comment {
         }
     }
 
+    // controller Function to delete comment.
+    deleteComment = async (req, res) => {
+        const userId = req.id;
+        const {commentId} = req.body;
+
+        try {
+
+            const result = await db.query(
+                `SELECT 
+                user_id
+                FROM comments
+                WHERE id=$1`,
+                [commentId]
+            );
+
+            if(userId!=result.rows[0].user_id){
+                return returnRes(res,403,{error:`You haven't permission to delete this comment`});
+            }
+            await db.query(
+                `DELETE
+                FROM comments
+                WHERE id =$1`,
+                [commentId]
+            )
+
+            return returnRes(res,200,{message:'Comment Deleted.'});
+        } catch (err) {
+            console.log(err);
+            return returnRes(res, 500, { error: 'Internal Server Error!' });
+        }
+    }
 
 }
 

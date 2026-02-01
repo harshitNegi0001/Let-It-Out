@@ -1,4 +1,4 @@
-import { Backdrop, Box, Button, IconButton, ListItemIcon, ListItemText, Menu, MenuItem, Typography } from "@mui/material";
+import { Backdrop, Box, Button, Stack, IconButton, ListItemIcon, FormLabel, FormControlLabel, Radio, RadioGroup, FormControl, ListItemText, Menu, MenuItem, Typography } from "@mui/material";
 import OptionIcon from '@mui/icons-material/MoreVert';
 import getPostActions from "../../utils/postActions";
 import ClearIcon from '@mui/icons-material/Clear';
@@ -14,12 +14,15 @@ import BookmarkIcon from '@mui/icons-material/Bookmark';
 import PersonAddAlt1Icon from '@mui/icons-material/PersonAddAlt1';
 import PersonRemoveIcon from '@mui/icons-material/PersonRemove';
 import CancelOutlinedIcon from '@mui/icons-material/CancelOutlined';
+import ReportGmailerrorredIcon from '@mui/icons-material/ReportGmailerrorred';
+import { reportOptions } from "../../utils/reportOptions";
 
 
-function PostOptionsComponent({ userData, setHidePost, postData}) {
+function PostOptionsComponent({ userData, setHidePost, postData }) {
     const [anchorEl, setAnchorEl] = useState(null);
     const [isSaved, setIsSaved] = useState(false);
-
+    const [openReportBox, setOpenReportBox] = useState(false);
+    const [reportReason, setReportReason] = useState('');
     const [postAction, setPostAction] = useState([]);
     const [isLoading, setIsLoading] = useState(false);
     const openMenu = Boolean(anchorEl);
@@ -122,31 +125,10 @@ function PostOptionsComponent({ userData, setHidePost, postData}) {
 
     }
 
-    const reportPost = async () => {
-        try {
 
-            const postId = actionData.payload;
-            setIsLoading(true);
-            // api call
-
-           
-            setIsLoading(false);
-            cancleAction();
-            setHidePost({
-                isHidden: true,
-                reason: 'Post has been reported.'
-            });
-            dispatch(setState({ success: 'Post has been Reported.\nWe will take action.' }));
-
-        } catch (err) {
-            // console.log(err);
-            setIsLoading(false);
-            dispatch(setState({ error: err?.response?.data?.error || 'Internal Server Error!' }));
-        }
-    }
     const blockUser = async () => {
         try {
-           
+
             setIsLoading(true);
 
             const result = await axios.post(`${backend_url}/api/block-user`,
@@ -161,7 +143,7 @@ function PostOptionsComponent({ userData, setHidePost, postData}) {
                     }
                 }
             );
-            
+
             setIsLoading(false);
             cancleAction();
             setHidePost({
@@ -188,7 +170,44 @@ function PostOptionsComponent({ userData, setHidePost, postData}) {
 
     }
 
+    const handleReportAction = () => {
+        setOpenReportBox(true);
+        handleCloseMenu();
+    }
+    const cancleReport = () => {
+        document.activeElement?.blur();
+        setReportReason('');
+        setOpenReportBox(false);
+    }
 
+    const submitReport = async () => {
+        try {
+            setIsLoading(true);
+            // const result = await axios.post(
+            //     ``,
+            //     {
+            //         reason: reportReason,
+            //         target_type: 'post',
+            //         userId: userData?.id,
+            //         target_id:postData?.id
+            //     },
+            //     {
+            //         withCredentials: true
+            //     }
+            // )
+
+            setIsLoading(false);
+            setHidePost({
+                isHidden: true,
+                reason: 'Post has been reported.'
+            });
+            cancleReport();
+        } catch (err) {
+            setIsLoading(false);
+            dispatch(setState({ error: err?.response?.data?.error || "Internal Server Error!" }));
+
+        }
+    }
 
 
     return (
@@ -214,6 +233,14 @@ function PostOptionsComponent({ userData, setHidePost, postData}) {
                     </ListItemIcon>
                     <ListItemText>{isSaved ? 'Remove boookmark' : 'Bookmark'}</ListItemText>
                 </MenuItem>
+                {(userInfo.id != userData?.id) &&
+                    <MenuItem onClick={handleReportAction}>
+                        <ListItemIcon>
+                            <ReportGmailerrorredIcon fontSize='small' />
+                        </ListItemIcon>
+                        <ListItemText>Report</ListItemText>
+                    </MenuItem>
+                }
                 {(userInfo.id != userData.id) && <MenuItem >
                     <ListItemIcon>
                         {
@@ -237,6 +264,57 @@ function PostOptionsComponent({ userData, setHidePost, postData}) {
                     </Box>
                 </Box>
             </Backdrop>}
+            {
+                openReportBox &&
+                <Backdrop open={openReportBox}
+                    onClick={cancleReport}
+                    sx={{ zIndex: 9999 }}>
+                    <Box onClick={(e) => e.stopPropagation()}
+                        width={'100%'} maxWidth={{ xs: '280px', sm: '360px' }}
+                        p={2} sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}
+                        bgcolor={'primary.light'}
+                        borderRadius={3}>
+                        <Box width={'100%'} sx={{ display: 'flex', justifyContent: 'space-between' }} >
+                            <Typography fontSize={{ xs: '16px', sm: '20px' }} color='#fff'>Report</Typography>
+                            <IconButton size='small' sx={{ fontSize: { xs: '16px', sm: '20px' } }}
+                                onClick={() => cancleReport()}>
+                                <ClearIcon />
+                            </IconButton>
+                        </Box>
+                        <Stack width={'100%'} maxHeight={{ xs: '310px', sm: '365px' }} overflow={'scroll'} spacing={1}>
+                            <Typography fontSize={{ xs: '12px', sm: '16px' }} >What type of issue are you reporting?</Typography>
+                            <FormControl>
+                                <RadioGroup
+                                    aria-labelledby="demo-radio-buttons-group-label"
+                                    defaultValue="female"
+                                    name="radio-buttons-group"
+                                    value={reportReason}
+                                    onChange={(e) => setReportReason(e.target.value)}
+                                >
+                                    {reportOptions.map(r =>
+                                        <FormControlLabel key={r.id}
+                                            sx={{
+                                                '& .MuiFormControlLabel-label': {
+                                                    fontSize: { xs: '12px', sm: '16px' }, // or 0.875rem
+                                                },
+                                            }}
+                                            value={r.value}
+                                            control={< Radio color='secondary' size='small' />}
+                                            label={r.label} />
+                                    )}
+
+                                </RadioGroup>
+                            </FormControl>
+                        </Stack>
+                        <Box width={'100%'} sx={{ display: 'flex', justifyContent: 'center' }}>
+                            <Button onClick={() => submitReport()} disabled={Boolean(!reportReason)} loading={isLoading} variant='contained' color='error'
+                                sx={{ borderRadius: '20px', width: '80%', textTransform: 'none' }}>
+                                Report
+                            </Button>
+                        </Box>
+                    </Box>
+                </Backdrop>
+            }
         </>
     )
 }

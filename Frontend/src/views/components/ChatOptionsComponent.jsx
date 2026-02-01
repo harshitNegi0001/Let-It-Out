@@ -1,14 +1,16 @@
-import { Backdrop, Box, Button, IconButton, ListItemIcon, ListItemText, Menu, MenuItem, Typography } from "@mui/material";
+import { Backdrop, Stack, FormLabel, FormControlLabel, Radio, RadioGroup, FormControl, Box, Button, IconButton, ListItemIcon, ListItemText, Menu, MenuItem, Typography } from "@mui/material";
 import ClearIcon from '@mui/icons-material/Clear';
 import PersonIcon from '@mui/icons-material/Person';
 import DoneIcon from '@mui/icons-material/Done';
 import MoreHorizIcon from '@mui/icons-material/MoreHoriz';
 import { useNavigate } from "react-router-dom";
-import { useDispatch } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 import { useEffect, useState } from "react";
 import { getChatsActions } from "../../utils/chatActions";
 import { setState } from "../../store/authReducer/authReducer";
 import axios from "axios";
+import { reportOptions } from "../../utils/reportOptions";
+import ReportIcon from '@mui/icons-material/Report';
 
 
 
@@ -16,6 +18,8 @@ function ChatOptionsComponent({ userData, getUserData }) {
     const [anchorEl, setAnchorEl] = useState(null);
     const [isLoading, setIsLoading] = useState(false);
     const [chatOptions, setChatOptions] = useState([]);
+    const [openReportBox, setOpenReportBox] = useState(false);
+    const [reportReason, setReportReason] = useState('');
     const openMenu = Boolean(anchorEl);
     const [actionData, setActionData] = useState({
         backdropOpen: false,
@@ -26,6 +30,7 @@ function ChatOptionsComponent({ userData, getUserData }) {
     const backend_url = import.meta.env.VITE_BACKEND_URL;
     const navigate = useNavigate();
     const dispatch = useDispatch();
+    const { userInfo } = useSelector(state => state.auth);
 
 
 
@@ -105,7 +110,37 @@ function ChatOptionsComponent({ userData, getUserData }) {
         setAnchorEl(null);
 
     }
+    const handleReportAction = () => {
+        setOpenReportBox(true);
+        handleCloseMenu();
+    }
+    const cancleReport = () => {
+        document.activeElement?.blur();
+        setReportReason('');
+        setOpenReportBox(false);
+    }
 
+    const submitReport = async () => {
+        try {
+            setIsLoading(true);
+            // const result = await axios.post(
+            //     ``,
+            //     {
+            //         reason: reportReason,
+            //         target_type: 'chat',
+            //         userId: userData.id,
+            //         target_id:userData.id
+            //     }
+            // )
+
+            setIsLoading(false);
+            cancleReport();
+        } catch (err) {
+            setIsLoading(false);
+            dispatch(setState({ error: err?.response?.data?.error || "Internal Server Error!" }));
+
+        }
+    }
 
     return (
         <>
@@ -117,6 +152,12 @@ function ChatOptionsComponent({ userData, getUserData }) {
                     </ListItemIcon>
                     <ListItemText>{o.content}</ListItemText>
                 </MenuItem>)}
+                <MenuItem onClick={handleReportAction}>
+                    <ListItemIcon>
+                        <ReportIcon fontSize='small' />
+                    </ListItemIcon>
+                    <ListItemText>Report</ListItemText>
+                </MenuItem>
                 <MenuItem key={'open-profile'} onClick={() => navigate(`/profile/${userData?.username}`)}>
                     <ListItemIcon>
                         <PersonIcon fontSize="small" />
@@ -138,6 +179,58 @@ function ChatOptionsComponent({ userData, getUserData }) {
                     </Box>
                 </Box>
             </Backdrop>}
+
+            {
+                openReportBox &&
+                <Backdrop open={openReportBox}
+                    onClick={cancleReport}
+                    sx={{ zIndex: 9999 }}>
+                    <Box onClick={(e) => e.stopPropagation()}
+                        width={'100%'} maxWidth={{ xs: '280px', sm: '360px' }}
+                        p={2} sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}
+                        bgcolor={'primary.light'}
+                        borderRadius={3}>
+                        <Box width={'100%'} sx={{ display: 'flex', justifyContent: 'space-between' }} >
+                            <Typography fontSize={{ xs: '16px', sm: '20px' }} color='#fff'>Report</Typography>
+                            <IconButton size='small' sx={{ fontSize: { xs: '16px', sm: '20px' } }}
+                                onClick={() => cancleReport()}>
+                                <ClearIcon />
+                            </IconButton>
+                        </Box>
+                        <Stack width={'100%'} maxHeight={{ xs: '310px', sm: '365px' }} overflow={'scroll'} spacing={1}>
+                            <Typography fontSize={{ xs: '12px', sm: '16px' }} >What type of issue are you reporting?</Typography>
+                            <FormControl>
+                                <RadioGroup
+                                    aria-labelledby="demo-radio-buttons-group-label"
+                                    defaultValue="female"
+                                    name="radio-buttons-group"
+                                    value={reportReason}
+                                    onChange={(e) => setReportReason(e.target.value)}
+                                >
+                                    {reportOptions.map(r =>
+                                        <FormControlLabel key={r.id}
+                                            sx={{
+                                                '& .MuiFormControlLabel-label': {
+                                                    fontSize: { xs: '12px', sm: '16px' }, // or 0.875rem
+                                                },
+                                            }}
+                                            value={r.value}
+                                            control={< Radio color='secondary' size='small' />}
+                                            label={r.label} />
+                                    )}
+
+                                </RadioGroup>
+                            </FormControl>
+                        </Stack>
+                        <Box width={'100%'} sx={{ display: 'flex', justifyContent: 'center' }}>
+                            <Button onClick={() => submitReport()} disabled={Boolean(!reportReason)} loading={isLoading} variant='contained' color='error'
+                                sx={{ borderRadius: '20px', width: '80%', textTransform: 'none' }}>
+                                Report
+                            </Button>
+                        </Box>
+                    </Box>
+                </Backdrop>
+            }
         </>
     )
 }

@@ -55,7 +55,6 @@ class Block {
             }
 
             if (operation == 'unblock') {
-                console.log('going to unblock')
                 await db.query(
                     `DELETE FROM
                     blocked_accounts
