@@ -108,7 +108,7 @@ function CommentItem({ commentData, level, setCommentList, setOpenCommentReply, 
                                 <Typography variant="body2" color="text.secondary" onClick={() => navigate(`/profile/${commentData?.user_data?.username}`)} sx={{ '&:hover': { textDecoration: 'underline' }, cursor: 'pointer' }} maxWidth={{ xs: '60px', sm: '130px', md: '160px' }} noWrap textOverflow={'ellipsis'} fontSize={{ xs: '9px', sm: '12px' }} fontWeight={400} >
                                     @{commentData?.user_data?.username}
                                 </Typography>
-                                <Typography fontSize={{ xs: '7px', sm: '12px' }} color="text.secondary" fontWeight={'200'}>
+                                <Typography fontSize={{ xs: '8px', sm: '12px' }} color="text.secondary" fontWeight={'200'}>
                                     · {timeCount(commentData.created_at)}
                                 </Typography>
                             </Box>
@@ -119,8 +119,8 @@ function CommentItem({ commentData, level, setCommentList, setOpenCommentReply, 
 
                     </Box>
                     <Box width={'100%'} >
-                        {commentData?.replying_to && <Typography sx={{ display: 'flex', gap: '3px', alignItems: 'center' }} fontSize={{ xs: '7px', sm: '12px' }} component={'span'} color="text.secondary" fontWeight={'200'}>
-                            · replying to <Typography onClick={() => navigate(`/profile/${commentData?.replying_to}`)} sx={{ '&:hover': { textDecoration: 'underline' }, cursor: 'pointer', }} fontSize={{ xs: '7px', sm: '12px' }} component={'span'} color="text.secondary" fontWeight={'200'} >@{commentData?.replying_to}</Typography>
+                        {commentData?.replying_to && <Typography sx={{ display: 'flex', gap: '3px', alignItems: 'center' }} fontSize={{ xs: '8px', sm: '12px' }} component={'span'} color="text.secondary" fontWeight={'200'}>
+                            · replying to <Typography onClick={() => navigate(`/profile/${commentData?.replying_to}`)} sx={{ '&:hover': { textDecoration: 'underline' }, cursor: 'pointer', }} fontSize={{ xs: '8px', sm: '12px' }} component={'span'} color="text.secondary" fontWeight={'200'} >@{commentData?.replying_to}</Typography>
                         </Typography>}
                         <Typography variant="body1" fontSize={{ xs: '11px', sm: '15px' }} sx={{ whiteSpace: 'pre-wrap' }} color="text.primary" fontWeight={400}>
                             {commentData?.content}
