@@ -23,7 +23,7 @@ function PostUI({ followed = false, postData, userData }) {
         isHidden: false,
         reason: ''
     });
-    const [showFullImage, setShowFullImage] = useState(false);
+    const [images, setImages] = useState([]);
 
     const navigate = useNavigate();
 
@@ -45,13 +45,13 @@ function PostUI({ followed = false, postData, userData }) {
                         <Typography mb={2} sx={{ whiteSpace: 'pre-wrap' }} fontSize={{ xs: 12, sm: 16 }}>
                             {postData.content}
                         </Typography>
-                        {postData?.media_url?.length > 0 && <ImageGrid images={postData?.media_url} setShowFullImage={setShowFullImage} />}
+                        {postData?.media_url?.length > 0 && <ImageGrid images={postData?.media_url} setImages={setImages} />}
 
                     </Box>
                     <PostUIBottom postData={postData} />
-                    <Backdrop open={showFullImage} onClick={() => setShowFullImage(false)} sx={{ position: 'fixed', top: 0, zIndex: 9999 }}>
-                        <FullPageImage images={postData?.media_url} setShowFullImage={setShowFullImage} />
-                    </Backdrop>
+                    
+                        {images.length>0&&<FullPageImage images={images} setImages={setImages} />}
+                    
                 </Stack>
         }
         </>

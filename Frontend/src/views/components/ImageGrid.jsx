@@ -1,11 +1,11 @@
 import { Box, Typography } from "@mui/material";
 
 
-function ImageGrid({ images = [], setShowFullImage }) {
+function ImageGrid({ images = [], setImages }) {
     const countImg = images?.length || 0;
     const handleImageClick = (e) => {
         e.stopPropagation();
-        setShowFullImage(true);
+        setImages(images);
     }
 
     if (countImg == 0) {
@@ -108,7 +108,7 @@ function ImageGrid({ images = [], setShowFullImage }) {
                                 display="flex"
                                 alignItems="center"
                                 justifyContent="center"
-                                zIndex={2}
+                                zIndex={0}
                             >
                                 <Typography variant="body1" fontSize={{ xs: 14, sm: 18 }} color="white" fontWeight="600">
                                     +{countImg - 4}

@@ -10,6 +10,7 @@ import { useState } from "react";
 import { Avatar, Box, Button, Divider, IconButton, Tab, Tabs, Skeleton, Stack, Typography } from "@mui/material";
 import SmsOutlinedIcon from '@mui/icons-material/SmsOutlined';
 import LoadingPost from "./components/LoadingPosts";
+import FullPageImage from "./components/FullPageImage";
 
 function CustomPannel(props) {
     const { children, keyValue, value, ...other } = props;
@@ -35,6 +36,7 @@ function VisitProfile() {
     const [isLoading, setIsLoading] = useState(false);
     const [loadingFollowBtn, setLoadingFollowBtn] = useState(false);
     const [value, setValue] = useState('posts');
+    const [images, setImages] = useState([]);
 
     const { username } = useParams();
     const dispatch = useDispatch();
@@ -107,12 +109,12 @@ function VisitProfile() {
         <>
             <Stack width={'100%'} height={'100%'} spacing={1} overflow={'scroll'} sx={{ scrollbarWidth: 'none' }} p={1} alignItems={'center'} pb={{ xs: '55px', sm: 2 }} boxSizing={'border-box'}>
                 <Box width={'100%'} height={{ xs: '130px', sm: '280px' }} minHeight={{ xs: '130px', sm: '280px' }} position={'relative'}>
-                    <Box width={'100%'} height={'100%'}>
+                    <Box width={'100%'} height={'100%'} onClick={()=>{if(userProfileData?.cover_image){setImages([userProfileData.cover_image])}}}>
                         {!isLoading && userProfileData?.cover_image && <img src={userProfileData.cover_image} style={{ width: '100%', height: '100%', objectFit: 'cover' }} alt="" />}
                         {isLoading && <Skeleton animation="wave" width={'100%'} height={'100%'} variant="rectangular"></Skeleton>}
                     </Box>
                     <Divider sx={{ width: '100%' }} />
-                    <Box width={{ xs: '100px', sm: '180px' }} height={{ xs: '100px', sm: '180px' }} bgcolor={'primary.main'} borderRadius={'50%'} position={'absolute'} overflow={'hidden'} sx={{ bottom: { xs: '-50px', sm: '-90px' }, left: { xs: '15px', sm: '20px' } }} border={'4px solid #1E1B29'}>
+                    <Box width={{ xs: '100px', sm: '180px' }} height={{ xs: '100px', sm: '180px' }} bgcolor={'primary.main'} onClick={()=>{if(userProfileData?.image){setImages([userProfileData.image])}}} borderRadius={'50%'} position={'absolute'} overflow={'hidden'} sx={{ bottom: { xs: '-50px', sm: '-90px' }, left: { xs: '15px', sm: '20px' },zIndex:2 }} border={'4px solid #1E1B29'}>
                         {!isLoading && <Avatar sx={{ width: '100%', height: '100%', bgcolor: '#aeaabb' }}>
                             {userProfileData?.image && <img src={userProfileData.image} style={{ width: '100%', height: '100%', objectFit: 'cover' }} alt="" />}
 
@@ -146,8 +148,8 @@ function VisitProfile() {
                                         {userProfileData?.bio}
                                     </Typography>
                                     <Box width={'100%'} sx={{ display: 'flex', gap: 4, pb: 2 }}>
-                                        <Button variant="text" onClick={()=>{if(restriction?.isRestricted){return;} else{navigate(`/profile/${userProfileData?.username}/followers`)}}}  color="secondary">{restriction?.isRestricted ? '0' : `${userProfileData?.followers}`} Follower</Button>
-                                        <Button variant="text" onClick={()=>{if(restriction?.isRestricted){return;} else{navigate(`/profile/${userProfileData?.username}/followings`)}}} color="secondary">{restriction?.isRestricted ? '0' : `${userProfileData?.followings}`} Following</Button>
+                                        <Button variant="text" onClick={() => { if (restriction?.isRestricted) { return; } else { navigate(`/profile/${userProfileData?.username}/followers`) } }} color="secondary">{restriction?.isRestricted ? '0' : `${userProfileData?.followers}`} Follower</Button>
+                                        <Button variant="text" onClick={() => { if (restriction?.isRestricted) { return; } else { navigate(`/profile/${userProfileData?.username}/followings`) } }} color="secondary">{restriction?.isRestricted ? '0' : `${userProfileData?.followings}`} Following</Button>
                                     </Box>
                                 </Box>
 
@@ -172,7 +174,7 @@ function VisitProfile() {
                             <Replies />
                         </CustomPannel>
                         <CustomPannel keyValue={'bookmarked'} value={value}>
-                            <Bookmarked userData={userProfileData || {}}/>
+                            <Bookmarked userData={userProfileData || {}} />
                         </CustomPannel>
                     </Stack>}
 
@@ -184,7 +186,7 @@ function VisitProfile() {
                                 <Skeleton animation="wave" variant="rounded" width={'50px'} height={'35px'} />
                             </Box>
                             <Divider />
-                            <LoadingPost/>
+                            <LoadingPost />
                         </Stack>
 
 
@@ -192,6 +194,7 @@ function VisitProfile() {
 
                 </Box>
             </Stack>
+            {images.length > 0 && <FullPageImage images={images} setImages={setImages} />}
         </>
     )
 }

@@ -31,7 +31,7 @@ function FullPagePost() {
         isHidden: false,
         reason: ''
     });
-    const [showFullImage, setShowFullImage] = useState(false);
+    const [images, setImages] = useState([]);
 
 
     const { postId } = useParams();
@@ -102,13 +102,11 @@ function FullPagePost() {
                                             <Typography mb={2} sx={{ whiteSpace: 'pre-wrap' }} fontSize={{ xs: 12, sm: 16 }}>
                                                 {postData.content}
                                             </Typography>
-                                            {postData?.media_url?.length > 0 && <ImageGrid setShowFullImage={setShowFullImage} images={postData?.media_url} />}
+                                            {postData?.media_url?.length > 0 && <ImageGrid images={postData?.media_url} setImages={setImages}  />}
 
                                         </Box>
                                         <PostUIBottom postData={postData} />
-                                        <Backdrop open={showFullImage} onClick={() => setShowFullImage(false)} sx={{ position: 'fixed', top: 0, zIndex: 9999 }}>
-                                            <FullPageImage images={postData?.media_url} setShowFullImage={setShowFullImage} />
-                                        </Backdrop>
+                                        {images.length > 0 && <FullPageImage images={images} setImages={setImages} />}
                                         <CommentSection postId={postId} />
                                     </Stack>
                             }
