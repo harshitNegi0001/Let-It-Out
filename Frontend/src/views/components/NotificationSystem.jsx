@@ -4,6 +4,7 @@ import { useDispatch, useSelector } from 'react-redux';
 import { useNavigate } from 'react-router-dom';
 import socket from '../../utils/socket';
 import toast from 'react-hot-toast';
+import { addChatId } from '../../store/notificationReducer/notifReducer';
 
 
 function NotificationSystem({ customTheme }) {
@@ -11,8 +12,7 @@ function NotificationSystem({ customTheme }) {
     const { userInfo } = useSelector(state => state.auth);
     const { openedPage } = useSelector(state => state.notif);
     const navigate = useNavigate();
-
-
+    const dispatch = useDispatch();
 
     useEffect(() => {
         notificationSoundRef.current = new Audio('/msg-notification-sound.mp3');
@@ -29,7 +29,9 @@ function NotificationSystem({ customTheme }) {
                 }
 
                 data?.map(d => {
+                    dispatch(addChatId(d.id));
                     toast.custom((t) => {
+
                         socket.emit('msg_received', {
                             receiverId: d.id,
                             userId: userInfo.id,
@@ -79,7 +81,6 @@ function NotificationSystem({ customTheme }) {
                         });
                 }
 
-
                 toast.custom((t) => {
                     socket.emit('msg_received', {
                         receiverId: data.id,
@@ -91,7 +92,7 @@ function NotificationSystem({ customTheme }) {
                             <Paper elevation={3} sx={{ maxWidth: '320px', width: "100%", pointerEvents: "auto", animation: t.visible ? "fadeIn 0.3s ease-out" : "fadeOut 0.3s ease-in" }}>
                                 <Stack direction="row" spacing={1} p={1} alignItems="center">
                                     <Avatar src={data.image} sx={{ width: 30, height: 30 }} />
-                                    <Box flex={1} onClick={() => {toast.dismiss(t.id); navigate(`/chats/${data.username}`);  }} sx={{ cursor: 'pointer' }}>
+                                    <Box flex={1} onClick={() => { toast.dismiss(t.id); navigate(`/chats/${data.username}`); }} sx={{ cursor: 'pointer' }}>
                                         <Typography variant="body1" noWrap maxWidth={'150px'} textOverflow={'ellipsis'} fontSize={{ xs: '13px', sm: '15px' }} color='#fff' fontWeight={600}>
                                             {data.name}
                                         </Typography>
@@ -119,14 +120,17 @@ function NotificationSystem({ customTheme }) {
             socket.on('get_notify', ({ data }) => {
                 if (data?.type == 'chat') {
 
-
+                    dispatch(addChatId(data?.data?.id));
                     if (openedPage == 'chat') {
                         return;
                     }
                     handleMessageRecived(data.data);
+
                 }
                 if (data?.type == 'notification') {
                     handleNotification(data);
+
+
                 }
             });
             socket.on('offline_notification', ({ type, data }) => {

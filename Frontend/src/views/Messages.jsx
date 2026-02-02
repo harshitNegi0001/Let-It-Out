@@ -11,7 +11,7 @@ import { setState } from "../store/authReducer/authReducer";
 import axios from "axios";
 import ChattingComponent from "./components/ChattingComponent";
 import socket from "../utils/socket";
-import { setPage } from "../store/notificationReducer/notifReducer";
+import { getInitialNotif, setPage } from "../store/notificationReducer/notifReducer";
 
 
 const formatChatDate = (dateStr) => {
@@ -148,8 +148,7 @@ function Messages() {
             socket.off('user_read_msg', handleSeen);
         });
 
-    }, [])
-
+    }, []);
 
     const getChatlist = async () => {
         try {

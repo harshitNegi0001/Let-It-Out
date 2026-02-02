@@ -12,6 +12,7 @@ import { setState } from "../../store/authReducer/authReducer";
 import { formatDate, formatTime } from "../../utils/formatDateTime";
 import ChatOptionsComponent from "./ChatOptionsComponent";
 import socket from "../../utils/socket";
+import { deleteChatId } from "../../store/notificationReducer/notifReducer";
 
 function TypingDots() {
     return (
@@ -57,9 +58,7 @@ function ChattingComponent({ username, getChatlist }) {
     const navigate = useNavigate();
     const dispatch = useDispatch();
 
-    useEffect(() => {
-
-    }, [])
+    
     useEffect(() => {
         if (username) {
             if (username == userInfo.username) {
@@ -72,6 +71,7 @@ function ChattingComponent({ username, getChatlist }) {
     }, [username]);
     useEffect(() => {
         if (!userData?.id) return;
+        dispatch(deleteChatId(userData?.id))
         setSendMessageBox("");
         setIsOnline(userData?.online_status);
         getMessages();

@@ -30,7 +30,6 @@ export const initSocket = (server) => {
         }
         userSocketMap.get(userId).add(socket.id);
 
-        // send notification that missed when offline
         
 
         try {

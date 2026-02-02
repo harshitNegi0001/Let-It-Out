@@ -20,7 +20,7 @@ function MuiAppbar() {
                             <Typography variant="h6" component={'div'} textTransform={'uppercase'} fontFamily={'Winky Rough'}>let it out</Typography>
                             </Box>
                         <Box display={'flex'} gap={2}>
-                            <IconButton edge='start' size='large' onClick={() => navigate('/notification')} ><Badge variant='standard' badgeContent={(pathname=='/notification')?0:notificationCount['notification']||0}  color='secondary'><NotificationFilledIcon color={`${pathname == '/notification' ? 'secondary' : ''}`} /></Badge></IconButton>
+                            <IconButton edge='start' size='large' onClick={() => navigate('/notification')} ><Badge variant='standard' badgeContent={(pathname=='/notification')?0:notificationCount||0}  color='secondary'><NotificationFilledIcon color={`${pathname == '/notification' ? 'secondary' : ''}`} /></Badge></IconButton>
                             <IconButton edge='start' size='large' onClick={() => navigate('/profile')} ><Avatar sx={{width:'25px',height:'25px',bgcolor:'#fff'}}></Avatar></IconButton>
 
                         </Box>

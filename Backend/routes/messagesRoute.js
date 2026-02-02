@@ -10,6 +10,7 @@ router.get('/get-user-basic-data',authMiddleware,Messages.getUserBasicData);
 router.get('/get-connected-users',authMiddleware,Messages.getConnectedUsers);
 
 router.post('/send-message',authMiddleware,Messages.sendMessage);
+router.get('/get-unread-chatid',authMiddleware,Messages.getUnreadChatId);
 
 
 

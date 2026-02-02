@@ -240,8 +240,8 @@ class Messages {
                 `, [visitorId, username]
             );
 
-            if(result.rows.length==0){
-                return returnRes(res,404,{error:'User not found.',code:'USER_NOT_FOUND'});
+            if (result.rows.length == 0) {
+                return returnRes(res, 404, { error: 'User not found.', code: 'USER_NOT_FOUND' });
             }
 
             return returnRes(res, 200, { message: 'Got user basic detail for chat.', userDetail: result.rows[0] });
@@ -277,7 +277,30 @@ class Messages {
                 [userId]
             );
 
-            return returnRes(res,200,{connectedUsers:result.rows});
+            return returnRes(res, 200, { connectedUsers: result.rows });
+
+        } catch (err) {
+            // console.log(err);
+            return returnRes(res, 500, { error: 'Internal Server Error!' });
+        }
+    }
+
+    // controller function to help getting unread messages/notification count
+    getUnreadChatId = async (req, res) => {
+        const userId = req.id;
+        try {   
+            const result = await db.query(
+                `SELECT
+                sender_id
+                FROM messages
+                WHERE receiver_id =$1
+                    AND is_read = FALSE
+                GROUP BY sender_id`,
+                [userId]
+            );
+
+            const chatIds = result.rows.map(r=>r.sender_id);
+            return returnRes(res,200,{notifData:{chatIds}});
 
         } catch (err) {
             console.log(err);

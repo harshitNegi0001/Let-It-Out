@@ -10,6 +10,7 @@ import Toaster from './views/components/Toaster.jsx';
 
 import socket from './utils/socket.js';
 import NotificationSystem from './views/components/NotificationSystem.jsx';
+import { getInitialNotif } from './store/notificationReducer/notifReducer.js';
 
 function App() {
     const { userInfo } = useSelector(state => state.auth);
@@ -17,6 +18,7 @@ function App() {
     const dispatch = useDispatch();
     useEffect(() => {
         dispatch(getInitialState());
+        dispatch(getInitialNotif());
         const routes = getAllRoutes();
         setAllRoutes(prev => [...prev, routes]);
 
