@@ -173,6 +173,22 @@ function BlockedUsers() {
 
                     )
                 }
+                {
+                    !isLoading && usersList.length == 0 &&
+                    <Box width={'100%'} sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+                        <Box width={'90%'} maxWidth={{ xs: '280px', sm: '380px' }}>
+                            <img src="https://res.cloudinary.com/dns5lxuvy/image/upload/v1770032853/vrofirmyd8kdtpkgbx8y.png" style={{ width: '100%', objectFit: 'contain' }} alt="" />
+                        </Box>
+                        <Typography width={'100%'} textAlign={'center'} variant="body1" color="#fff" fontSize={{ xs: '18px', sm: '24px' }} fontWeight={'500'}>
+                            No blocked user
+                        </Typography>
+                        <Typography width={'100%'} textAlign={'center'} variant="body2" color="text.secondary" fontSize={{ xs: '10px', sm: '14px' }} fontWeight={'300'}>
+                            Your blocked users list is empty.
+                        </Typography>
+
+                    </Box>
+
+                }
                 {actionData?.backdropOpen && <Backdrop open={actionData?.backdropOpen} onClick={cancleAction} sx={{ zIndex: 9999 }}>
                     <Box width={'280px'} onClick={(e) => e.stopPropagation()} bgcolor={'primary.light'} borderRadius={2} display={'flex'} flexDirection={'column'} gap={2} p={2}>
                         <Box width={'100%'} >

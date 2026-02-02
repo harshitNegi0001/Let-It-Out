@@ -47,10 +47,10 @@ function VisibilityPage() {
         try {
             const status = userData?.following_status;
             const following_id = userData?.id;
-            
+
             setLoadingBtn(true);
-            const operation = (status == 'accepted'||status=='pending') ? 'cancel' : 'follow';
-console.log(following_id,operation,status)
+            const operation = (status == 'accepted' || status == 'pending') ? 'cancel' : 'follow';
+            console.log(following_id, operation, status)
             const result = await axios.post(
                 `${backend_url}/api/req-follow`,
                 {
@@ -62,12 +62,12 @@ console.log(following_id,operation,status)
 
             const updatedList = usersList.map(l => {
                 const filtered_list = l.users_list?.map(u => {
-                    return (u.user_info.id == following_id) ? { ...u, user_info:{...u.user_info,following_status:(result.data.followingStatus == 'not_followed')?null:result?.data?.followingStatus} } : u
+                    return (u.user_info.id == following_id) ? { ...u, user_info: { ...u.user_info, following_status: (result.data.followingStatus == 'not_followed') ? null : result?.data?.followingStatus } } : u
                 });
-                return {...l,users_list:filtered_list}
+                return { ...l, users_list: filtered_list }
             })
-            
-            
+
+
             setUsersList([...updatedList]);
             setLoadingBtn(false);
 
@@ -139,6 +139,22 @@ console.log(following_id,operation,status)
                             </Box>)}
                         </Stack>
                     )
+                }
+                {
+                    !isLoading && usersList.length == 0 &&
+                    <Box width={'100%'} sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+                        <Box width={'90%'} maxWidth={{ xs: '280px', sm: '380px' }}>
+                            <img src="https://res.cloudinary.com/dns5lxuvy/image/upload/v1770031468/gfgjcajxtknfkdz480jj.png" style={{ width: '100%', objectFit: 'contain' }} alt="" />
+                        </Box>
+                        <Typography width={'100%'} textAlign={'center'} variant="body1" color="#fff" fontSize={{ xs: '18px', sm: '24px' }} fontWeight={'500'}>
+                            No blocked user
+                        </Typography>
+                        <Typography width={'100%'} textAlign={'center'} variant="body2" color="text.secondary" fontSize={{ xs: '10px', sm: '14px' }} fontWeight={'300'}>
+                            Your blocked users list is empty.
+                        </Typography>
+
+                    </Box>
+
                 }
             </Stack>
         </>

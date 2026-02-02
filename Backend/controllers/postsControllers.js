@@ -62,7 +62,7 @@ class Post {
             });
 
         } catch (err) {
-            console.error(err);
+            // console.error(err);
             return returnRes(res, 500, { error: "Internal Server Error!" });
         }
     };
@@ -338,6 +338,62 @@ class Post {
                 FROM posts AS p
                 JOIN bookmarks AS b
                 ON b.post_id =p.id AND b.user_id = $4
+                JOIN users AS u
+                ON u.id = p.user_id AND u.acc_type = 'public'
+                LEFT JOIN likes AS l
+                ON l.target_id = p.id AND l.target_type ='post'
+                
+                GROUP BY p.id,u.id
+                ORDER BY p.id DESC
+                offset $2
+                limit $3;`
+                    , [visiterId, (limit * (currPage - 1)), limit, userId]
+                );
+
+
+                return returnRes(res, 200, { message: 'Success', posts: result.rows });
+            }
+            else if (reqType == 'replied_post') {
+                const result = await db.query(
+                    `SELECT 
+                    json_build_object(
+                    'id', p.id,
+                    'user_id', p.user_id,
+                    'content', p.content,
+                    'mood_tag', p.mood_tag,
+                    'media_url', p.media_url,
+                    'post_type', p.post_type,
+                    'likes_count',count(l.id),
+                    'share_count', p.shares_count,
+                    'created_at', p.created_at,
+                    'is_liked', EXISTS(
+                        SELECT 1
+                        FROM likes l2
+                        WHERE l2.target_id = p.id
+                            AND l2.target_type = 'post'
+                            AND l2.user_id = $1
+                    ),
+					'is_saved',EXISTS(
+						SELECT 1
+						FROM bookmarks as b
+						WHERE b.user_id = $1
+							AND b.post_id=p.id
+					), 'comments_count',
+                    (
+                        SELECT COUNT(c.id)
+                        FROM comments AS c
+                        WHERE c.post_id=p.id
+                    )
+                ) AS post_data, 
+                json_build_object(
+                    'id', u.id,
+                    'name', COALESCE(NULLIF(u.fake_name, ''), u.first_name),
+                    'username', u.lio_userid,
+                    'image', u.image
+                ) AS user_data
+                FROM posts AS p
+                JOIN comments AS c
+                ON c.post_id =p.id AND c.user_id = $4
                 JOIN users AS u
                 ON u.id = p.user_id AND u.acc_type = 'public'
                 LEFT JOIN likes AS l
@@ -771,8 +827,61 @@ class Post {
                 );
                 return returnRes(res, 200, { message: 'Success', postsList: result.rows });
             }
+            else if (req_type == 'interacted-posts') {
+                const result = await db.query(
+                    `SELECT 
+                        json_build_object(
+                            'id',p.id,
+                            'user_id',p.user_id,
+                            'content',p.content,
+                            'mood_tag',p.mood_tag,
+                            'media_url',p.media_url,
+                            'post_type',p.post_type,
+                            'likes_count',(SELECT 
+                                COUNT(l2.id) 
+                                FROM likes AS l2
+                                WHERE l2.target_type='post' AND l2.target_id=p.id),
+                            'shares_count',p.shares_count,
+                            'created_at',p.created_at,
+                            'is_liked',EXISTS (
+								SELECT 1
+								FROM likes AS l
+								WHERE l.target_type='post' 
+									AND l.target_id = p.id 
+									AND l.user_id=$1
+							),
+                            'is_saved',TRUE,
+                            'comments_count',
+                            (
+                                SELECT COUNT(c.id)
+                                FROM comments AS c
+                                WHERE c.post_id=p.id
+                            )
+                        ) AS post_data,
+                        json_build_object(
+                            'id', u.id,
+                            'name', COALESCE(NULLIF(u.fake_name, ''), u.first_name),
+                            'username', u.lio_userid,
+                            'image', u.image
+                        ) AS user_data
+                        
+                    FROM posts AS p
+                    JOIN comments AS c
+                    ON c.post_id = p.id
+                    JOIN users AS u
+                    ON p.user_id = u.id
+                    WHERE c.user_id = $1
+                    GROUP BY p.id, u.id
+                    ORDER BY p.id DESC`,
+                    [userId]
+
+                );
+
+                return returnRes(res, 200, { message: 'Success', postsList: result.rows });
+
+            }
             else {
-                return returnRes(res, 400, { message: 'Feature not availible' });
+                return returnRes(res, 400, { error: 'Feature not availible' });
             }
         } catch (err) {
             // console.log(err);
@@ -866,7 +975,7 @@ class Post {
                 });
             }
             const accStatus = userData.rows[0]?.acc_status
-            if (accStatus != 'active') {
+            if (accStatus != 'active' ) {
                 return returnRes(res, 200, {
                     restrictions: {
                         is_restricted: true,
@@ -879,7 +988,7 @@ class Post {
             }
             const accType = userData.rows[0]?.acc_type;
             const followingStatus = userData.rows[0]?.following_status;
-            if (accType == 'private' && followingStatus != 'accepted') {
+            if (accType == 'private' && followingStatus != 'accepted' && visitorId!=userId) {
                 return returnRes(res, 200, {
                     restrictions: {
                         is_restricted: true,

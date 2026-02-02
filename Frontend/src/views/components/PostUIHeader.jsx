@@ -43,32 +43,7 @@ function PostUIHeader({ followed = false,userData, postData,setHidePost }) {
                 </Stack>
                 <PostOptionsComponent setHidePost={setHidePost} followed={followed} postData={postData} userData={userData}/>
             </Stack>
-            {/* <Menu id="post-option-menu" anchorEl={anchorEl} open={open} slotProps={{ list: { 'aria-labelledby': 'post-options-btn' } }} onClose={handleClose}>
-                {postAction.map((o, i) => <MenuItem key={i} onClick={() => { handleClose(); dispatch(requiredAction({ label: o.label, type: o.type, payload: o.payload })) }}>
-                    <ListItemIcon>
-                        {o.icon}
-                    </ListItemIcon>
-                    <ListItemText>{o.content}</ListItemText>
-                </MenuItem>)}
-
-                <MenuItem onClick={handleBookmark}>
-                    <ListItemIcon>
-                        {
-                            isSaved ? <BookmarkIcon fontSize="small" color="secondary" /> : <BookmarkBorderIcon fontSize="small" />
-                        }
-
-                    </ListItemIcon>
-                    <ListItemText>{isSaved ? 'Remove boookmark' : 'Bookmark'}</ListItemText>
-                </MenuItem>
-                {(userInfo.id != userData.id) && <MenuItem >
-                    <ListItemIcon>
-                        {
-                            !followed ? <PersonAddAlt1Icon fontSize="small" /> : (followed == 'accepted') ? <PersonRemoveIcon fontSize="small" /> : <CancelOutlinedIcon fontSize="small" />
-                        }
-                    </ListItemIcon>
-                    <ListItemText>{!followed ? `Follow ${userData.name}` : (followed == 'accepted') ? `Unfollow ${userData.name}` : 'Cancle follow request'}</ListItemText>
-                </MenuItem>}
-            </Menu> */}
+            
         </>
     )
 }

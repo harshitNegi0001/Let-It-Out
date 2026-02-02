@@ -131,24 +131,24 @@ function PostOptionsComponent({ userData, setHidePost, postData }) {
 
             setIsLoading(true);
 
-            const result = await axios.post(`${backend_url}/api/block-user`,
-                {
-                    blocked_id: actionData.payload,
-                    operation: 'block'
-                },
-                {
-                    withCredentials: true,
-                    headers: {
-                        "Content-Type": 'application/json'
-                    }
-                }
-            );
+            // const result = await axios.post(`${backend_url}/api/block-user`,
+            //     {
+            //         blocked_id: actionData.payload,
+            //         operation: 'block'
+            //     },
+            //     {
+            //         withCredentials: true,
+            //         headers: {
+            //             "Content-Type": 'application/json'
+            //         }
+            //     }
+            // );
 
             setIsLoading(false);
             cancleAction();
             setHidePost({
                 isHidden: true,
-                reason: 'Post has been Blocked.'
+                reason: 'This post has been hidden from your feed.'
             });
 
             dispatch(setState({ success: 'User has been blocked. \nYou will not see the posts from this user.' }));
@@ -199,7 +199,7 @@ function PostOptionsComponent({ userData, setHidePost, postData }) {
             setIsLoading(false);
             setHidePost({
                 isHidden: true,
-                reason: 'Post has been reported.'
+                reason: 'Thanks for reporting. We’ll review this to help keep the space safe.'
             });
             cancleReport();
         } catch (err) {
@@ -241,13 +241,13 @@ function PostOptionsComponent({ userData, setHidePost, postData }) {
                         <ListItemText>Report</ListItemText>
                     </MenuItem>
                 }
-                {(userInfo.id != userData.id) && <MenuItem >
+                {(userInfo.id != userData?.id) && <MenuItem >
                     <ListItemIcon>
                         {
                             !userData?.following_status ? <PersonAddAlt1Icon fontSize="small" /> : (userData?.following_status == 'accepted') ? <PersonRemoveIcon fontSize="small" /> : <CancelOutlinedIcon fontSize="small" />
                         }
                     </ListItemIcon>
-                    <ListItemText>{!userData?.following_status ? `Follow ${userData.name}` : (userData?.following_status == 'accepted') ? `Unfollow ${userData.name}` : 'Cancle follow request'}</ListItemText>
+                    <ListItemText>{!userData?.following_status ? `Follow ${userData?.name}` : (userData?.following_status == 'accepted') ? `Unfollow ${userData?.name}` : 'Cancle follow request'}</ListItemText>
                 </MenuItem>}
             </Menu>
 

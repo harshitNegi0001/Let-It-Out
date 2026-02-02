@@ -30,9 +30,9 @@ function ImageGrid({ images = [], setImages }) {
 
     if (countImg == 2) {
         return (
-            <Box display="flex" gap={0.5} onClick={handleImageClick}>
+            <Box display="flex" gap={0.5} height={{xs:'200px',sm:'400px'}} borderRadius={2} overflow="hidden" onClick={handleImageClick}>
                 {images.map((img, i) => (
-                    <Box key={i} flex={1} height={200} overflow="hidden">
+                    <Box key={i} flex={1}  height={'100%'}>
                         <img
                             src={img}
                             alt=""
@@ -45,8 +45,8 @@ function ImageGrid({ images = [], setImages }) {
     }
     if (countImg == 3) {
         return (
-            <Box display="flex" flexDirection="column" gap={0.5} onClick={handleImageClick}>
-                <Box height={{xs:'160px',sm:'250px'}} overflow="hidden">
+            <Box display="flex" flexDirection="column" gap={0.5} borderRadius={2} overflow={'hidden'} onClick={handleImageClick}>
+                <Box height={{xs:'140px',sm:'250px'}} overflow="hidden">
                     <img
                         src={images[0]}
                         alt=""
@@ -55,7 +55,7 @@ function ImageGrid({ images = [], setImages }) {
                 </Box>
                 <Box display="flex" gap={0.5}>
                     {images.slice(1).map((img, i) => (
-                        <Box key={i} flex={1} height={{xs:'160px',sm:'250px'}} overflow="hidden">
+                        <Box key={i} flex={1} height={{xs:'140px',sm:'250px'}} overflow="hidden">
                             <img
                                 src={img}
                                 alt=""
@@ -73,10 +73,11 @@ function ImageGrid({ images = [], setImages }) {
             <Box
                 display="grid"
                 gridTemplateColumns="1fr 1fr"
-                gridAutoRows="200px"
+                gridAutoRows={{xs:'130px',sm:'200px'}}
                 gap={0.5}
                 onClick={handleImageClick}
-                
+                overflow={'hidden'}
+                borderRadius={2}
             >
                 {images.slice(0, 4).map((img, i) => (
                     <Box

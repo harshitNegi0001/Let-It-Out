@@ -92,7 +92,7 @@ function Profile() {
                             <Posts userData={userInfo || {}} />
                         </CustomPannel>
                         <CustomPannel keyValue={'replies'} value={value}>
-                            <Replies />
+                            <Replies userData={userInfo || {}}/>
                         </CustomPannel>
                         <CustomPannel keyValue={'bookmarked'} value={value}>
                             <Bookmarked userData={userInfo || {}} />

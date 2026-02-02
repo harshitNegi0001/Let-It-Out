@@ -14,19 +14,19 @@ const RestrectedPostHandler = {
         image: 'https://res.cloudinary.com/dns5lxuvy/image/upload/v1767880329/ffaril9idaw7ln5xqsyg.png',
         headingMsg: 'This account is Private',
         detailMsg: 'Follow this account to see their posts.',
-        
+
     },
     ACCOUNT_DEACTIVATED: {
         image: 'https://res.cloudinary.com/dns5lxuvy/image/upload/v1767884508/nd3lir2au0iijzpxv4wk.png',
         headingMsg: 'This account has been Temporarily Deactivated',
         detailMsg: 'This account has been temporarily deactivated by the user, it will restored when the user logs back in.',
-        
+
     },
     ACCOUNT_SUSPENDED: {
         image: 'https://res.cloudinary.com/dns5lxuvy/image/upload/v1767883872/ugawmofhb7scnu4mozws.png',
         headingMsg: 'This account has been Suspended',
         detailMsg: 'This account has been Suspended. this could due to violation of our Community Guildlines or other Policies.',
-        
+
     }
 }
 
@@ -137,7 +137,7 @@ export default function Posts({ userData }) {
                             <Typography variant="body2" fontSize={{ xs: '13px', sm: '16px' }} color="text.primary" textAlign={'center'}>
                                 {RestrectedPostHandler[postRestriction.reason].detailMsg}
                             </Typography>
-                            
+
                         </Box>}
 
                 </Stack>}

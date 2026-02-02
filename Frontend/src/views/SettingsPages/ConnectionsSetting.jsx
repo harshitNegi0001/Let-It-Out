@@ -1,4 +1,4 @@
-import { Box, Button, IconButton, Stack, Typography } from "@mui/material";
+import { Box, Button, Divider, IconButton, Stack, Typography } from "@mui/material";
 import BlockIcon from '@mui/icons-material/Block';
 import VisibilityIcon from '@mui/icons-material/Visibility';
 import HeartBrokenIcon from '@mui/icons-material/HeartBrokenOutlined';
@@ -24,15 +24,8 @@ const settingOption = [
         icon: <VisibilityIcon />,
         path: '/settings/connections/account-visitors'
 
-    },
-    {
-        id: 4,
-        name: "Recent searches",
-        desc: "Searches you’ve made recently",
-        icon: <HistoryIcon />,
-        path: "/settings/connections/recent-searches"
     }
-    
+
 ];
 
 function ConnectionsSetting() {
@@ -43,7 +36,7 @@ function ConnectionsSetting() {
 
     return (
         <>
-            <Stack width={'100%'} height={"100%"} p={{xs:1,sm:2}}>
+            <Stack width={'100%'} height={"100%"} p={{ xs: 1, sm: 2 }}>
                 <Stack width={'100%'} height={'100%'} pb={{ xs: '50px', sm: '10px' }} spacing={3} overflow={'scroll'}>
                     <Box width={'100%'} sx={{ display: 'flex', flexDirection: 'column', gap: 1, alignItems: 'start' }}>
 
@@ -51,13 +44,18 @@ function ConnectionsSetting() {
                             <IconButton onClick={() => navigate('/settings')} size="small">
                                 <ArrowBackIcon />
                             </IconButton>
-                            <Typography variant="h5" component={'div'} color="text.main" fontWeight={'600'}>
+                            <Typography variant="body1" width={'100%'} noWrap textOverflow={'ellipsis'} fontSize={{ xs: '16px', sm: '22px' }} fontWeight={'500'} color="#fff" >
+
+
                                 Connections & Visibility
                             </Typography>
                         </Box>
-                        <Typography variant="body2" component={'div'} fontSize={{ xs: '11px', sm: '14px' }} color="text.secondary" >
+                        <Typography variant="body2" width={'100%'}  fontSize={{ xs: '12px', sm: '15px' }} color="text.secondary" >
+
+
                             See who's viewing your profile and manage who can interact with or find you.
                         </Typography>
+                        <Divider sx={{ width: '100%' }} />
                     </Box>
                     <Stack width={'100%'} spacing={1}>
                         {

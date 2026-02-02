@@ -1,9 +1,8 @@
-import { Stack, Box, Typography, Divider, IconButton, Backdrop } from "@mui/material";
+import { Stack, Box, Typography, Divider, IconButton } from "@mui/material";
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
-import PostUI from "./components/PostUI";
 import { useEffect, useState } from "react";
 import CommentSection from "./components/CommentSection";
-import { useNavigate, useParams } from "react-router-dom";
+import { useLocation, useNavigate, useParams } from "react-router-dom";
 import { useDispatch } from "react-redux";
 import { setState } from "../store/authReducer/authReducer";
 import axios from "axios";
@@ -37,6 +36,7 @@ function FullPagePost() {
     const { postId } = useParams();
     const dispatch = useDispatch();
     const navigate = useNavigate();
+    const location = useLocation();
     const backend_url = import.meta.env.VITE_BACKEND_URL;
 
     useEffect(() => {
@@ -54,8 +54,8 @@ function FullPagePost() {
                     withCredentials: true
                 }
             );
-            if (result.data.restrictions) {
-
+            if (result?.data?.restrictions) {
+                setRestriction(result.data.restrictions);
             }
             setPostData(result?.data?.postData);
             setUserData(result?.data?.userData);
@@ -74,7 +74,7 @@ function FullPagePost() {
 
             <Stack width={'100%'} height={'100%'} p={{ xs: 1, sm: 2 }} spacing={{ xs: 1, sm: 2 }} pb={{ xs: '60px', sm: '10px' }} direction={'column'} overflow={'scroll'} >
                 <Box width={'100%'} sx={{ display: 'flex', gap: 2, alignItems: 'center' }}>
-                    <IconButton onClick={() => navigate(`/`)}>
+                    <IconButton onClick={() => navigate(location.state?.prevUrl || `/`)}>
                         <ArrowBackIcon sx={{ fontSize: { xs: '18px', sm: '24px' } }} />
                     </IconButton>
                     <Typography variant="body1" fontSize={{ sx: '18px', sm: '24px' }} component={'div'} color="text.main" fontWeight={'600'}>
@@ -87,11 +87,29 @@ function FullPagePost() {
 
                         restriction?.is_restricted ?
                             <>
-                                {/* Restricted area */}
+
+                                <Box width={'100%'} py={4} sx={{ display: 'flex', flexDirection: 'column', gap: 1, alignItems: 'center' }}>
+                                    <Box width={'90%'} maxWidth={{ xs: "200px", sm: '330px' }} >
+                                        <img src={restriction?.image} style={{ width: '100%', objectFit: 'contain' }} alt="" />
+
+                                    </Box>
+                                    <Typography variant="body1" fontSize={{ xs: '18px', sm: '26px' }} fontWeight={600} color="#fff" textAlign={'center'} >
+                                        {restriction?.title}
+                                    </Typography>
+                                    <Typography variant="body2" fontSize={{ xs: '13px', sm: '16px' }} color="text.primary" textAlign={'center'}>
+                                        {restriction?.message}
+                                    </Typography>
+
+                                </Box>
                             </> :
                             <>{
                                 hidePost?.isHidden ?
                                     <>
+                                        <Box width={'100%'} p={1} borderRadius={2} border={1} borderColor={'divider'}>
+                                            <Typography fontSize={{ xs: '10px', sm: '14px' }} color="text.secondary" component={'span'} >
+                                                {hidePost.reason}
+                                            </Typography>
+                                        </Box>
                                     </> :
 
                                     <Stack width={'100%'} borderRadius={2} height={'fit-content'} >
@@ -99,10 +117,10 @@ function FullPagePost() {
                                         {/* post contentSection */}
                                         <Box width={'100%'} p={1} sx={{ display: 'flex', flexDirection: 'column' }}>
 
-                                            <Typography mb={2} sx={{ whiteSpace: 'pre-wrap' }} fontSize={{ xs: 12, sm: 16 }}>
+                                            {postData?.content && <Typography mb={2} sx={{ whiteSpace: 'pre-wrap' }} fontSize={{ xs: 12, sm: 16 }}>
                                                 {postData.content}
-                                            </Typography>
-                                            {postData?.media_url?.length > 0 && <ImageGrid images={postData?.media_url} setImages={setImages}  />}
+                                            </Typography>}
+                                            {postData?.media_url?.length > 0 && <ImageGrid images={postData?.media_url} setImages={setImages} />}
 
                                         </Box>
                                         <PostUIBottom postData={postData} />

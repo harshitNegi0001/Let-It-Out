@@ -17,7 +17,7 @@ function FullPageImage({ images = [], setImages }) {
 
     return (
         <>
-            <Backdrop open={images?.length > 0} onClick={closeImgWindow} sx={{ position: 'fixed', top: 0, zIndex: 9999 }}>
+            <Backdrop open={images?.length > 0} onClick={closeImgWindow} sx={{ position: 'fixed', top: 0, zIndex: 9999,backdropFilter:'blur(2px)' }}>
                 <Box width={'100%'} height={'100%'} sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center' }} position={'relative'} >
                     <Box onClick={(e) => e.stopPropagation()} sx={{ position: 'absolute', right: '0', top: '0', zIndex: 99, }}>
                         <IconButton onClick={closeImgWindow}>

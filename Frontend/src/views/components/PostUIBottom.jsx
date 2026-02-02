@@ -5,9 +5,9 @@ import LikeFilledButton from '@mui/icons-material/Favorite';
 import ShareIcon from '@mui/icons-material/Share';
 import CommentsIcon from '@mui/icons-material/Forum';
 import RepostIcon from '@mui/icons-material/Repeat';
-import { useState,useEffect } from "react";
+import { useState, useEffect } from "react";
 import { useDispatch } from "react-redux";
-import { useNavigate } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 
 
 function PostUIBottom({ postData }) {
@@ -27,6 +27,7 @@ function PostUIBottom({ postData }) {
 
     }, [postData]);
     const navigate = useNavigate();
+    const location = useLocation();
 
 
     const handleLikeBtn = () => {
@@ -54,7 +55,7 @@ function PostUIBottom({ postData }) {
                     </IconButton><Typography variant="body2" fontSize={12} component={'span'}>{likeCount.count || 0}</Typography>
                 </Box>
                 <Box display={'flex'} justifyContent={'center'} alignItems={'center'}>
-                    <IconButton title="comments" onClick={()=>navigate(`/p/${postData?.id}`)}>
+                    <IconButton title="comments" onClick={() => navigate(`/p/${postData.id}`, { state: { prevUrl: location.pathname + location.search } })}>
                         <CommentsIcon />
 
                     </IconButton><Typography variant="body2" fontSize={12} component={'span'}>{postData?.comments_count || 0}</Typography>
@@ -65,7 +66,7 @@ function PostUIBottom({ postData }) {
 
                     </IconButton><Typography variant="body2" fontSize={12} component={'span'}>{postData?.shares_count || 0}</Typography>
                 </Box>
-                
+
                 <Box display={'flex'} justifyContent={'center'} alignItems={'center'}>
                     <IconButton title="repost">
                         <RepostIcon />
