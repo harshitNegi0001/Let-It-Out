@@ -6,7 +6,6 @@ import { setState } from "../../store/authReducer/authReducer";
 import { useDispatch } from "react-redux";
 import axios from "axios";
 import PostUI from "./PostUI";
-import ConfirmBox from "./ConfirmBox";
 
 
 
@@ -52,10 +51,8 @@ function ForYouFeed() {
                         <LoadingPost />
 
                     </Box>
-                    : <Stack width={'100%'} px={1} spacing={1} height={'fit-content'}>
-                        <Box width={'100%'} position={'absolute'} top={0} >
-                            <ConfirmBox setUserPost={setPostList} userPost={postList} />
-                        </Box>
+                    : <Stack width={'100%'} px={1} spacing={2} height={'fit-content'}>
+                        
                         {postList.map(p => {
 
                             return (<PostUI key={p.post_data.id} followed={p.user_data.following_status} postData={p.post_data} userData={p.user_data} />)

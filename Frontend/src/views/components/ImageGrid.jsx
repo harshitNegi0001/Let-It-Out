@@ -1,8 +1,12 @@
 import { Box, Typography } from "@mui/material";
 
 
-function ImageGrid({ images = [] }) {
-    const countImg = images?.length||0;
+function ImageGrid({ images = [], setShowFullImage }) {
+    const countImg = images?.length || 0;
+    const handleImageClick = (e) => {
+        e.stopPropagation();
+        setShowFullImage(true);
+    }
 
     if (countImg == 0) {
         return null;
@@ -10,14 +14,14 @@ function ImageGrid({ images = [] }) {
 
     if (countImg == 1) {
         return (
-            <Box sx={{ maxHeight: 280, overflow: "hidden", borderRadius: 1 }}>
+            <Box onClick={handleImageClick} sx={{ maxHeight: { xs: '280px', sm: '400px' }, overflow: "hidden", borderRadius: 1 }}>
                 <img
                     src={images[0]}
                     alt=""
                     style={{
                         width: "100%",
-                        maxHeight: 280,
-                        objectFit: "contain",
+                        height: '100%',
+                        objectFit: "cover",
                     }}
                 />
             </Box>
@@ -26,7 +30,7 @@ function ImageGrid({ images = [] }) {
 
     if (countImg == 2) {
         return (
-            <Box display="flex" gap={0.5}>
+            <Box display="flex" gap={0.5} onClick={handleImageClick}>
                 {images.map((img, i) => (
                     <Box key={i} flex={1} height={200} overflow="hidden">
                         <img
@@ -41,8 +45,8 @@ function ImageGrid({ images = [] }) {
     }
     if (countImg == 3) {
         return (
-            <Box display="flex" flexDirection="column" gap={0.5}>
-                <Box height={200} overflow="hidden">
+            <Box display="flex" flexDirection="column" gap={0.5} onClick={handleImageClick}>
+                <Box height={{xs:'160px',sm:'250px'}} overflow="hidden">
                     <img
                         src={images[0]}
                         alt=""
@@ -51,7 +55,7 @@ function ImageGrid({ images = [] }) {
                 </Box>
                 <Box display="flex" gap={0.5}>
                     {images.slice(1).map((img, i) => (
-                        <Box key={i} flex={1} height={140} overflow="hidden">
+                        <Box key={i} flex={1} height={{xs:'160px',sm:'250px'}} overflow="hidden">
                             <img
                                 src={img}
                                 alt=""
@@ -69,8 +73,10 @@ function ImageGrid({ images = [] }) {
             <Box
                 display="grid"
                 gridTemplateColumns="1fr 1fr"
-                gridAutoRows="160px"
+                gridAutoRows="200px"
                 gap={0.5}
+                onClick={handleImageClick}
+                
             >
                 {images.slice(0, 4).map((img, i) => (
                     <Box

@@ -1,4 +1,4 @@
-import { Stack, Box, Typography, Divider, IconButton } from "@mui/material";
+import { Stack, Box, Typography, Divider, IconButton, Backdrop } from "@mui/material";
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import PostUI from "./components/PostUI";
 import { useEffect, useState } from "react";
@@ -11,6 +11,7 @@ import LoadingPost from "./components/LoadingPosts";
 import PostUIHeader from "./components/PostUIHeader";
 import PostUIBottom from "./components/PostUIBottom";
 import ImageGrid from "./components/ImageGrid";
+import FullPageImage from "./components/FullPageImage";
 
 
 function FullPagePost() {
@@ -30,6 +31,8 @@ function FullPagePost() {
         isHidden: false,
         reason: ''
     });
+    const [showFullImage, setShowFullImage] = useState(false);
+
 
     const { postId } = useParams();
     const dispatch = useDispatch();
@@ -69,16 +72,16 @@ function FullPagePost() {
     return (
         <>
 
-            <Stack width={'100%'} height={'100%'} p={{ xs: 1, sm: 2 }} spacing={{xs:1,sm:2}} pb={{ xs: '60px', sm: '10px' }}  direction={'column'} overflow={'scroll'} >
+            <Stack width={'100%'} height={'100%'} p={{ xs: 1, sm: 2 }} spacing={{ xs: 1, sm: 2 }} pb={{ xs: '60px', sm: '10px' }} direction={'column'} overflow={'scroll'} >
                 <Box width={'100%'} sx={{ display: 'flex', gap: 2, alignItems: 'center' }}>
                     <IconButton onClick={() => navigate(`/`)}>
-                        <ArrowBackIcon sx={{fontSize:{xs:'18px',sm:'24px'}}} />
+                        <ArrowBackIcon sx={{ fontSize: { xs: '18px', sm: '24px' } }} />
                     </IconButton>
-                    <Typography variant="body1" fontSize={{sx:'18px',sm:'24px'}} component={'div'} color="text.main" fontWeight={'600'}>
+                    <Typography variant="body1" fontSize={{ sx: '18px', sm: '24px' }} component={'div'} color="text.main" fontWeight={'600'}>
                         Post
                     </Typography>
                 </Box>
-                <Divider/>
+                <Divider />
                 {
                     isLoading ? <LoadingPost /> :
 
@@ -91,7 +94,7 @@ function FullPagePost() {
                                     <>
                                     </> :
 
-                                    <Stack width={'100%'} borderRadius={2}  height={'fit-content'} >
+                                    <Stack width={'100%'} borderRadius={2} height={'fit-content'} >
                                         <PostUIHeader setHidePost={setHidePost} userData={userData} postData={postData} />
                                         {/* post contentSection */}
                                         <Box width={'100%'} p={1} sx={{ display: 'flex', flexDirection: 'column' }}>
@@ -99,11 +102,13 @@ function FullPagePost() {
                                             <Typography mb={2} sx={{ whiteSpace: 'pre-wrap' }} fontSize={{ xs: 12, sm: 16 }}>
                                                 {postData.content}
                                             </Typography>
-                                            {postData?.media_url?.length > 0 && <ImageGrid images={postData?.media_url} />}
+                                            {postData?.media_url?.length > 0 && <ImageGrid setShowFullImage={setShowFullImage} images={postData?.media_url} />}
 
                                         </Box>
                                         <PostUIBottom postData={postData} />
-                                        
+                                        <Backdrop open={showFullImage} onClick={() => setShowFullImage(false)} sx={{ position: 'fixed', top: 0, zIndex: 9999 }}>
+                                            <FullPageImage images={postData?.media_url} setShowFullImage={setShowFullImage} />
+                                        </Backdrop>
                                         <CommentSection postId={postId} />
                                     </Stack>
                             }
