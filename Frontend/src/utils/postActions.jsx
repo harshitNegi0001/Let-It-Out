@@ -31,7 +31,7 @@ function getPostActions(postUploaderId, currUserId, postId) {
         },
         
         {
-            id: 1,
+            id: 2,
             content: 'Not Interested',
             label: 'Do you really disliked this post?',
             icon: <ThumbDownAltIcon fontSize='small' />,

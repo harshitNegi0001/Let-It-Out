@@ -20,6 +20,7 @@ import { reportOptions } from "../../utils/reportOptions";
 
 function PostOptionsComponent({ userData, setHidePost, postData }) {
     const [anchorEl, setAnchorEl] = useState(null);
+    const [userFStatus, setUserFStatus] = useState(null)
     const [isSaved, setIsSaved] = useState(false);
     const [openReportBox, setOpenReportBox] = useState(false);
     const [reportReason, setReportReason] = useState('');
@@ -39,6 +40,7 @@ function PostOptionsComponent({ userData, setHidePost, postData }) {
     const { userInfo } = useSelector(state => state.auth);
     useEffect(() => {
         if (userData?.id && userInfo?.id) {
+            setUserFStatus(userData?.following_status);
             setPostAction([...getPostActions(userData.id, userInfo.id, postData.id)]);
         }
     }, [userData]);
@@ -89,6 +91,18 @@ function PostOptionsComponent({ userData, setHidePost, postData }) {
                 break;
             case 'REPORT_POST':
                 reportPost()
+                break;
+            case 'CANCEL_FOLLOW':
+                handleFollow('cancel');
+
+                break;
+            case 'ADD_FOLLOW':
+                handleFollow('add');
+                break;
+
+            case 'NOT_INTERESTED':
+                notInterestedPost();
+                break;
         }
     }
 
@@ -125,24 +139,53 @@ function PostOptionsComponent({ userData, setHidePost, postData }) {
 
     }
 
+    const notInterestedPost = async () => {
+        try {
+            setIsLoading(true);
+
+            const result = await axios.post(`${backend_url}/like/add-dislike-post`,
+                {
+                    post_id: actionData.payload
+                },
+                {
+                    withCredentials: true,
+                    headers: {
+                        "Content-Type": 'application/json'
+                    }
+                }
+            );
+
+            setIsLoading(false);
+            cancleAction();
+            setHidePost({
+                isHidden: true,
+                reason: 'This content has been hidden based on your preference.'
+            })
+
+        } catch (err) {
+            setIsLoading(false);
+            dispatch(setState({ error: err?.response?.data?.error || 'Something went wrong!' }));
+            // console.log(err);
+        }
+    }
 
     const blockUser = async () => {
         try {
 
             setIsLoading(true);
 
-            // const result = await axios.post(`${backend_url}/api/block-user`,
-            //     {
-            //         blocked_id: actionData.payload,
-            //         operation: 'block'
-            //     },
-            //     {
-            //         withCredentials: true,
-            //         headers: {
-            //             "Content-Type": 'application/json'
-            //         }
-            //     }
-            // );
+            const result = await axios.post(`${backend_url}/api/block-user`,
+                {
+                    blocked_id: actionData.payload,
+                    operation: 'block'
+                },
+                {
+                    withCredentials: true,
+                    headers: {
+                        "Content-Type": 'application/json'
+                    }
+                }
+            );
 
             setIsLoading(false);
             cancleAction();
@@ -183,18 +226,18 @@ function PostOptionsComponent({ userData, setHidePost, postData }) {
     const submitReport = async () => {
         try {
             setIsLoading(true);
-            // const result = await axios.post(
-            //     ``,
-            //     {
-            //         reason: reportReason,
-            //         target_type: 'post',
-            //         userId: userData?.id,
-            //         target_id:postData?.id
-            //     },
-            //     {
-            //         withCredentials: true
-            //     }
-            // )
+            const result = await axios.post(
+                `${backend_url}/report/add-report`,
+                {
+                    reason: reportReason,
+                    target_type: 'post',
+                    reported_user_id: userData?.id,
+                    target_id: postData?.id
+                },
+                {
+                    withCredentials: true
+                }
+            )
 
             setIsLoading(false);
             setHidePost({
@@ -208,7 +251,30 @@ function PostOptionsComponent({ userData, setHidePost, postData }) {
 
         }
     }
+    const handleFollow = async (operation) => {
+        try {
+            setIsLoading(true);
+            const result = await axios.post(
+                `${backend_url}/api/req-follow`,
+                {
+                    following_id: actionData.payload,
+                    operation: operation
+                },
+                {
+                    withCredentials: true
+                }
+            );
 
+            setUserFStatus((result.data.followingStatus == "not_followed") ? null : result.data.followingStatus);
+
+            setIsLoading(false);
+            cancleAction();
+        } catch (err) {
+            setIsLoading(false);
+            dispatch(setState({ error: err?.response?.data?.error || "Internal Server Error!" }));
+
+        }
+    }
 
     return (
         <>
@@ -241,13 +307,28 @@ function PostOptionsComponent({ userData, setHidePost, postData }) {
                         <ListItemText>Report</ListItemText>
                     </MenuItem>
                 }
-                {(userInfo.id != userData?.id) && <MenuItem >
+                {(userInfo.id != userData?.id) && <MenuItem onClick={() =>
+                    handleAction({
+                        label: `Do you want to ${!userFStatus ? 'follow this user' :
+                            (userFStatus == 'accepted') ? 'unfollow this user' : 'cancel your follow req'}?`
+                        , type: `${!userFStatus ? 'ADD_FOLLOW' : 'CANCEL_FOLLOW'}`,
+                        payload: userData?.id
+                    })}>
                     <ListItemIcon>
                         {
-                            !userData?.following_status ? <PersonAddAlt1Icon fontSize="small" /> : (userData?.following_status == 'accepted') ? <PersonRemoveIcon fontSize="small" /> : <CancelOutlinedIcon fontSize="small" />
+                            !userFStatus ?
+                                <PersonAddAlt1Icon fontSize="small" /> :
+                                (userFStatus == 'accepted') ?
+                                    <PersonRemoveIcon fontSize="small" /> :
+                                    <CancelOutlinedIcon fontSize="small" />
                         }
                     </ListItemIcon>
-                    <ListItemText>{!userData?.following_status ? `Follow ${userData?.name}` : (userData?.following_status == 'accepted') ? `Unfollow ${userData?.name}` : 'Cancle follow request'}</ListItemText>
+                    <ListItemText>
+                        {!userFStatus ?
+                            `Follow ${userData.name}` :
+                            (userFStatus == 'accepted') ?
+                                `Unfollow ${userData.name}` : 'Cancle follow request'}
+                    </ListItemText>
                 </MenuItem>}
             </Menu>
 

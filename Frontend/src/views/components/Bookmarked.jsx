@@ -27,6 +27,11 @@ const RestrectedPostHandler = {
         headingMsg: 'This account has been Suspended',
         detailMsg: 'This account has been Suspended. this could due to violation of our Community Guildlines or other Policies.',
         
+    },
+    ACCOUNT_BLOCKED:{
+        image:'https://res.cloudinary.com/dns5lxuvy/image/upload/v1767880329/ffaril9idaw7ln5xqsyg.png',
+        headingMsg:'Profile not available',
+        detailMsg:'You can’t view posts from this account at the moment.'
     }
 }
 

@@ -7,4 +7,6 @@ const router = express.Router();
 router.post('/like-target',authMiddleware,Likes.likeTarget);
 router.post('/del-like-target',authMiddleware,Likes.deleteLikeTarget);
 
+router.post('/add-dislike-post',authMiddleware,Likes.addNotInterestedPost);
+
 export default router;

@@ -296,7 +296,7 @@ function ChattingComponent({ username, getChatlist }) {
                     </Avatar>
                     <Box sx={{ width: 'calc(100% - 140px)', height: '50px' }} >
                         {isLoading ? <Skeleton width={'120px'} /> : <Typography variant="body1" color="text.primary" component={'div'} noWrap textOverflow={'ellipsis'}>{userData?.name}</Typography>}
-                        {isLoading ? <Skeleton width={'45px'} /> : <Typography variant="body2" color={`${isTyping ? 'secondary.main' : isOnline ? "#2fa500" : '#fff'}`} fontSize={12} component={'div'} noWrap textOverflow={'ellipsis'}>{isTyping ? 'typing...' : (isOnline) ? "Online" : (lastOnline) ? `last seen ${formatDate(lastOnline)} ${formatTime(lastOnline)}` : `last seen ${formatDate(userData?.last_login)} ${formatTime(userData?.last_login)}`} </Typography>}
+                        {isLoading ? <Skeleton width={'45px'} /> : <Typography variant="body2" color={`${isTyping ? 'secondary.main' : isOnline ? "#2fa500" : '#fff'}`} fontSize={{xs:'10px',sm:'13px'}} component={'div'} noWrap textOverflow={'ellipsis'}>{isTyping ? 'typing...' : (isOnline) ? "Online" : (lastOnline) ? `last seen ${formatDate(lastOnline)} ${formatTime(lastOnline)}` : `last seen ${formatDate(userData?.last_login)} ${formatTime(userData?.last_login)}`} </Typography>}
                     </Box>
                     <ChatOptionsComponent userData={userData} getUserData={getUserData} />
                 </Box>

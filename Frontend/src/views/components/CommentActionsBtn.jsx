@@ -101,19 +101,18 @@ function CommentActionBtn({ comment_poster_data, setCommentList, commentId }) {
     const submitReport = async () => {
         try {
             setIsLoading(true);
-            // const result = await axios.post(
-            //     ``,
-            //     {
-            //         reason: reportReason,
-            //         target_type: 'comment',
-            //         userId: comment_poster_data?.id,
-            //         target_id:commentId
-            //     },
-            //     {
-            //         withCredentials:true
-            //     }
-            // )
-
+            const result = await axios.post(
+                `${backend_url}/report/add-report`,
+                {
+                    reason: reportReason,
+                    target_type: 'comment',
+                    reported_user_id: comment_poster_data?.id,
+                    target_id:commentId
+                },
+                {
+                    withCredentials: true
+                }
+            )
             setIsLoading(false);
             cancleReport();
         } catch (err) {
@@ -132,7 +131,7 @@ function CommentActionBtn({ comment_poster_data, setCommentList, commentId }) {
                     commentId: commentId
                 },
                 {
-                    withCredentials:true
+                    withCredentials: true
                 }
             );
             setCommentList(prev => {

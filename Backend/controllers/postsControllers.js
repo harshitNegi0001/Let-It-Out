@@ -96,7 +96,32 @@ class Post {
             }
 
             const userDetail = user.rows[0];
-
+            const blocklist_check = await db.query(
+                `SELECT(
+                    EXISTS(
+                        SELECT 1
+                        FROM blocked_accounts
+                        WHERE (blocker_id = $1 AND blocked_id =$2)
+                            OR (blocker_id=$2 AND blocked_id = $1)
+                    )
+                )`,
+                [visiterId, userId]
+            );
+            if (blocklist_check.rows[0]?.exists) {
+                return returnRes(res, 200, {
+                    user: {
+                        id: userDetail.id,
+                        username: userDetail.username,
+                        acc_status: userDetail.acc_status,
+                        acc_type: userDetail.acc_type
+                    },
+                    restrictions: {
+                        show_posts: false,
+                        reason: "ACCOUNT_BLOCKED",
+                        message: "Either you has been blocked or you blocked this user."
+                    }
+                });
+            }
             if (userDetail.acc_status == 'deactive') {
                 return returnRes(res, 200, {
                     user: {
@@ -225,9 +250,6 @@ class Post {
 
                     return returnRes(res, 200, { message: 'Success', posts: result.rows });
                 }
-
-
-
 
             }
 
@@ -455,10 +477,8 @@ class Post {
         if (!reqMood) {
             reqMood = [];
         } else if (Array.isArray(reqMood)) {
-            // frontend sent ?reqMood=a&reqMood=b
             reqMood = reqMood.flatMap(v => v.split(','));
         } else {
-            // frontend sent ?reqMood=a,b
             reqMood = reqMood.split(',');
         }
 
@@ -466,6 +486,19 @@ class Post {
 
         const userId = req.id;
         try {
+
+            const blocklist_result = await db.query(
+                `SELECT DISTINCT
+                    CASE
+                    WHEN blocker_id = $1 THEN blocked_id
+                    ELSE blocker_id
+                    END AS user_id
+                FROM blocked_accounts
+                WHERE blocker_id = $1 OR blocked_id = $1;`,
+                [userId]
+            );
+
+            const blocked_id = blocklist_result.rows.map(r=>r.user_id);
 
             if (reqFollowing) {
                 const followingResult = await db.query(
@@ -475,8 +508,11 @@ class Post {
                     JOIN users AS u
                     ON u.id = f.following_id
 
-                    WHERE f.follower_id= $1 AND f.status = 'accepted' AND u.acc_status = 'active'`,
-                    [userId]
+                    WHERE f.follower_id= $1 
+                        AND f.status = 'accepted' 
+                        AND u.acc_status = 'active'
+                        AND NOT (u.id = ANY($2))`,
+                    [userId,blocked_id]
                 );
                 if (followingResult.rows.length == 0) {
                     return returnRes(res, 200, { message: 'Follow someone to get following feed.', postsList: [] });
@@ -533,6 +569,7 @@ class Post {
                     LEFT JOIN likes AS l
                     ON l.target_id = p.id AND l.target_type ='post'
                     WHERE p.user_id = ANY($1)
+                        
                     GROUP BY p.id,u.id
                     ORDER BY p.id DESC
                     offset $2
@@ -597,11 +634,12 @@ class Post {
                 LEFT JOIN likes AS l
                 ON l.target_id = p.id AND l.target_type ='post'
                 WHERE mood_tag =ANY($1::varchar[])
+                    AND NOT (u.id=ANY($5))
                 GROUP BY p.id,u.id
                 ORDER BY p.id DESC
                 offset $2
                 limit $3;`
-                    , [reqMood, (limit * (currPage - 1)), limit, userId]
+                    , [reqMood, (limit * (currPage - 1)), limit, userId,blocked_id]
                 );
                 return returnRes(res, 200, { message: 'Following feed successfully fetched.', postsList: result.rows });
             }
@@ -656,12 +694,12 @@ class Post {
                 ON u.id = p.user_id AND u.acc_type ='public'
                 LEFT JOIN likes AS l
                 ON l.target_id = p.id AND l.target_type ='post'
-                
+                WHERE NOT(u.id=ANY($4))
                 GROUP BY p.id,u.id
                 ORDER BY p.id DESC
                 offset $1
                 limit $2;`
-                    , [(limit * (currPage - 1)), limit, userId]
+                    , [(limit * (currPage - 1)), limit, userId,blocked_id]
                 );
                 return returnRes(res, 200, { message: 'Following feed successfully fetched.', postsList: result.rows });
             }
@@ -850,7 +888,11 @@ class Post {
 									AND l.target_id = p.id 
 									AND l.user_id=$1
 							),
-                            'is_saved',TRUE,
+                            'is_saved',EXISTS(
+                                SELECT 1 
+                                FROM bookmarks AS b
+                                WHERE b.user_id=$1 AND b.post_id = p.id
+                            ),
                             'comments_count',
                             (
                                 SELECT COUNT(c.id)
@@ -879,6 +921,119 @@ class Post {
 
                 return returnRes(res, 200, { message: 'Success', postsList: result.rows });
 
+            }
+            else if (req_type == 'not-interested-posts') {
+                const result = await db.query(
+                    `SELECT 
+                        json_build_object(
+                            'id',p.id,
+                            'user_id',p.user_id,
+                            'content',p.content,
+                            'mood_tag',p.mood_tag,
+                            'media_url',p.media_url,
+                            'post_type',p.post_type,
+                            'likes_count',(SELECT 
+                                COUNT(l2.id) 
+                                FROM likes AS l2
+                                WHERE l2.target_type='post' AND l2.target_id=p.id),
+                            'shares_count',p.shares_count,
+                            'created_at',p.created_at,
+                            'is_liked',EXISTS (
+								SELECT 1
+								FROM likes AS l
+								WHERE l.target_type='post' 
+									AND l.target_id = p.id 
+									AND l.user_id=$1
+							),
+                            'is_saved',EXISTS(
+                                SELECT 1 
+                                FROM bookmarks AS b
+                                WHERE b.user_id=$1 AND b.post_id = p.id
+                            ),
+                            'comments_count',
+                            (
+                                SELECT COUNT(c.id)
+                                FROM comments AS c
+                                WHERE c.post_id=p.id
+                            )
+                        ) AS post_data,
+                        json_build_object(
+                            'id', u.id,
+                            'name', COALESCE(NULLIF(u.fake_name, ''), u.first_name),
+                            'username', u.lio_userid,
+                            'image', u.image
+                        ) AS user_data
+                        
+                    FROM posts AS p
+                    JOIN not_interested_posts AS ni
+                    ON ni.post_id = p.id
+                    JOIN users AS u
+                    ON p.user_id = u.id
+                    WHERE ni.user_id = $1
+                    GROUP BY p.id, u.id
+                    ORDER BY p.id DESC`,
+                    [userId]
+
+                );
+
+                return returnRes(res, 200, { message: 'Success', postsList: result.rows });
+            }
+            else if (req_type == 'reported-posts') {
+                const result = await db.query(
+                    `SELECT 
+                        json_build_object(
+                            'id',p.id,
+                            'user_id',p.user_id,
+                            'content',p.content,
+                            'mood_tag',p.mood_tag,
+                            'media_url',p.media_url,
+                            'post_type',p.post_type,
+                            'likes_count',(SELECT 
+                                COUNT(l2.id) 
+                                FROM likes AS l2
+                                WHERE l2.target_type='post' AND l2.target_id=p.id),
+                            'shares_count',p.shares_count,
+                            'created_at',p.created_at,
+                            'is_liked',EXISTS (
+								SELECT 1
+								FROM likes AS l
+								WHERE l.target_type='post' 
+									AND l.target_id = p.id 
+									AND l.user_id=$1
+							),
+                            'is_saved',EXISTS(
+                                SELECT 1 
+                                FROM bookmarks AS b
+                                WHERE b.user_id=$1 AND b.post_id = p.id
+                            ),
+                            'comments_count',
+                            (
+                                SELECT COUNT(c.id)
+                                FROM comments AS c
+                                WHERE c.post_id=p.id
+                            )
+                        ) AS post_data,
+                        json_build_object(
+                            'id', u.id,
+                            'name', COALESCE(NULLIF(u.fake_name, ''), u.first_name),
+                            'username', u.lio_userid,
+                            'image', u.image
+                        ) AS user_data
+                        
+                    FROM posts AS p
+                    JOIN reports AS r
+                    ON r.target_id=p.id
+                        AND r.target_type = 'post'
+                    JOIN users AS u
+                    ON p.user_id = u.id
+                    WHERE r.reporter_id = $1
+                    GROUP BY p.id, u.id
+                    ORDER BY p.id DESC`,
+                    [userId]
+
+                );
+
+                return returnRes(res, 200, { message: 'Success', postsList: result.rows });
             }
             else {
                 return returnRes(res, 400, { error: 'Feature not availible' });
@@ -975,7 +1130,7 @@ class Post {
                 });
             }
             const accStatus = userData.rows[0]?.acc_status
-            if (accStatus != 'active' ) {
+            if (accStatus != 'active') {
                 return returnRes(res, 200, {
                     restrictions: {
                         is_restricted: true,
@@ -988,7 +1143,7 @@ class Post {
             }
             const accType = userData.rows[0]?.acc_type;
             const followingStatus = userData.rows[0]?.following_status;
-            if (accType == 'private' && followingStatus != 'accepted' && visitorId!=userId) {
+            if (accType == 'private' && followingStatus != 'accepted' && visitorId != userId) {
                 return returnRes(res, 200, {
                     restrictions: {
                         is_restricted: true,

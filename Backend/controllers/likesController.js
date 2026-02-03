@@ -63,6 +63,33 @@ class Likes {
 
         }
     }
+
+    // controller function to add posts in not interested list.
+
+    addNotInterestedPost = async (req, res) => {
+        const userId = req.id;
+        const {post_id} =req.body;
+
+        try {
+            await db.query(
+                `INSERT INTO not_interested_posts
+                (
+                    post_id,
+                    user_id
+                )
+                VALUES(
+                    $1,$2
+                )
+                ON CONFLICT (post_id, user_id) DO NOTHING`,
+                [post_id,userId]
+            );
+
+            return returnRes(res,200,{message:'Post marked as not interested.'});
+        } catch (err) {
+            console.log(err);
+            return returnRes(res, 500, { error: 'Internal Server Error!' });
+        }
+    }
 }
 
 

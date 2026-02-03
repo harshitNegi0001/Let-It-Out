@@ -42,7 +42,7 @@ function PostUI({ followed = false, postData, userData }) {
 
 
 
-                <Stack width={'100%'} height={'fit-content'} borderRadius={2} overflow={'hidden'} sx={{ boxShadow: '1px 1px 2px 1px #0e0e0e5d' }} borderColor={'primary.dark'} bgcolor={'#221f2b'}>
+                <Stack width={'100%'} height={'fit-content'} borderRadius={2} overflow={'hidden'} sx={{ boxShadow: '1px 1px 2px 1px #0e0e0e5d' }} borderColor={'primary.dark'} bgcolor={'#262231'}>
 
                     <PostUIHeader setHidePost={setHidePost} userData={userData} postData={postData} />
                     <Box width={'100%'} p={1} sx={{ display: 'flex', flexDirection: 'column' }} 
