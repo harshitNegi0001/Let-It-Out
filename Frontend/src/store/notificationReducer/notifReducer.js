@@ -41,10 +41,13 @@ const notificationSlice = createSlice({
             }
         },
         deleteChatId: (state, action) => {
-            state.chatIds = state.chatIds.filter(id => id !== action.payload)
+            state.chatIds = state.chatIds.filter(id => id !== action.payload);
         },
 
         increaseNotif: (state, action) => {
+            console.log(action.payload)
+            console.log(state.notificationCount);
+            console.log(action.payload + state.notificationCount)
             state.notificationCount = action.payload + state.notificationCount
         }
     },
@@ -57,7 +60,7 @@ const notificationSlice = createSlice({
                         state.chatIds.push(c);
                     }
                 })
-                state.notificationCount = action.payload?.notificationCount ?? 0
+                state.notificationCount = parseInt(action.payload?.notificationCount) ?? 0
             })
     }
 })

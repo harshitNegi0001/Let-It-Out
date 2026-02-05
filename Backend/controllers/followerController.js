@@ -1,5 +1,6 @@
 import { returnRes } from "../utils/returnRes.js";
 import db from '../utils/db.js';
+import Notification from "./notificationController.js";
 
 class Followers {
 
@@ -48,12 +49,14 @@ class Followers {
                 [follower_id, following_id, isPrivateAcc ? 'pending' : 'accepted']
             );
 
+            // if user acc is private then send req notification else started following you.
+            Notification.addFollowNotification(isPrivateAcc ? 'follow_req' : 'follow', follower_id, following_id, false);
             return returnRes(res, 200, { message: isPrivateAcc ? 'Requested' : 'Following', followingStatus: isPrivateAcc ? 'pending' : 'accepted' });
 
 
 
         } catch (err) {
-
+            // console.log(err);
             return returnRes(res, 500, { error: 'Internal Server Error!' });
         }
     }
@@ -142,7 +145,8 @@ class Followers {
                         JOIN users AS u
                         ON u.id = f.following_id
                         WHERE f.follower_id = $2
-                            AND f.status = 'accepted'
+                            AND f.status = 'accepted
+                        ORDER BY f.id DESC'
 
                         `,
                         [visitorId, userId]
@@ -182,7 +186,7 @@ class Followers {
                         ON u.id = f.follower_id
                         WHERE f.following_id = $2
                             AND f.status = 'accepted'
-                        `,
+                        ORDER BY f.id DESC`,
                         [visitorId, userId]
                     )
 
@@ -209,7 +213,7 @@ class Followers {
                             ON u.id=f.follower_id
                             WHERE f.following_id=$1
                                 AND f.status ='pending'
-                            `,
+                            ORDER BY f.id DESC`,
                             [visitorId]
                         );
                         return returnRes(res, 200, {
@@ -252,38 +256,40 @@ class Followers {
         const { reqId, operation } = req.body;
         try {
             const follower_id_check = await db.query(
-                `SELECT(
-                    EXISTS(
-                        SELECT 1
+                `
+                        SELECT 
+                            follower_id
                         FROM followers
                         WHERE id=$1
                             AND following_id =$2
-                    )
-                )`,
+                    `,
                 [reqId, following_id]
             );
-
-            if(!follower_id_check.rows[0]?.exists){
-                return returnRes(res,403,{error:`You haven't permission.`});
+            if (!follower_id_check.rows.length > 0) {
+                return returnRes(res, 403, { error: `You haven't permission.` });
             }
-            if(operation=='accept'){
+            const follower_id = follower_id_check.rows[0].follower_id
+
+            if (operation == 'accept') {
                 const result = await db.query(
                     `UPDATE followers
                     SET status = 'accepted'
                     WHERE id=$1
-                    `,[reqId]
+                    `, [reqId]
                 );
-                return returnRes(res,200,{message:'Request Accepted.',status:'ACCEPTED'});
+                Notification.addFollowNotification('follow', follower_id, following_id, true);
+                return returnRes(res, 200, { message: 'Request Accepted.', status: 'ACCEPTED' });
 
             }
-            if(operation=='reject'){
+            if (operation == 'reject') {
                 await db.query(
                     `DELETE FROM followers
                     WHERE id =$1`,
                     [reqId]
                 );
+                
 
-                return returnRes(res,200,{message:'Request Rejected.',status:'REJECTED'});
+                return returnRes(res, 200, { message: 'Request Rejected.', status: 'REJECTED' });
 
             }
             return returnRes(res, 400, { error: 'Operation can be only accept or reject.' });

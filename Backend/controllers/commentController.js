@@ -1,5 +1,6 @@
 import { returnRes } from "../utils/returnRes.js";
 import db from '../utils/db.js';
+import Notification from "./notificationController.js";
 
 class Comment {
 
@@ -69,7 +70,14 @@ class Comment {
                     WHERE c.id =$1
                 `,
                 [cmntId, userId]
-            )
+            );
+
+            if(!replying_to){
+                Notification.addLikeCommentNotification('post',commentData.rows?.[0].post_id,userId,'reply');
+            }
+            else{
+                Notification.addLikeCommentNotification('comment',commentData.rows?.[0].parent_id,userId,'reply');
+            }
 
             return returnRes(res, 200, { message: 'Comment posted.', commentData: commentData.rows[0] });
 

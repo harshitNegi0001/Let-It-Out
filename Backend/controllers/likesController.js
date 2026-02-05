@@ -1,6 +1,6 @@
 import { returnRes } from "../utils/returnRes.js";
 import db from '../utils/db.js';
-
+import Notification from "./notificationController.js";
 class Likes {
     // Controller function to like a post
     likeTarget = async (req, res) => {
@@ -24,7 +24,8 @@ class Likes {
             )
 
 
-
+            // add notification here.
+            Notification.addLikeCommentNotification(targetName,targetId,userId,'like');
 
 
 

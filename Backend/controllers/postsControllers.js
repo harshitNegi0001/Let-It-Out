@@ -250,6 +250,65 @@ class Post {
 
                     return returnRes(res, 200, { message: 'Success', posts: result.rows });
                 }
+                else if (reqType == 'replied_post') {
+                const result = await db.query(
+                    `SELECT 
+                    json_build_object(
+                    'id', p.id,
+                    'user_id', p.user_id,
+                    'content', p.content,
+                    'mood_tag', p.mood_tag,
+                    'media_url', p.media_url,
+                    'post_type', p.post_type,
+                    'likes_count',(
+                    SELECT COUNT(l1.id)
+                    FROM likes AS l1
+                    WHERE l1.target_id=p.id
+                        AND l1.target_type='post'
+                    ),
+                    'share_count', p.shares_count,
+                    'created_at', p.created_at,
+                    'is_liked', EXISTS(
+                        SELECT 1
+                        FROM likes l2
+                        WHERE l2.target_id = p.id
+                            AND l2.target_type = 'post'
+                            AND l2.user_id = $1
+                    ),
+					'is_saved',EXISTS(
+						SELECT 1
+						FROM bookmarks as b
+						WHERE b.user_id = $1
+							AND b.post_id=p.id
+					), 'comments_count',
+                    (
+                        SELECT COUNT(c.id)
+                        FROM comments AS c
+                        WHERE c.post_id=p.id
+                    )
+                ) AS post_data, 
+                json_build_object(
+                    'id', u.id,
+                    'name', COALESCE(NULLIF(u.fake_name, ''), u.first_name),
+                    'username', u.lio_userid,
+                    'image', u.image
+                ) AS user_data
+                FROM posts AS p
+                JOIN comments AS c
+                ON c.post_id =p.id AND c.user_id = $4
+                JOIN users AS u
+                ON u.id = p.user_id AND u.acc_type = 'public'
+                
+                GROUP BY p.id,u.id
+                ORDER BY p.id DESC
+                offset $2
+                limit $3;`
+                    , [visiterId, (limit * (currPage - 1)), limit, userId]
+                );
+
+
+                return returnRes(res, 200, { message: 'Success', posts: result.rows });
+            }
 
             }
 
@@ -329,7 +388,12 @@ class Post {
                     'mood_tag', p.mood_tag,
                     'media_url', p.media_url,
                     'post_type', p.post_type,
-                    'likes_count',count(l.id),
+                    'likes_count',(
+                    SELECT COUNT(l1.id)
+                    FROM likes AS l1
+                    WHERE l1.target_id=p.id
+                        AND l1.target_type='post'
+                    ),
                     'share_count', p.shares_count,
                     'created_at', p.created_at,
                     'is_liked', EXISTS(
@@ -362,8 +426,7 @@ class Post {
                 ON b.post_id =p.id AND b.user_id = $4
                 JOIN users AS u
                 ON u.id = p.user_id AND u.acc_type = 'public'
-                LEFT JOIN likes AS l
-                ON l.target_id = p.id AND l.target_type ='post'
+                
                 
                 GROUP BY p.id,u.id
                 ORDER BY p.id DESC
@@ -385,7 +448,12 @@ class Post {
                     'mood_tag', p.mood_tag,
                     'media_url', p.media_url,
                     'post_type', p.post_type,
-                    'likes_count',count(l.id),
+                    'likes_count',(
+                    SELECT COUNT(l1.id)
+                    FROM likes AS l1
+                    WHERE l1.target_id=p.id
+                        AND l1.target_type='post'
+                    ),
                     'share_count', p.shares_count,
                     'created_at', p.created_at,
                     'is_liked', EXISTS(
@@ -418,8 +486,6 @@ class Post {
                 ON c.post_id =p.id AND c.user_id = $4
                 JOIN users AS u
                 ON u.id = p.user_id AND u.acc_type = 'public'
-                LEFT JOIN likes AS l
-                ON l.target_id = p.id AND l.target_type ='post'
                 
                 GROUP BY p.id,u.id
                 ORDER BY p.id DESC

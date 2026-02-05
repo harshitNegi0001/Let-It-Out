@@ -56,6 +56,8 @@ function ConnectionPage() {
     const backend_url = import.meta.env.VITE_BACKEND_URL;
     const navigate = useNavigate();
     const dispatch = useDispatch();
+    const location = useLocation();
+
     useEffect(() => {
         if (list_type) {
             if ((list_type != 'followers' && list_type != 'followings') || !username) {
@@ -182,7 +184,7 @@ function ConnectionPage() {
             <Stack width={'100%'} height={'100%'} overflow={'scroll'} p={{ xs: 1, sm: 2 }} pb={{ xs: '60px', sm: '10px' }} spacing={2} >
                 <Box width={'100%'} sx={{ display: 'flex', flexDirection: 'column', gap: 1, alignItems: 'start' }}>
                     <Box width={'100%'} sx={{ display: 'flex', gap: 1, alignItems: 'center' }}>
-                        <IconButton onClick={() => navigate(`/profile/${username}`)} size="small">
+                        <IconButton onClick={() => navigate(location.state?.prevUrl || `/profile/${username}`)} size="small">
                             <ArrowBackIcon />
                         </IconButton>
                         <Box width={'calc(100% - 70px)'} sx={{ display: 'flex', flexDirection: 'column' }}>
@@ -301,7 +303,7 @@ function ConnectionPage() {
                             </Box>
                         }</>}
 
-                {!isLoading && usersList.length == 0 && requestList.length == 0&&!restriction?.isRestricted &&
+                {!isLoading && usersList.length == 0 && requestList.length == 0 && !restriction?.isRestricted &&
                     <Box width={'100%'} sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 2 }} p={1} >
                         <Box width={'100%'} maxWidth={{ xs: '280px', sm: '350px' }}>
                             <img src="https://res.cloudinary.com/dns5lxuvy/image/upload/v1768990892/pahraxrxhocdy6zn5aqd.png" style={{ width: '100%', objectFit: 'contain' }} alt="" />
@@ -311,15 +313,15 @@ function ConnectionPage() {
                                 No {list_type} yet
                             </Typography>
                             <Typography width={'100%'} textAlign={'center'} variant="body2" color="text.secondary" fontSize={{ xs: '10px', sm: '14px' }} fontWeight={'300'}>
-                                {list_type=='followings'?'Accounts followed by this profile will appear here.':'Followers of this profile will appear here.'}
+                                {list_type == 'followings' ? 'Accounts followed by this profile will appear here.' : 'Followers of this profile will appear here.'}
                             </Typography>
                         </Box>
-                        {userInfo.username==username&&<Box width={'100%'} maxWidth={{ xs: '280px', sm: '350px' }}>
+                        {userInfo.username == username && <Box width={'100%'} maxWidth={{ xs: '280px', sm: '350px' }}>
                             <Button fullWidth color="secondary" sx={{ borderRadius: 4, textTransform: 'none' }} onClick={() => navigate('/search')} endIcon={<SearchIcon />} variant="contained" >
                                 Explore people
                             </Button>
                         </Box>}
-                        
+
                     </Box>
                 }
 

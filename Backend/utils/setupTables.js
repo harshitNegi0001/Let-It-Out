@@ -5,6 +5,7 @@ import { createUsersTable } from "../schema/createUsers.js";
 import { createFollowersTable } from "../schema/FollowersTable.js";
 import { createLikesTable } from "../schema/likesTable.js";
 import { createMessagesTable } from "../schema/messagesTable.js";
+import { createNotificationTable } from "../schema/notificationTable.js";
 import { createNotInterestedPostTable } from "../schema/notInterestedTable.js";
 import { createPostsTable } from "../schema/postsTable.js";
 import { createReportTable } from "../schema/reportTable.js";
@@ -24,5 +25,5 @@ export default async function setupTables() {
     await createCommentsTable(pool);
     await createReportTable(pool);
     await createNotInterestedPostTable(pool);
-    
+    await createNotificationTable(pool);
 }

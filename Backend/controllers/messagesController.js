@@ -298,9 +298,15 @@ class Messages {
                 GROUP BY sender_id`,
                 [userId]
             );
-
+            const notifications=await db.query(
+                `SELECT COUNT(id)
+                FROM notifications
+                WHERE is_read=FALSE
+                    AND receiver_id=$1`,
+                [userId]
+            )
             const chatIds = result.rows.map(r=>r.sender_id);
-            return returnRes(res,200,{notifData:{chatIds}});
+            return returnRes(res,200,{notifData:{chatIds,notificationCount:notifications.rows?.[0].count||0}});
 
         } catch (err) {
             console.log(err);

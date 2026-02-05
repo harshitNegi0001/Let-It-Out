@@ -4,7 +4,7 @@ import { useDispatch, useSelector } from 'react-redux';
 import { useNavigate } from 'react-router-dom';
 import socket from '../../utils/socket';
 import toast from 'react-hot-toast';
-import { addChatId } from '../../store/notificationReducer/notifReducer';
+import { addChatId, increaseNotif } from '../../store/notificationReducer/notifReducer';
 
 
 function NotificationSystem({ customTheme }) {
@@ -68,7 +68,9 @@ function NotificationSystem({ customTheme }) {
                 })
             }
             const handleNotification = (data) => {
-
+                
+                dispatch(increaseNotif(1));
+                
             }
             const handleMessageRecived = (data) => {
 

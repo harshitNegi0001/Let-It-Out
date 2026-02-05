@@ -1,91 +1,151 @@
-import { Stack, Box, Typography, Divider, Button } from "@mui/material";
-
-
+import { Stack, Box, Typography, Divider, Button, Avatar, Skeleton } from "@mui/material";
+import { useEffect } from "react";
+import { useState } from "react";
+import ImageOutlinedIcon from '@mui/icons-material/ImageOutlined';
+import SmsOutlinedIcon from '@mui/icons-material/SmsOutlined';
+import axios from 'axios';
+import { useNavigate, useLocation } from "react-router-dom";
+import { useDispatch, useSelector } from "react-redux";
+import { timeCount } from "../utils/formatDateTime";
+import { setNotif } from "../store/notificationReducer/notifReducer";
 
 
 function Notifications() {
+
+    const [notifications, setNotifications] = useState([]);
+    const [isLoading, setIsLoading] = useState(false);
+
+    const backend_url = import.meta.env.VITE_BACKEND_URL;
+    const { userInfo } = useSelector(state => state.auth);
+    const { notificationCount } = useSelector(state => state.auth);
+
+    const navigate = useNavigate();
+    const dispatch =useDispatch();
+    const location = useLocation();
+    useEffect(() => {
+        getNotification();
+        
+    }, []);
+
+    const getNotification = async () => {
+        try {
+            setIsLoading(true);
+            const result = await axios.get(
+                `${backend_url}/api/get-notifications`,
+                {
+                    withCredentials: true
+                }
+            );
+            setIsLoading(false);
+
+            setNotifications(result.data.notifications);
+
+            const countRead = result.data?.notifications.reduce((a,b)=>(b.is_read)?a:a+1,0);
+
+            dispatch(setNotif(notificationCount-countRead));
+        } catch (err) {
+            setIsLoading(false);
+            // console.log(err);
+        }
+    }
     return (
         <>
-            <Stack direction={'column'} width={'100%'} p={2} height={'100%'} spacing={1} pb={'60px'}>
-                <Typography variant="h6" component={'div'} width={'100%'} textAlign={'center'}>
-                    Notifications
-                </Typography>
-                <Divider />
-                <Stack width={'100%'} spacing={1} sx={{ overflowY: 'scroll' }} height={'calc(100% - 45px)'} >
-                    <Box width={'100%'} sx={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
-                        <Typography variant="body2" fontSize={11} component={'span'} color="text.secondary">
-                            This week
-                        </Typography>
-                        <Button fullWidth sx={{ p: 0, m: 0 }} color="secondary">
-                            <Box width={'100%'} minHeight={'75px'} sx={{ display: 'flex', gap: 1, p: 1, alignItems: 'center' }}>
-                                {true && <img src="" style={{ width: '50px', height: '50px', borderRadius: '25px' }}></img>}
-                                <Box width={'calc(100% - 60px)'} height={'100%'} sx={{display:'flex'}} >
-                                     <Typography variant="body1"  component={'div'} color="text.primary"><span style={{fontWeight:'bold'}}>Megatron</span> started following you.</Typography>
-                                    
+            <Stack width={'100%'} p={{ xs: 1, sm: 2 }} height={'100%'} spacing={2} overflow={'scroll'} pb={{ xs: '60px', sm: '10px' }}>
+
+                <Box width={'100%'} borderBottom={1} borderColor={'divider'}>
+                    <Typography variant="h6" width={'100%'} fontSize={{ xs: '18px', sm: '24px' }} textAlign={'center'} color="#fff">
+                        Notifications
+                    </Typography>
+                </Box>
+                <Box width={'100%'} sx={{ display: 'flex', flexDirection: 'column' }}>
+                    {
+                        isLoading ?
+                            [1, 2, 3, 4, 5].map(i =>
+                                <Box width={'97%'} key={i} p={1} sx={{ display: 'flex', gap: 1, alignItems: 'center' }}>
+                                    <Box width={{ xs: '40px', sm: '50px' }} height={{ xs: '40px', sm: '50px' }}>
+                                        <Skeleton variant='circular' width={'100%'} animation="wave" height={'100%'} />
+                                    </Box>
+                                    <Box width={'calc(100% - 120px)'} maxWidth={'450px'} sx={{ display: 'flex', flexDirection: "column", gap: "4px" }}>
+                                        <Skeleton width={'100%'} animation="wave" height={'24px'} />
+                                        <Skeleton width={'80%'} animation="wave" height={'15px'} />
+
+                                    </Box>
+
                                 </Box>
+                            )
+                            :
+                            notifications.map(n =>
+                                n.type == 'like' || n.type == 'reply' ?
+                                    <Box width={'100%'} p={1} onClick={() => navigate(`/p/${n.post_data?.id?n.post_data?.id:n.comment_data?.post_id}`, { state: { prevUrl: location.pathname + location.search } })} borderRadius={2} key={n.id} sx={{ display: 'flex', gap: { xs: '4px', sm: 1 }, alignItems: 'center', bgcolor: `${n.is_read ? 'primary.main' : '#20174959'}`, '&:hover': { bgcolor: '#2d283f59' }, '&:active': { bgcolor: '#14102259' } }}>
+                                        <Box width={{ xs: '40px', sm: '50px' }} height={{ xs: '40px', sm: '50px' }} onClick={(e) => e.stopPropagation()}>
+                                            <Avatar onClick={() => navigate(`/profile/${n.username}`)} src={n.image} sx={{ width: { xs: '40px', sm: '50px' }, height: { xs: '40px', sm: '50px' } }} />
+                                        </Box>
+                                        <Box width={{ xs: 'calc(100% - 100px)', sm: 'calc(100% - 130px)' }}
+                                            sx={{ display: 'flex', flexDirection: 'column' }}>
 
-                            </Box>
-                        </Button>
-                        <Button fullWidth sx={{ p: 0, m: 0 }} color="secondary">
-                            <Box width={'100%'} minHeight={'75px'} sx={{ display: 'flex', gap: 1, p: 1, alignItems: 'center' }}>
-                                {true && <img src="" style={{ width: '50px', height: '50px', borderRadius: '25px' }}></img>}
-                                <Box width={'calc(100% - 60px)'} height={'100%'} sx={{display:'flex'}} >
-                                     <Typography variant="body1"  component={'div'} color="text.primary"><span style={{fontWeight:'bold'}}>Megatron</span> started following you.</Typography>
-                                    
-                                </Box>
+                                            <Typography variant="body2" fontSize={{ xs: '12px', sm: '15px' }} textAlign={'start'} component={'div'}>
+                                                <span style={{ fontWeight: 'bold' }}>
+                                                    {`${n.name} ${n.count > 1 ? `and ${n.count - 1} other ` : ''}`}
+                                                </span>
+                                                <span>
+                                                    {`${n.type == 'like' ? 'liked' : 'replied'} your ${n.target_type}.`}
+                                                </span>
+                                            </Typography>
+                                            <Typography variant="body2" width={'100%'} noWrap textOverflow={'ellipsis'} fontSize={{ xs: '10px', sm: '12px' }} component={'span'} >
+                                                {n.post_data?.content || n.comment_data?.content}
+                                            </Typography>
+                                            <Typography variant="body2" color="text.secondary" fontSize={{ xs: '8px', sm: '10px' }} component={'span'} >
+                                                {timeCount(n.updated_at)}
+                                            </Typography>
+                                        </Box>
 
-                            </Box>
-                        </Button>
-                        <Button fullWidth sx={{ p: 0, m: 0 }} color="secondary">
-                            <Box width={'100%'} minHeight={'75px'} sx={{ display: 'flex', gap: 1, p: 1, alignItems: 'center' }}>
-                                {true && <img src="" style={{ width: '50px', height: '50px', borderRadius: '25px' }}></img>}
-                                <Box width={'calc(100% - 60px)'} height={'100%'} sx={{display:'flex'}} >
-                                     <Typography variant="body1"  component={'div'} color="text.primary"><span style={{fontWeight:'bold'}}>Megatron</span> started following you.</Typography>
-                                    
-                                </Box>
+                                        <Box width={{ xs: '40px', sm: '50px' }} height={{ xs: '30px', sm: '40px' }} sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }} >
+                                            {
+                                                n.post_data?.media_url ? <img src={n.post_data?.media_url[0]} style={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: '5px' }} alt="" />
 
-                            </Box>
-                        </Button>
+                                                    : n.target_type == 'post' ?
+                                                        <ImageOutlinedIcon sx={{ color: '#fff' }} /> :
+                                                        <SmsOutlinedIcon sx={{ color: '#fff' }} />
+                                            }
+                                        </Box>
 
-                    </Box>
-                    <Box width={'100%'} sx={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
-                        <Typography variant="body2" fontSize={11} component={'span'} color="text.secondary">
-                            This week
-                        </Typography>
-                        <Button fullWidth sx={{ p: 0, m: 0 }} color="secondary">
-                            <Box width={'100%'} minHeight={'75px'} sx={{ display: 'flex', gap: 1, p: 1, alignItems: 'center' }}>
-                                {true && <img src="" style={{ width: '50px', height: '50px', borderRadius: '25px' }}></img>}
-                                <Box width={'calc(100% - 60px)'} height={'100%'} sx={{display:'flex'}} >
-                                     <Typography variant="body1"  component={'div'} color="text.primary"><span style={{fontWeight:'bold'}}>Megatron</span> started following you.</Typography>
-                                    
-                                </Box>
 
-                            </Box>
-                        </Button>
-                        <Button fullWidth sx={{ p: 0, m: 0 }} color="secondary">
-                            <Box width={'100%'} minHeight={'75px'} sx={{ display: 'flex', gap: 1, p: 1, alignItems: 'center' }}>
-                                {true && <img src="" style={{ width: '50px', height: '50px', borderRadius: '25px' }}></img>}
-                                <Box width={'calc(100% - 60px)'} height={'100%'} sx={{display:'flex'}} >
-                                     <Typography variant="body1"  component={'div'} color="text.primary"><span style={{fontWeight:'bold'}}>Megatron</span> started following you.</Typography>
-                                    
-                                </Box>
 
-                            </Box>
-                        </Button>
-                        <Button fullWidth sx={{ p: 0, m: 0 }} color="secondary">
-                            <Box width={'100%'} minHeight={'75px'} sx={{ display: 'flex', gap: 1, p: 1, alignItems: 'center' }}>
-                                {true && <img src="" style={{ width: '50px', height: '50px', borderRadius: '25px' }}></img>}
-                                <Box width={'calc(100% - 60px)'} height={'100%'} sx={{display:'flex'}} >
-                                     <Typography variant="body1"  component={'div'} color="text.primary"><span style={{fontWeight:'bold'}}>Megatron</span> started following you.</Typography>
-                                    
-                                </Box>
+                                    </Box>
 
-                            </Box>
-                        </Button>
 
-                    </Box>
-                </Stack>
-            </Stack>
+
+                                    :
+                                    n.type == 'follow' || n.type == 'follow_req' ?
+                                        <Box width={'100%'} p={1} onClick={() => navigate(`/profile/${userInfo?.username}/followers`, { state: { prevUrl: location.pathname + location.search } })} borderRadius={2} key={n.id} sx={{ display: 'flex', gap: { xs: '4px', sm: 1 }, bgcolor: `${n.is_read ?'primary.main' :'#20174959' }`, '&:hover': { bgcolor: '#2d283f59' } }}>
+
+                                            <Box width={{ xs: '40px', sm: '50px' }} height={{ xs: '40px', sm: '50px' }} onClick={(e) => e.stopPropagation()}>
+                                                <Avatar onClick={() => navigate(`/profile/${n.username}`)} src={n.image} sx={{ width: { xs: '40px', sm: '50px' }, height: { xs: '40px', sm: '50px' } }} />
+                                            </Box>
+                                            <Box width={{ xs: 'calc(100% - 60px)', sm: 'calc(100% - 70px)' }}
+                                                sx={{ display: 'flex', flexDirection: 'column' }}>
+
+                                                <Typography variant="body2" fontSize={{ xs: '12px', sm: '15px' }} textAlign={'start'} component={'div'}>
+                                                    <span style={{ fontWeight: 'bold' }}>
+                                                        {`${n.name} ${n.count > 1 ? `and ${n.count - 1} other ` : ''}`}
+                                                    </span>
+                                                    <span>
+                                                        {n.type == 'follow' ? 'started following you.' : 'sent you follow request'}
+                                                    </span>
+                                                </Typography>
+
+                                                <Typography variant="body2" color="text.secondary" fontSize={{ xs: '8px', sm: '10px' }} component={'span'} >
+                                                    {timeCount(n.updated_at)}
+                                                </Typography>
+                                            </Box>
+                                        </Box>
+                                        :
+                                        null
+                            )
+
+                    }
+                </Box>
+            </Stack >
         </>
     )
 }
