@@ -15,6 +15,7 @@ function ForYouFeed() {
     const [isLoading, setIsLoading] = useState(false);
     const [postList, setPostList] = useState([]);
     const [hasmore, setHasmore] = useState(true);
+    
     const dispatch = useDispatch();
     const scrollRef = useRef(null);
     const backend_url = import.meta.env.VITE_BACKEND_URL;
@@ -31,7 +32,8 @@ function ForYouFeed() {
             el.removeEventListener("scroll", handleScroll);
         }
 
-    }, [isLoading])
+    }, [isLoading]);
+
     useEffect(() => {
         getPosts();
     }, []);

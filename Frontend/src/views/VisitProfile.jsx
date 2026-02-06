@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { useNavigate, useParams } from "react-router-dom";
 import { setState } from "../store/authReducer/authReducer";
@@ -41,6 +41,7 @@ function VisitProfile() {
     const { username } = useParams();
     const dispatch = useDispatch();
     const navigate = useNavigate();
+    const scrollRef=useRef();
     const { userInfo } = useSelector(state => state.auth);
     const backend_url = import.meta.env.VITE_BACKEND_URL;
 
@@ -113,7 +114,7 @@ function VisitProfile() {
 
         <>
             {(userProfileData || isLoading) &&
-                <Stack width={'100%'} height={'100%'} spacing={1} overflow={'scroll'} sx={{ scrollbarWidth: 'none' }} p={1} alignItems={'center'} pb={{ xs: '55px', sm: 2 }} boxSizing={'border-box'}>
+                <Stack width={'100%'} height={'100%'} ref={scrollRef} spacing={1} overflow={'scroll'} sx={{ scrollbarWidth: 'none' }} p={1} alignItems={'center'} pb={{ xs: '55px', sm: 2 }} boxSizing={'border-box'}>
                     <Box width={'100%'} height={{ xs: '130px', sm: '280px' }} minHeight={{ xs: '130px', sm: '280px' }} position={'relative'}>
                         <Box width={'100%'} height={'100%'} onClick={() => { if (userProfileData?.cover_image) { setImages([userProfileData.cover_image]) } }}>
                             {!isLoading && userProfileData?.cover_image && <img src={userProfileData.cover_image} style={{ width: '100%', height: '100%', objectFit: 'cover' }} alt="" />}
@@ -174,13 +175,13 @@ function VisitProfile() {
 
                             </Stack>
                             <CustomPannel keyValue={'posts'} value={value}>
-                                <Posts userData={userProfileData || {}} />
+                                <Posts userData={userProfileData || {}} scrollRef={scrollRef}/>
                             </CustomPannel>
                             <CustomPannel keyValue={'replies'} value={value}>
-                                <Replies userData={userProfileData || {}} />
+                                <Replies userData={userProfileData || {}} scrollRef={scrollRef}/>
                             </CustomPannel>
                             <CustomPannel keyValue={'bookmarked'} value={value}>
-                                <Bookmarked userData={userProfileData || {}} />
+                                <Bookmarked userData={userProfileData || {}} scrollRef={scrollRef}/>
                             </CustomPannel>
                         </Stack>}
 

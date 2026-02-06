@@ -9,6 +9,7 @@ function MuiAppbar() {
     const { pathname } = useLocation();
     const navigate = useNavigate();
     const {notificationCount} = useSelector(state=>state.notif);
+    const {userInfo} =useSelector(state=>state.auth);
     return (
         <>
             <AppBar position="static" color='secondary' sx={{ display: { xs: 'flex', sm: 'none' },p:0,m:0 }}>
@@ -21,7 +22,7 @@ function MuiAppbar() {
                             </Box>
                         <Box display={'flex'} gap={2}>
                             <IconButton edge='start' size='large' onClick={() => navigate('/notification')} ><Badge variant='standard' badgeContent={(pathname=='/notification')?0:notificationCount||0}  color='secondary'><NotificationFilledIcon color={`${pathname == '/notification' ? 'secondary' : ''}`} /></Badge></IconButton>
-                            <IconButton edge='start' size='large' onClick={() => navigate('/profile')} ><Avatar sx={{width:'25px',height:'25px',bgcolor:'#fff'}}></Avatar></IconButton>
+                            <IconButton edge='start' size='large' onClick={() => navigate('/profile')} ><Avatar sx={{width:'25px',height:'25px',bgcolor:'#fff'}} src={userInfo?.image}></Avatar></IconButton>
 
                         </Box>
                     </Stack>

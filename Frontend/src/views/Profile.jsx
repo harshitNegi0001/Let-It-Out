@@ -1,5 +1,5 @@
 import { Avatar, Box, Divider, Skeleton, Stack, Typography, Tab, Tabs, Button } from "@mui/material";
-import { useState } from "react";
+import { useRef, useState } from "react";
 import Posts from "./components/Posts";
 import Replies from "./components/Replied";
 import Bookmarked from "./components/Bookmarked";
@@ -26,13 +26,14 @@ function Profile() {
 
     const { userInfo } = useSelector(state => state.auth);
     const navigate = useNavigate();
+    const scrollRef=useRef();
     const handleChange = (_, newValue) => {
         setValue(newValue);
 
     };
     return (
         <>
-            <Stack width={'100%'} height={'100%'} spacing={1} overflow={'scroll'} sx={{ scrollbarWidth: 'none' }} p={1} alignItems={'center'} pb={{ xs: '55px', sm: 2 }} boxSizing={'border-box'}>
+            <Stack width={'100%'} height={'100%'} ref={scrollRef} spacing={1} overflow={'scroll'} sx={{ scrollbarWidth: 'none' }} p={1} alignItems={'center'} pb={{ xs: '55px', sm: 2 }} boxSizing={'border-box'}>
                 
                 <Box width={'100%'} height={{ xs: '130px', sm: '280px' }} minHeight={{ xs: '130px', sm: '280px' }} position={'relative'}>
                     <Box width={'100%'} height={'100%'} onClick={()=>{if(userInfo?.cover_image){setImages([userInfo.cover_image])}}}>
@@ -89,13 +90,13 @@ function Profile() {
 
                         </Stack>
                         <CustomPannel keyValue={'posts'} value={value}>
-                            <Posts userData={userInfo || {}} />
+                            <Posts userData={userInfo || {}} scrollRef={scrollRef}/>
                         </CustomPannel>
                         <CustomPannel keyValue={'replies'} value={value}>
-                            <Replies userData={userInfo || {}}/>
+                            <Replies userData={userInfo || {}} scrollRef={scrollRef}/>
                         </CustomPannel>
                         <CustomPannel keyValue={'bookmarked'} value={value}>
-                            <Bookmarked userData={userInfo || {}} />
+                            <Bookmarked userData={userInfo || {}} scrollRef={scrollRef} />
                         </CustomPannel>
                     </Stack>}
 

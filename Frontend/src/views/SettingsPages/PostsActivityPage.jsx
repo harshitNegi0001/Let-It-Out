@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useDispatch } from "react-redux";
 import { useNavigate, useParams } from "react-router-dom";
 import { setState } from "../../store/authReducer/authReducer";
@@ -63,6 +63,10 @@ function PostsActivityPage() {
 
     const [isLoading, setIsLoading] = useState(true);
     const [postsList, setPostsList] = useState([]);
+    const [currPage, setCurrPage] = useState(1);
+    const [hasmore, setHasmore] = useState(true);
+
+    const scrollRef = useRef();
     const { required_type } = useParams();
     const dispatch = useDispatch();
     const navigate = useNavigate();
@@ -71,19 +75,57 @@ function PostsActivityPage() {
     useEffect(() => {
         if (required_type) {
             getPosts(required_type);
+            return () => {
+                setCurrPage(1);
+            }
         }
-    }, [required_type])
 
+
+    }, [required_type])
+    useEffect(() => {
+
+        const el = scrollRef.current;
+        if (!el) {
+            return;
+        }
+        el.addEventListener('scroll', handleScroll);
+
+        return () => {
+            el.removeEventListener("scroll", handleScroll);
+        }
+
+    }, [isLoading]);
+
+    const handleScroll = () => {
+        if (!hasmore) {
+            return;
+        }
+
+        if (isLoading) {
+            return;
+        }
+        const el = scrollRef.current;
+
+        if (el.scrollTop + el.clientHeight + 1 >= el.scrollHeight) {
+            getPosts(required_type);
+        }
+    }
     const getPosts = async (req_type) => {
         try {
             setIsLoading(true);
+
             const result = await axios.get(
-                `${backend_url}/api/get-activity-posts?currPage=${1}&&limit=${10}&&req_type=${req_type}`,
+                `${backend_url}/api/get-activity-posts?limit=${10}&&req_type=${req_type}&&currPage=${currPage}`,
                 { withCredentials: true }
             );
 
+            if (result?.data?.postsList?.length < 10) {
+                setHasmore(false);
+            }
+            setCurrPage(prev => prev + 1);
             setPostsList(prev => ([...prev, ...result?.data?.postsList]));
             setIsLoading(false);
+
         } catch (err) {
             setIsLoading(false);
             dispatch(setState({ error: err?.response?.data?.error || 'Something went wrong!' }));
@@ -91,7 +133,7 @@ function PostsActivityPage() {
     }
     return (
         <>
-            <Stack width={'100%'} height={'100%'} overflow={'scroll'} p={{ xs: 1, sm: 2 }} pb={{ xs: '60px', sm: '10px' }} spacing={2} >
+            <Stack width={'100%'} height={'100%'} ref={scrollRef} overflow={'scroll'} p={{ xs: 1, sm: 2 }} pb={{ xs: '60px', sm: '10px' }} spacing={2} >
                 <Box width={'100%'} sx={{ display: 'flex', flexDirection: 'column', gap: 1, alignItems: 'start' }}>
                     <Box width={'100%'} sx={{ display: 'flex', gap: 1, alignItems: 'center' }}>
                         <IconButton onClick={() => navigate('/settings/my-activity')} size="small">
@@ -110,33 +152,44 @@ function PostsActivityPage() {
 
                 </Box>
                 <Stack width={'100%'} spacing={1} p={1}>
-                    {isLoading ?
-                        <>
-                            <LoadingPost />
-                            <LoadingPost />
-                        </>
 
-                        :
 
-                        <>
-                            {postsList.map((p) => <PostUI key={p.post_data.id} postData={p.post_data} userData={p.user_data} />)}
-                            {postsList.length == 0 &&
-                                <Box width={'100%'} sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 1 }}>
+                    <>
+                        {postsList.map((p) =>
+                            <PostUI key={p.post_data.id} postData={p.post_data} userData={p.user_data} />
+                        )}
+                        {postsList.length == 0 && !isLoading &&
+                            <Box width={'100%'} sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 1 }}>
 
-                                    <Box width={'100%'} maxWidth={{ xs: '280px', sm: '450px' }}>
-                                        <img src="https://res.cloudinary.com/dns5lxuvy/image/upload/v1769063952/btlbvqsjcmms3bcfkdlg.png" style={{ width: '100%', objectFit: 'contain' }} alt="" />
-                                    </Box>
-                                    <Typography width={'100%'} textAlign={'center'} variant="body1" color="#fff" fontSize={{ xs: '18px', sm: '24px' }} fontWeight={'500'}>
-                                        {required_type && page_type[required_type].empty.title}
-                                    </Typography>
-                                    <Typography width={'100%'} textAlign={'center'} variant="body2" color="text.secondary" fontSize={{ xs: '10px', sm: '14px' }} fontWeight={'300'}>
-                                        {required_type && page_type[required_type].empty.subTitle}
-                                    </Typography>
-                                    <Typography width={'100%'} textAlign={'center'} variant="body2" color="text.secondary" fontSize={{ xs: '10px', sm: '14px' }} fontWeight={'300'}>
-                                    </Typography>
+                                <Box width={'100%'} maxWidth={{ xs: '280px', sm: '450px' }}>
+                                    <img src="https://res.cloudinary.com/dns5lxuvy/image/upload/v1769063952/btlbvqsjcmms3bcfkdlg.png" style={{ width: '100%', objectFit: 'contain' }} alt="" />
                                 </Box>
-                            }
-                        </>}
+                                <Typography width={'100%'} textAlign={'center'} variant="body1" color="#fff" fontSize={{ xs: '18px', sm: '24px' }} fontWeight={'500'}>
+                                    {required_type && page_type[required_type].empty.title}
+                                </Typography>
+                                <Typography width={'100%'} textAlign={'center'} variant="body2" color="text.secondary" fontSize={{ xs: '10px', sm: '14px' }} fontWeight={'300'}>
+                                    {required_type && page_type[required_type].empty.subTitle}
+                                </Typography>
+                                <Typography width={'100%'} textAlign={'center'} variant="body2" color="text.secondary" fontSize={{ xs: '10px', sm: '14px' }} fontWeight={'300'}>
+                                </Typography>
+                            </Box>
+                        }
+                        {isLoading &&
+                            <>
+                                <LoadingPost />
+                                <LoadingPost />
+                            </>
+
+                        }
+                        {
+                            !hasmore && postsList.length != 0 &&
+                            <Box width={'100%'} sx={{ display: 'flex', justifyContent: 'center' }}>
+                                <Typography variant="body2" color="text.secondary" component={'span'} fontSize={{ xs: '10px', sm: '13px' }}>
+                                    ( ︶︵︶ ) No more posts ( ︶︵︶ )
+                                </Typography>
+                            </Box>
+                        }
+                    </>
                 </Stack>
             </Stack>
 

@@ -1,10 +1,12 @@
 import { Box, Button, Chip, Divider, IconButton, InputBase, Stack, Typography } from "@mui/material";
 import SearchButtonIcon from '@mui/icons-material/Search';
 import { useNavigate } from "react-router-dom";
-import { useEffect, useState } from "react";
+import { useRef, useEffect, useState } from "react";
 import { moods } from "../utils/moods";
 import ExploreFeed from "./components/ExploreFeed";
-
+import { useDispatch } from 'react-redux';
+import { setState } from "../store/authReducer/authReducer.js";
+import axios from "axios";
 
 
 
@@ -13,6 +15,83 @@ function Explore() {
     const [searchValue, setSearchValue] = useState('');
     const [selectedMood, setSelectedMood] = useState([]);
     const [showAllMoods, setShowAllMoods] = useState(false);
+    const [isLoading, setIsLoading] = useState(false);
+    const [postslist, setPostslist] = useState([]);
+    const [hasmore, setHasmore] = useState(true);
+
+    const scrollRef = useRef(null);
+    const dispatch = useDispatch();
+    const backend_url = import.meta.env.VITE_BACKEND_URL;
+
+    useEffect(() => {
+        if (isLoading) {
+            return;
+        }
+        const el = scrollRef.current;
+        if (!el) {
+            return;
+        }
+        el.addEventListener('scroll', handleScroll);
+
+        return () => {
+            el.removeEventListener('scroll', handleScroll);
+        }
+    }, [isLoading]);
+    useEffect(() => {
+        setHasmore(true);
+        if (selectedMood.length > 0) {
+            const reqMood = selectedMood.map(m => m.value);
+            getPosts(reqMood);
+        }
+
+
+        return (() => {
+            setPostslist([])
+        })
+    }, [selectedMood]);
+
+    const handleScroll = () => {
+        if (!hasmore) {
+            return;
+        }
+
+        if (isLoading) {
+            return;
+        }
+        const el = scrollRef.current;
+
+        if (el.scrollTop + el.clientHeight + 1 >= el.scrollHeight) {
+            const reqMood = selectedMood.map(m => m.value);
+            getPosts(reqMood);
+        }
+    }
+    const getPosts = async (reqMood) => {
+        if (!reqMood || reqMood?.length == 0) {
+            return;
+        }
+        setIsLoading(true);
+        try {
+            const lastFeedId = postslist.length == 0 ? null : postslist[postslist.length - 1]?.post_data.id;
+            const url = (lastFeedId) ?
+                `${backend_url}/api/get-posts?limit=${20}&&reqMood=${reqMood}&&lastFeedId=${lastFeedId}` :
+                `${backend_url}/api/get-posts?limit=${20}&&reqMood=${reqMood}`
+            const result = await axios.get(
+                url,
+                { withCredentials: true }
+            );
+            if (result?.data?.postsList?.length < 20) {
+                setHasmore(false);
+            }
+            setPostslist(prev => ([...prev, ...result?.data?.postsList]));
+            setIsLoading(false);
+
+        } catch (err) {
+            setIsLoading(false);
+            dispatch(setState({ error: err?.response?.data?.error || "Interal Server Error!" }));
+            // console.log(err);
+        }
+    }
+
     const MOODS_PER_ROW = window.innerWidth < 600 ? 4 : window.innerWidth <= 1024 ? 5 : 7;
     const sortedMood = [
 
@@ -45,7 +124,7 @@ function Explore() {
 
     return (
         <>
-            <Stack width={'100%'} height={'100%'} spacing={2} alignItems={'center'} overflow={'scroll'} p={{ xs: 1, sm: 2, lg: 3 }} pb={{ xs: '60px', sm: 1 }}>
+            <Stack width={'100%'} height={'100%'} ref={scrollRef} spacing={2} alignItems={'center'} overflow={'scroll'} p={{ xs: 1, sm: 2, lg: 3 }} pb={{ xs: '60px', sm: 1 }}>
                 <Box width={'100%'}  >
                     <form onSubmit={handleSearch} style={{ width: '100%' }}>
                         <Box width={'100%'} p={1} height={'45px'} sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-evenly', borderRadius: 1 }} bgcolor={'primary.light'}>
@@ -101,9 +180,17 @@ function Explore() {
                     <Divider />
                 </Stack>
                 <Stack width={'100%'} pt={2}>
-                    <ExploreFeed moods={selectedMood}/>
+                    <ExploreFeed moods={selectedMood} postslist={postslist} isLoading={isLoading} />
+                    {
+                        !hasmore &&
+                        <Box width={'100%'} sx={{ display: 'flex', justifyContent: 'center' }}>
+                            <Typography variant="body2" color="text.secondary" component={'span'} fontSize={{ xs: '10px', sm: '13px' }}>
+                                ( ︶︵︶ ) No more posts ( ︶︵︶ )
+                            </Typography>
+                        </Box>
+                    }
                 </Stack>
-                
+
 
             </Stack>
         </>

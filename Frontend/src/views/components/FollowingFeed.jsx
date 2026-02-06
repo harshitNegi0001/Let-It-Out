@@ -16,7 +16,7 @@ function FollowingFeed() {
     const [postList, setPostList] = useState([]);
     const [hasMore, setHasMore] = useState(true);
 
-    const scrollRef = useRef();
+    const scrollRef = useRef(null);
     const dispatch = useDispatch();
     const navigate = useNavigate();
     const backend_url = import.meta.env.VITE_BACKEND_URL;

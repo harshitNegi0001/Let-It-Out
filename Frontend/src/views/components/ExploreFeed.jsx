@@ -1,61 +1,18 @@
-import { useRef, useState } from "react";
-import { useEffect } from "react";
-import { useDispatch, useSelector } from 'react-redux';
-import { setState } from "../../store/authReducer/authReducer";
-import axios from "axios";
+
 import { Box, Stack, Typography } from "@mui/material";
 import PostUI from "./PostUI";
-import ConfirmBox from "./ConfirmBox";
 import LoadingPost from "./LoadingPosts";
 
 
-function ExploreFeed({ moods = [] }) {
-    const [isLoading, setIsLoading] = useState(false);
-    const [postslist, setPostslist] = useState([]);
-
-    const scrollRef = useRef();
-    const dispatch = useDispatch();
-    const { userInfo } = useSelector(state => state.auth);
-    const backend_url = import.meta.env.VITE_BACKEND_URL;
-
-    useEffect(() => {
-
-        if (moods.length > 0) {
-            const reqMood = moods.map(m => m.value);
-            getPosts(reqMood);
-        }
+function ExploreFeed({ isLoading, postslist, moods }) {
 
 
-        return (() => {
-            setPostslist([])
-        })
-    }, [moods])
-
-    const getPosts = async (reqMood) => {
-        setIsLoading(true);
-        try {
-            const result = await axios.get(
-                `${backend_url}/api/get-posts?currPage=${1}&&limit=${10}&&reqMood=${reqMood}`,
-                { withCredentials: true }
-            );
-
-            setPostslist(prev => ([...prev, ...result?.data?.postsList]));
-            setIsLoading(false);
-
-        } catch (err) {
-            setIsLoading(false);
-            dispatch(setState({ error: err?.response?.data?.error || "Interal Server Error!" }));
-            // console.log(err);
-        }
-    }
     return (
         <>
 
-            {!isLoading && <Stack width={'100%'} spacing={1} >
-                <Box width={'100%'} position={'absolute'} top={0} >
-                    <ConfirmBox setUserPost={setPostslist} userPost={postslist} />
-                </Box>
-                {postslist.map(p => {
+            {<Stack width={'100%'} spacing={1} >
+
+                {postslist?.map(p => {
 
                     return (<PostUI key={p.post_data.id} followed={p.user_data?.following_status} postData={p.post_data} userData={p.user_data} />)
                 }
@@ -63,11 +20,11 @@ function ExploreFeed({ moods = [] }) {
 
             </Stack>}
             {
-                isLoading && [1,2,3].map(i=>
-                    <LoadingPost key={i}/>
+                isLoading && [1, 2, 3].map(i =>
+                    <LoadingPost key={i} />
                 )
             }
-            {!isLoading && postslist.length == 0 && < Stack width={'100%'} spacing={1} pt={2}>
+            {!isLoading && postslist?.length == 0 && < Stack width={'100%'} spacing={1} pt={2}>
 
 
                 <Box width={'100%'} py={0} px={1} sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
