@@ -145,8 +145,8 @@ class Followers {
                         JOIN users AS u
                         ON u.id = f.following_id
                         WHERE f.follower_id = $2
-                            AND f.status = 'accepted
-                        ORDER BY f.id DESC'
+                            AND f.status = 'accepted'
+                        ORDER BY f.id DESC
 
                         `,
                         [visitorId, userId]
