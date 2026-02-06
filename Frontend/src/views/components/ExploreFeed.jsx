@@ -1,16 +1,19 @@
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { useEffect } from "react";
 import { useDispatch, useSelector } from 'react-redux';
 import { setState } from "../../store/authReducer/authReducer";
 import axios from "axios";
-import { Box, Divider, Skeleton, Stack, Typography } from "@mui/material";
+import { Box, Stack, Typography } from "@mui/material";
 import PostUI from "./PostUI";
 import ConfirmBox from "./ConfirmBox";
+import LoadingPost from "./LoadingPosts";
 
 
 function ExploreFeed({ moods = [] }) {
     const [isLoading, setIsLoading] = useState(false);
     const [postslist, setPostslist] = useState([]);
+
+    const scrollRef = useRef();
     const dispatch = useDispatch();
     const { userInfo } = useSelector(state => state.auth);
     const backend_url = import.meta.env.VITE_BACKEND_URL;
@@ -60,26 +63,9 @@ function ExploreFeed({ moods = [] }) {
 
             </Stack>}
             {
-                isLoading && <Stack width={'100%'} p={1} spacing={1} mt={3}>
-
-                    <Box width={'100%'} mt={2} borderRadius={3} overflow={'hidden'} sx={{ display: 'flex', flexDirection: 'column' }}>
-                        <Stack direction={'row'} width={'100%'} spacing={2} boxSizing={'border-box'} p={1} justifyContent={'start'} bgcolor={'#42424250'} alignItems={'center'}>
-                            <Box width={{ xs: '40px', sm: '55px' }} height={{ xs: '40px', sm: '55px' }} overflow={'hidden'} borderRadius={'30px'} >
-                                <Skeleton animation="wave" variant="circular" width={'100%'} height={'100%'} />
-
-
-                            </Box>
-                            <Stack spacing={'4px'} width={'calc(100% - 70px)'} >
-                                <Skeleton animation="wave" variant="text" width={'40%'} sx={{ minWidth: '60px', maxWidth: '150px' }} />
-                                <Skeleton animation="wave" variant="text" width={'30%'} sx={{ minWidth: '40px', maxWidth: '120px' }} />
-
-                            </Stack>
-                        </Stack>
-                        <Box width={'100%'} pt={'4px'} sx={{ display: 'flex', flexDirection: 'column', aspectRatio: { xs: '5/3', sm: '2/1' } }}>
-                            <Skeleton animation="wave" variant="rectangle" width={'100%'} height={'100%'} />
-                        </Box>
-                    </Box>
-                </Stack>
+                isLoading && [1,2,3].map(i=>
+                    <LoadingPost key={i}/>
+                )
             }
             {!isLoading && postslist.length == 0 && < Stack width={'100%'} spacing={1} pt={2}>
 

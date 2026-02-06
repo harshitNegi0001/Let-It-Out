@@ -71,7 +71,7 @@ class Post {
     getProfilePost = async (req, res) => {
 
         const visiterId = req.id;
-        const { userId, limit, currPage, reqType = "posts" } = req.query;
+        const { userId, limit, currPage, reqType = "posts",lastFeedId } = req.query;
 
         try {
 
@@ -180,11 +180,11 @@ class Post {
                     LEFT JOIN likes AS l
                     ON p.id=l.target_id AND l.target_type='post'
                     WHERE p.user_id = $1
+                        AND ($2 :: BIGINT IS NULL OR p.id < $2)
                     GROUP BY p.id
                     ORDER BY id DESC
-                    OFFSET $2
                     LIMIT $3`
-                        , [userId, (limit * (currPage - 1)), limit]
+                        , [userId, lastFeedId, limit]
                     );
 
                     return returnRes(res, 200, { message: 'Success', posts: result.rows });
@@ -194,57 +194,56 @@ class Post {
                 else if (reqType == 'saved_posts') {
                     const result = await db.query(
                         `SELECT 
-                    json_build_object(
-                    'id', p.id,
-                    'user_id', p.user_id,
-                    'content', p.content,
-                    'mood_tag', p.mood_tag,
-                    'media_url', p.media_url,
-                    'post_type', p.post_type,
-                    'likes_count',count(l.id),
-                    'share_count', p.shares_count,
-                    'created_at', p.created_at,
-                    'is_liked', EXISTS(
-                        SELECT 1
-                        FROM likes l2
-                        WHERE l2.target_id = p.id
-                            AND l2.target_type = 'post'
-                            AND l2.user_id = $1
-                    ),
-					'is_saved',EXISTS(
-						SELECT 1
-						FROM bookmarks as b
-						WHERE b.user_id = $1
-							AND b.post_id=p.id
-					),
-                    'comments_count',
-                    (
-                        SELECT COUNT(c.id)
-                        FROM comments AS c
-                        WHERE c.post_id=p.id
-                    ) 
-                ) AS post_data, 
-                json_build_object(
-                    'id', u.id,
-                    'name', COALESCE(NULLIF(u.fake_name, ''), u.first_name),
-                    'username', u.lio_userid,
-                    'image', u.image
+                            json_build_object(
+                            'id', p.id,
+                            'user_id', p.user_id,
+                            'content', p.content,
+                            'mood_tag', p.mood_tag,
+                            'media_url', p.media_url,
+                            'post_type', p.post_type,
+                            'likes_count',count(l.id),
+                            'share_count', p.shares_count,
+                            'created_at', p.created_at,
+                            'is_liked', EXISTS(
+                                SELECT 1
+                                FROM likes l2
+                                WHERE l2.target_id = p.id
+                                    AND l2.target_type = 'post'
+                                    AND l2.user_id = $1
+                            ),
+					        'is_saved',EXISTS(
+						        SELECT 1
+						        FROM bookmarks as b
+						        WHERE b.user_id = $1
+						        	AND b.post_id=p.id
+					        ),
+                            'comments_count',
+                            (
+                                SELECT COUNT(c.id)
+                                FROM comments AS c
+                                WHERE c.post_id=p.id
+                            ) 
+                        ) AS post_data, 
+                        json_build_object(
+                            'id', u.id,
+                            'name', COALESCE(NULLIF(u.fake_name, ''), u.first_name),
+                            'username', u.lio_userid,
+                            'image', u.image
 
 
-                ) AS user_data
-                FROM posts AS p
-                JOIN bookmarks AS b
-                ON b.post_id =p.id AND b.user_id = $1
-                JOIN users AS u
-                ON u.id = p.user_id 
-                LEFT JOIN likes AS l
-                ON l.target_id = p.id AND l.target_type ='post'
-                
-                GROUP BY p.id,u.id
-                ORDER BY p.id DESC
-                offset $2
-                limit $3;`
-                        , [visiterId, (limit * (currPage - 1)), limit]
+                        ) AS user_data
+                        FROM posts AS p
+                        JOIN bookmarks AS b
+                        ON b.post_id =p.id AND b.user_id = $1
+                        JOIN users AS u
+                        ON u.id = p.user_id 
+                        LEFT JOIN likes AS l
+                        ON l.target_id = p.id AND l.target_type ='post'
+                        WHERE ($2 :: BIGINT IS NULL OR p.id < $2)
+                        GROUP BY p.id,u.id
+                        ORDER BY p.id DESC
+                        limit $3;`
+                        , [visiterId, lastFeedId, limit]
                     );
 
 
@@ -298,12 +297,11 @@ class Post {
                 ON c.post_id =p.id AND c.user_id = $4
                 JOIN users AS u
                 ON u.id = p.user_id AND u.acc_type = 'public'
-                
+                WHERE  ($2 :: BIGINT IS NULL OR p.id < $2)
                 GROUP BY p.id,u.id
                 ORDER BY p.id DESC
-                offset $2
                 limit $3;`
-                    , [visiterId, (limit * (currPage - 1)), limit, userId]
+                    , [visiterId, lastFeedId, limit, userId]
                 );
 
 
@@ -370,11 +368,11 @@ class Post {
                 LEFT JOIN likes AS l
                 ON p.id=l.target_id AND l.target_type='post'
                 WHERE p.user_id = $1
+                    AND ($2 :: BIGINT IS NULL OR p.id < $2)
                 GROUP BY p.id
                 ORDER BY id DESC
-                OFFSET $2
                 LIMIT $3`
-                    , [userId, (limit * (currPage - 1)), limit, visiterId]
+                    , [userId, lastFeedId, limit, visiterId]
                 );
                 return returnRes(res, 200, { mustFollow: false, posts: result.rows });
             }
@@ -427,12 +425,11 @@ class Post {
                 JOIN users AS u
                 ON u.id = p.user_id AND u.acc_type = 'public'
                 
-                
+                WHERE  ($2 :: BIGINT IS NULL OR p.id < $2)
                 GROUP BY p.id,u.id
                 ORDER BY p.id DESC
-                offset $2
                 limit $3;`
-                    , [visiterId, (limit * (currPage - 1)), limit, userId]
+                    , [visiterId, lastFeedId, limit, userId]
                 );
 
 
@@ -486,12 +483,11 @@ class Post {
                 ON c.post_id =p.id AND c.user_id = $4
                 JOIN users AS u
                 ON u.id = p.user_id AND u.acc_type = 'public'
-                
+                WHERE ($2 :: BIGINT IS NULL OR p.id < $2)
                 GROUP BY p.id,u.id
                 ORDER BY p.id DESC
-                offset $2
                 limit $3;`
-                    , [visiterId, (limit * (currPage - 1)), limit, userId]
+                    , [visiterId, lastFeedId, limit, userId]
                 );
 
 
@@ -635,13 +631,12 @@ class Post {
                     LEFT JOIN likes AS l
                     ON l.target_id = p.id AND l.target_type ='post'
                     WHERE p.user_id = ANY($1)
-                        
+                        AND ($2 :: BIGINT IS NULL OR p.id < $2)
                     GROUP BY p.id,u.id
                     ORDER BY p.id DESC
-                    offset $2
                     limit  $3
                     ;`,
-                    [followingList, (limit * (currPage - 1)), limit, userId]
+                    [followingList, lastFeedId, limit, userId]
                 );
 
 
@@ -699,13 +694,13 @@ class Post {
                 ON u.id = p.user_id AND u.acc_type ='public'
                 LEFT JOIN likes AS l
                 ON l.target_id = p.id AND l.target_type ='post'
-                WHERE mood_tag =ANY($1::varchar[])
+                WHERE p.mood_tag =ANY($1::varchar[])
                     AND NOT (u.id=ANY($5))
+                    AND ($2 :: BIGINT IS NULL OR p.id < $2)
                 GROUP BY p.id,u.id
                 ORDER BY p.id DESC
-                offset $2
                 limit $3;`
-                    , [reqMood, (limit * (currPage - 1)), limit, userId,blocked_id]
+                    , [reqMood, lastFeedId, limit, userId,blocked_id]
                 );
                 return returnRes(res, 200, { message: 'Following feed successfully fetched.', postsList: result.rows });
             }
@@ -761,11 +756,11 @@ class Post {
                 LEFT JOIN likes AS l
                 ON l.target_id = p.id AND l.target_type ='post'
                 WHERE NOT(u.id=ANY($4))
+                    AND ($1 :: BIGINT IS NULL OR p.id < $1)
                 GROUP BY p.id,u.id
                 ORDER BY p.id DESC
-                offset $1
                 limit $2;`
-                    , [(limit * (currPage - 1)), limit, userId,blocked_id]
+                    , [lastFeedId, limit, userId,blocked_id]
                 );
                 return returnRes(res, 200, { message: 'Following feed successfully fetched.', postsList: result.rows });
             }
@@ -874,9 +869,11 @@ class Post {
                     LEFT JOIN users AS u
                     ON u.id=p.user_id
                     WHERE l.user_id=$1
+                        AND ($2 :: BIGINT IS NULL OR p.id < $2)
                     ORDER BY l.id DESC
+                    LIMIT $3
                     `,
-                    [userId]
+                    [userId,lastFeedId,limit]
 
                 );
                 return returnRes(res, 200, { message: 'Success', postsList: result.rows });
@@ -925,8 +922,10 @@ class Post {
                     LEFT JOIN users AS u
                     ON u.id=p.user_id
                     WHERE b.user_id=$1
-                    ORDER BY b.id DESC`,
-                    [userId]
+                        AND ($2 :: BIGINT IS NULL OR p.id < $2)
+                    ORDER BY b.id DESC
+                    LIMIT=$3`,
+                    [userId,lastFeedId,limit]
 
                 );
                 return returnRes(res, 200, { message: 'Success', postsList: result.rows });
@@ -979,9 +978,11 @@ class Post {
                     JOIN users AS u
                     ON p.user_id = u.id
                     WHERE c.user_id = $1
+                        AND ($2 :: BIGINT IS NULL OR p.id < $2)
                     GROUP BY p.id, u.id
-                    ORDER BY p.id DESC`,
-                    [userId]
+                    ORDER BY p.id DESC
+                    LIMIT=$3`,
+                    [userId,lastFeedId,limit]
 
                 );
 
@@ -1036,9 +1037,11 @@ class Post {
                     JOIN users AS u
                     ON p.user_id = u.id
                     WHERE ni.user_id = $1
+                        AND ($2 :: BIGINT IS NULL OR p.id < $2)
                     GROUP BY p.id, u.id
-                    ORDER BY p.id DESC`,
-                    [userId]
+                    ORDER BY p.id DESC
+                    LIMIT=$3`,
+                    [userId,lastFeedId,limit]
 
                 );
 
@@ -1093,9 +1096,11 @@ class Post {
                     JOIN users AS u
                     ON p.user_id = u.id
                     WHERE r.reporter_id = $1
+                        AND ($2 :: BIGINT IS NULL OR p.id < $2)
                     GROUP BY p.id, u.id
-                    ORDER BY p.id DESC`,
-                    [userId]
+                    ORDER BY p.id DESC
+                    LIMIT=$3`,
+                    [userId,lastFeedId,limit]
 
                 );
 
