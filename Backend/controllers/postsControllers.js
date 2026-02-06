@@ -924,7 +924,7 @@ class Post {
                     WHERE b.user_id=$1
                         AND ($2 :: BIGINT IS NULL OR p.id < $2)
                     ORDER BY b.id DESC
-                    LIMIT=$3`,
+                    LIMIT $3`,
                     [userId,lastFeedId,limit]
 
                 );
@@ -981,7 +981,7 @@ class Post {
                         AND ($2 :: BIGINT IS NULL OR p.id < $2)
                     GROUP BY p.id, u.id
                     ORDER BY p.id DESC
-                    LIMIT=$3`,
+                    LIMIT $3`,
                     [userId,lastFeedId,limit]
 
                 );
@@ -1040,7 +1040,7 @@ class Post {
                         AND ($2 :: BIGINT IS NULL OR p.id < $2)
                     GROUP BY p.id, u.id
                     ORDER BY p.id DESC
-                    LIMIT=$3`,
+                    LIMIT $3`,
                     [userId,lastFeedId,limit]
 
                 );
@@ -1099,7 +1099,7 @@ class Post {
                         AND ($2 :: BIGINT IS NULL OR p.id < $2)
                     GROUP BY p.id, u.id
                     ORDER BY p.id DESC
-                    LIMIT=$3`,
+                    LIMIT $3`,
                     [userId,lastFeedId,limit]
 
                 );
@@ -1110,7 +1110,7 @@ class Post {
                 return returnRes(res, 400, { error: 'Feature not availible' });
             }
         } catch (err) {
-            // console.log(err);
+            console.log(err);
             return returnRes(res, 500, { error: 'Internal Server Error!' });
         }
     }
