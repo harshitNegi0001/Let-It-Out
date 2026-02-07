@@ -1,14 +1,18 @@
 import appLogo from '../../assets/letitout_logo.png';
-import {  Button, Divider, Slide, Stack, TextField, Typography } from '@mui/material';
+import { Button, Divider, IconButton, InputAdornment, Slide, Stack, TextField, Typography } from '@mui/material';
 import { Link, useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import { useState } from 'react';
 import { useDispatch } from 'react-redux';
 import { login } from '../../store/authReducer/authReducer';
 import { setState } from '../../store/authReducer/authReducer';
+import Visibility from '@mui/icons-material/Visibility';
+import VisibilityOff from '@mui/icons-material/VisibilityOff';
+
 function Login() {
     const backend_url = import.meta.env.VITE_BACKEND_URL;
     const dispatch = useDispatch();
+    const [showPass, setShowPass] = useState(false);
     const [state, setLoginState] = useState({
         email: '',
         password: '',
@@ -25,16 +29,16 @@ function Login() {
         const password = state.password;
         const checkEmail = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
-        if(!checkEmail.test(email)){
-            
-            dispatch(setState({error:'Invalid Email Address'}));
+        if (!checkEmail.test(email)) {
+
+            dispatch(setState({ error: 'Invalid Email Address' }));
         }
 
         try {
             setloadingBtn('loginBtn');
             const result = await axios.post(`${backend_url}/api/login`, { email, password }, { withCredentials: true });
             setloadingBtn('');
-            dispatch(setState({success: result.data.message}));
+            dispatch(setState({ success: result.data.message }));
             dispatch(login({ userInfo: result.data.userInfo }));
             navigate('/');
 
@@ -42,12 +46,12 @@ function Login() {
         catch (err) {
             setloadingBtn('');
             // console.log(err.response.data.error);
-            dispatch(setState({error: err?.response?.data?.error}));
+            dispatch(setState({ error: err?.response?.data?.error }));
 
             return;
         }
     }
-    
+
     const handleGoogleLogin = () => {
         setloadingBtn('googleBtn');
         window.location.href = `${backend_url}/api/google-login`;
@@ -70,7 +74,27 @@ function Login() {
                 <form onSubmit={handleLogin}>
                     <Stack spacing={1} pt={2}>
                         <TextField label='Email' color='secondary' value={state.email} onChange={handleStateChange} required size='small' name='email' autoComplete="username" type='email' />
-                        <TextField label='Password' autoComplete="current-password" value={state.password} onChange={handleStateChange} name='password' type='password' required color='secondary' size='small' />
+                        <TextField label='Password' autoComplete="current-password" value={state.password} onChange={handleStateChange} name='password' type={showPass ? 'text' : 'password'} required color='secondary' size='small'
+                            sx={{
+                                '& input::-ms-reveal, & input::-ms-clear': {
+                                    display: 'none',
+                                },
+                            }}
+                            slotProps={{
+                                input: {
+                                    endAdornment: (
+                                        <InputAdornment position="end">
+                                            <IconButton
+                                                onClick={() => setShowPass(prev => !prev)}
+                                                onMouseDown={(e) => e.preventDefault()}
+                                                edge="end"
+                                            >
+                                                {showPass ? <VisibilityOff fontSize='small' /> : <Visibility fontSize='small' />}
+                                            </IconButton>
+                                        </InputAdornment>
+                                    )
+                                }
+                            }} />
                         <Button loading={loadingBtn == 'loginBtn'} variant='contained' type='submit' sx={{ textTransform: 'none' }}>Login</Button>
                     </Stack>
                 </form>

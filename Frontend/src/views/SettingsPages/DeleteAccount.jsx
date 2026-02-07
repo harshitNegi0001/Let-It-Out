@@ -1,4 +1,4 @@
-import { Box, Divider, TextField, Button, Backdrop, IconButton, Stack, Typography } from "@mui/material";
+import { Box, Divider, TextField, Button, Backdrop, InputAdornment, IconButton, Stack, Typography } from "@mui/material";
 import { useNavigate } from "react-router-dom";
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import { useDispatch } from 'react-redux';
@@ -6,16 +6,19 @@ import { useState } from "react";
 import axios from 'axios';
 import WarningAmberIcon from '@mui/icons-material/WarningAmber';
 import { logout, setState } from '../../store/authReducer/authReducer.js';
+import Visibility from '@mui/icons-material/Visibility';
+import VisibilityOff from '@mui/icons-material/VisibilityOff';
 
 
 function DeleteAccount() {
     const navigate = useNavigate();
     const [openBackdrop, setOpenBackdrop] = useState(false);
+    const [showPass, setShowPass] = useState(false);
     const backend_url = import.meta.env.VITE_BACKEND_URL;
     const dispatch = useDispatch();
     const [password, setPassword] = useState('');
     const [isLoading, setIsLoading] = useState(false);
-    const handleSubmit = (e)=>{
+    const handleSubmit = (e) => {
         e.preventDefault();
         setOpenBackdrop(true);
     }
@@ -39,12 +42,13 @@ function DeleteAccount() {
                 }
             )
 
-            dispatch(setState({ success: result.data.message}));
+            dispatch(setState({ success: result.data.message }));
 
             dispatch(logout());
             setIsLoading(false);
         } catch (err) {
             setIsLoading(false);
+            handleCloseBackdrop();
             dispatch(setState({ error: err?.response?.data?.error }));
             // console.log(err);
 
@@ -54,7 +58,7 @@ function DeleteAccount() {
 
     return (
         <>
-            <Stack width={'100%'} height={"100%"} p={{xs:1,sm:2}}>
+            <Stack width={'100%'} height={"100%"} p={{ xs: 1, sm: 2 }}>
                 <Stack width={'100%'} height={'100%'} pb={{ xs: '50px', sm: '10px' }} spacing={3} overflow={'scroll'}>
                     <Box width={'100%'} sx={{ display: 'flex', flexDirection: 'column', gap: 1, alignItems: 'start' }}>
                         <Box width={'100%'} sx={{ display: 'flex', gap: 1, alignItems: 'center' }}>
@@ -78,7 +82,28 @@ function DeleteAccount() {
                             <Typography variant="body1" fontWeight={'600'}>
                                 For your security, please re-enter your password to continue
                             </Typography>
-                            <TextField type="password" value={password} onChange={(e) => setPassword(e.target.value)} required autoComplete="password" fullWidth color="secondary" label="Password" />
+                            <TextField type={showPass ? 'text' : 'password'} value={password} onChange={(e) => setPassword(e.target.value)} required autoComplete="password" fullWidth color="secondary" label="Password"
+                                sx={{
+                                    '& input::-ms-reveal, & input::-ms-clear': {
+                                        display: 'none',
+                                    },
+                                }}
+                                slotProps={{
+                                    input: {
+                                        endAdornment: (
+                                            <InputAdornment position="end">
+                                                <IconButton
+                                                    onClick={() => setShowPass(prev => !prev)}
+                                                    onMouseDown={(e) => e.preventDefault()}
+                                                    edge="end"
+                                                >
+                                                    {showPass ? <VisibilityOff fontSize='small' /> : <Visibility fontSize='small' />}
+                                                </IconButton>
+                                            </InputAdornment>
+                                        )
+                                    }
+                                }}
+                            />
                             <Box width={'100%'} pt={3} sx={{ display: 'flex', justifyContent: "center" }}>
                                 <Button loading={isLoading} type="submit" variant="contained" color="secondary" size="large" sx={{ width: '100%', maxWidth: '230px', textTransform: 'none' }}>Continue</Button>
                             </Box>
@@ -87,21 +112,21 @@ function DeleteAccount() {
                                             </Box> */}
                         </Box>
                     </form>
-                    
+
                 </Stack>
                 <Backdrop sx={{ zIndex: 10000 }} open={openBackdrop} onClick={() => setOpenBackdrop(false)}>
-                        <Box width={'80%'} maxWidth={'450px'} onClick={(e) => e.stopPropagation()} bgcolor={'primary.light'} borderRadius={2} display={'flex'} flexDirection={'column'} gap={2} p={2}>
-                            <Box width={'100%'} >
-                                <Typography variant="body1" component={'div'}>Are you sure to permanent delete your account</Typography>
-                                <Typography variant="body2" fontSize={'10px'}>Once deleted account can't be recover</Typography>
-                            </Box>
-                            <Box width={'100%'} display={'flex'} gap={2} justifyContent={'end'}>
-
-                                <Button variant="text"   sx={{color:'text.primary'}} onClick={handleCloseBackdrop}>Cancle</Button>
-                                <Button variant="contained" color="error" loading={isLoading} onClick={deleteAccount} startIcon={<WarningAmberIcon/>}>Confirm</Button>
-                            </Box>
+                    <Box width={'80%'} maxWidth={'450px'} onClick={(e) => e.stopPropagation()} bgcolor={'primary.light'} borderRadius={2} display={'flex'} flexDirection={'column'} gap={2} p={2}>
+                        <Box width={'100%'} >
+                            <Typography variant="body1" component={'div'}>Are you sure to permanent delete your account</Typography>
+                            <Typography variant="body2" fontSize={'10px'}>Once deleted account can't be recover</Typography>
                         </Box>
-                    </Backdrop>
+                        <Box width={'100%'} display={'flex'} gap={2} justifyContent={'end'}>
+
+                            <Button variant="text" sx={{ color: 'text.primary' }} onClick={handleCloseBackdrop}>Cancle</Button>
+                            <Button variant="contained" color="error" loading={isLoading} onClick={deleteAccount} startIcon={<WarningAmberIcon />}>Confirm</Button>
+                        </Box>
+                    </Box>
+                </Backdrop>
             </Stack>
         </>
     )

@@ -1,9 +1,11 @@
-import { Avatar, Box, Button, Divider, LinearProgress, Stack, TextField, Typography } from "@mui/material";
+import { Avatar, Box, Button, Divider, IconButton, InputAdornment, LinearProgress, Stack, TextField, Typography } from "@mui/material";
 import { useEffect, useRef, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import axios from "axios";
 import { setState } from "../../store/authReducer/authReducer";
 import { useNavigate } from "react-router-dom";
+import Visibility from '@mui/icons-material/Visibility';
+import VisibilityOff from '@mui/icons-material/VisibilityOff';
 
 
 
@@ -17,6 +19,10 @@ function NewUserSetup() {
         loading: false,
         available: null, // true | false | null
         error: ""
+    });
+    const [showPass, setShowPass] = useState({
+        new: false,
+        confirm: false,
     });
     const [newUserDetail, setNewUserDetail] = useState({
 
@@ -32,14 +38,14 @@ function NewUserSetup() {
     const backend_url = import.meta.env.VITE_BACKEND_URL;
 
     useEffect(() => {
-        if(!isLoading&&!userInfo?.id){
+        if (!isLoading && !userInfo?.id) {
             navigate('/login');
         }
-        if(userInfo?.username){
+        if (userInfo?.username) {
             navigate('/');
         }
 
-    }, [userInfo,isLoading])
+    }, [userInfo, isLoading])
 
     useEffect(() => {
         if (!username) {
@@ -188,8 +194,52 @@ function NewUserSetup() {
                                     <Typography variant="body1" component={'div'} fontWeight={500} >Create your profile</Typography>
                                     <TextField value={username} autoComplete="lio_username" error={Boolean(usernameStatus.error)} onChange={(e) => setUsername(e.target.value.toLowerCase())} name="username" label="create username" size="small" color="secondary" required helperText={usernameStatus.loading ? "Checking availability..." : usernameStatus.error ? usernameStatus.error : usernameStatus.available ? "Username available" : "Pick a unique username"} placeholder="eg. lio@user.001"></TextField>
                                     <Divider />
-                                    <TextField value={newUserDetail?.password} autoComplete="current-password" type="password" onChange={handleUserInfoChange} name="password" label="create password" size="small" color="secondary" required ></TextField>
-                                    <TextField value={newUserDetail?.confirmPass} autoComplete="confirm-password" type="password" onChange={handleUserInfoChange} name="confirmPass" label="confirm password" size="small" color="secondary" required ></TextField>
+                                    <TextField value={newUserDetail?.password} autoComplete="current-password" onChange={handleUserInfoChange} name="password" label="create password" size="small" color="secondary" required
+                                        type={showPass.new ? 'text' : 'password'}
+                                        sx={{
+                                            '& input::-ms-reveal, & input::-ms-clear': {
+                                                display: 'none',
+                                            },
+                                        }}
+                                        slotProps={{
+                                            input: {
+                                                endAdornment: (
+                                                    <InputAdornment position="end">
+                                                        <IconButton
+                                                            onClick={() => setShowPass(prev => ({ ...prev, new: !prev.new }))}
+                                                            onMouseDown={(e) => e.preventDefault()}
+                                                            edge="end"
+                                                        >
+                                                            {showPass.new ? <VisibilityOff fontSize='small' /> : <Visibility fontSize='small' />}
+                                                        </IconButton>
+                                                    </InputAdornment>
+                                                )
+                                            }
+                                        }}
+                                    />
+                                    <TextField value={newUserDetail?.confirmPass} autoComplete="confirm-password" onChange={handleUserInfoChange} name="confirmPass" label="confirm password" size="small" color="secondary" required
+                                        type={showPass.confirm ? 'text' : 'password'}
+                                        sx={{
+                                            '& input::-ms-reveal, & input::-ms-clear': {
+                                                display: 'none',
+                                            },
+                                        }}
+                                        slotProps={{
+                                            input: {
+                                                endAdornment: (
+                                                    <InputAdornment position="end">
+                                                        <IconButton
+                                                            onClick={() => setShowPass(prev => ({ ...prev, confirm: !prev.confirm }))}
+                                                            onMouseDown={(e) => e.preventDefault()}
+                                                            edge="end"
+                                                        >
+                                                            {showPass.confirm ? <VisibilityOff fontSize='small' /> : <Visibility fontSize='small' />}
+                                                        </IconButton>
+                                                    </InputAdornment>
+                                                )
+                                            }
+                                        }}
+                                    />
                                     <Divider />
                                     <TextField value={newUserDetail?.fake_name} autoComplete="fake-name" onChange={handleUserInfoChange} name="fake_name" label="fake name(optional)" size="small" color="secondary" helperText="We prefer not reveal your identity" ></TextField>
                                     <Divider />

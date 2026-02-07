@@ -1,16 +1,19 @@
-import { Box, Button, Divider, IconButton, Stack, TextField, Typography } from "@mui/material";
+import { Box, Button, Divider, IconButton, InputAdornment, Stack, TextField, Typography } from "@mui/material";
 import { useNavigate } from "react-router-dom";
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
-import { useDispatch} from 'react-redux';
+import { useDispatch } from 'react-redux';
 import axios from 'axios';
 import { logout, setState } from '../../store/authReducer/authReducer.js';
 import { useState } from "react";
+import Visibility from '@mui/icons-material/Visibility';
+import VisibilityOff from '@mui/icons-material/VisibilityOff';
 
 function DeactivateAccount() {
     const navigate = useNavigate();
     const backend_url = import.meta.env.VITE_BACKEND_URL;
     const dispatch = useDispatch();
     const [password, setPassword] = useState('');
+    const [showPass, setShowPass] = useState(false);
     const [isLoading, setIsLoading] = useState(false);
     const deactivateAccount = async (e) => {
         e.preventDefault();
@@ -29,7 +32,7 @@ function DeactivateAccount() {
             )
 
             dispatch(setState({ success: result.data.message, userInfo: result.data.userInfo }));
-            
+
             dispatch(logout());
             setIsLoading(false);
         } catch (err) {
@@ -43,7 +46,7 @@ function DeactivateAccount() {
 
     return (
         <>
-            <Stack width={'100%'} height={"100%"} p={{xs:1,sm:2}}>
+            <Stack width={'100%'} height={"100%"} p={{ xs: 1, sm: 2 }}>
                 <Stack width={'100%'} height={'100%'} pb={{ xs: '50px', sm: '10px' }} spacing={3} overflow={'scroll'}>
                     <Box width={'100%'} sx={{ display: 'flex', flexDirection: 'column', gap: 1, alignItems: 'start' }}>
                         <Box width={'100%'} sx={{ display: 'flex', gap: 1, alignItems: 'center' }}>
@@ -66,7 +69,28 @@ function DeactivateAccount() {
                             <Typography variant="body1" fontWeight={'600'}>
                                 For your security, please re-enter your password to continue
                             </Typography>
-                            <TextField type="password" value={password} onChange={(e) => setPassword(e.target.value)} required autoComplete="password" fullWidth color="secondary" label="Password" />
+                            <TextField  type={showPass ? 'text' : 'password'} value={password} onChange={(e) => setPassword(e.target.value)} required autoComplete="password" fullWidth color="secondary" label="Password"
+                                sx={{
+                                    '& input::-ms-reveal, & input::-ms-clear': {
+                                        display: 'none',
+                                    },
+                                }}
+                                slotProps={{
+                                    input: {
+                                        endAdornment: (
+                                            <InputAdornment position="end">
+                                                <IconButton
+                                                    onClick={() => setShowPass(prev => !prev)}
+                                                    onMouseDown={(e) => e.preventDefault()}
+                                                    edge="end"
+                                                >
+                                                    {showPass ? <VisibilityOff fontSize='small' /> : <Visibility fontSize='small' />}
+                                                </IconButton>
+                                            </InputAdornment>
+                                        )
+                                    }
+                                }}
+                            />
                             <Box width={'100%'} pt={3} sx={{ display: 'flex', justifyContent: "center" }}>
                                 <Button loading={isLoading} type="submit" variant="contained" color="secondary" size="large" sx={{ width: '100%', maxWidth: '230px', textTransform: 'none' }}>Continue</Button>
                             </Box>
