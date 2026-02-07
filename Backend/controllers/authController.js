@@ -225,7 +225,7 @@ class Auth {
 
   logout = async (req, res) => {
     try {
-      // console.log('user-here')
+
       res.cookie('authToken', null, {
         httpOnly: true,
         secure: true,
@@ -374,14 +374,14 @@ class Auth {
           WHERE id = $1`
           , [userId]
         );
-        const userInfo = await this.getUserDetail(userId);
-        // res.cookie('authToken', null, {
-        //   httpOnly: true,
-        //   secure: false,
-        //   sameSite: 'lax',
-        //   maxAge: 0
-        // });
-        return returnRes(res, 200, { message: 'Account deleted!', userInfo });
+        res.cookie('authToken', null, {
+          httpOnly: true,
+          secure: true,
+          sameSite: 'none',
+          maxAge: 0
+        });
+        
+        return returnRes(res, 200, { message: 'Account deleted!' });
       }
       return returnRes(res, 401, { error: 'Invalid credentials!' });
 
