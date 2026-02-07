@@ -31,14 +31,16 @@ function Login() {
         }
 
         try {
+            setloadingBtn('loginBtn');
             const result = await axios.post(`${backend_url}/api/login`, { email, password }, { withCredentials: true });
-            
+            setloadingBtn('');
             dispatch(setState({success: result.data.message}));
             dispatch(login({ userInfo: result.data.userInfo }));
             navigate('/');
 
         }
         catch (err) {
+            setloadingBtn('');
             // console.log(err.response.data.error);
             dispatch(setState({error: err?.response?.data?.error}));
 

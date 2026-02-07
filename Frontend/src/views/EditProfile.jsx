@@ -129,7 +129,7 @@ function EditProfile() {
                             </LocalizationProvider>
                         </Box>
 
-                        <Button onClick={handleSubmit} variant="contained" size='large' color="secondary" sx={{ width: '100%', maxWidth: '320px' }}>Save</Button>
+                        <Button onClick={handleSubmit} loading={isLoading} variant="contained" size='large' color="secondary" sx={{ width: '100%', maxWidth: '320px' }}>Save</Button>
 
                     </Stack>
 
