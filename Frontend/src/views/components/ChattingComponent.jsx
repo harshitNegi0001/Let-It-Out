@@ -1,10 +1,10 @@
-import { Avatar, Box, Chip, IconButton, Skeleton, Stack, TextField, Typography } from "@mui/material";
+import { Avatar, Box, Chip, CircularProgress, IconButton, Skeleton, Stack, TextField, Typography } from "@mui/material";
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import SendIcon from '@mui/icons-material/Send';
 import VisibilityIcon from '@mui/icons-material/Visibility';
 import DoneIcon from '@mui/icons-material/Done';
 import DoneAllIcon from '@mui/icons-material/DoneAll';
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
@@ -48,6 +48,9 @@ function ChattingComponent({ username, getChatlist }) {
     const [isTyping, setIsTyping] = useState(false);
     const [isOnline, setIsOnline] = useState(false);
     const [lastOnline, setLastOnline] = useState(null);
+    const [loadingOldChat, setLoadingOldChat] = useState(false);
+    const [hasMore, setHasMore] = useState(true);
+    const scrollRef = useRef();
     const [messagesList, setMessagesList] = useState([]);
     const [sendMessageBox, setSendMessageBox] = useState("");
     const [sendingMsg, setSendingMsg] = useState(false);
@@ -58,17 +61,38 @@ function ChattingComponent({ username, getChatlist }) {
     const navigate = useNavigate();
     const dispatch = useDispatch();
 
-    
+
     useEffect(() => {
         if (username) {
             if (username == userInfo.username) {
-                navigate('/chats')
+                navigate('/chats');
             }
             getUserData();
 
         }
 
     }, [username]);
+    useEffect(() => {
+        if (isLoading || loadingOldChat) {
+            return;
+        }
+
+        const el = scrollRef.current;
+        if (!el) {
+            return;
+        }
+        if (hasMore && el.scrollHeight <= el.clientHeight) {
+            fetchOldMessages();
+            return;
+        }
+
+        el.addEventListener('scroll', handleScroll);
+
+        return () => {
+            el.removeEventListener('scroll', handleScroll);
+        }
+
+    }, [isLoading, loadingOldChat])
     useEffect(() => {
         if (!userData?.id) return;
         dispatch(deleteChatId(userData?.id))
@@ -181,7 +205,49 @@ function ChattingComponent({ username, getChatlist }) {
         };
     }, [userData?.id]);
 
+    const handleScroll = async () => {
+        if (!hasMore) {
+            return
+        }
+        if (isLoading || loadingOldChat) {
+            return;
+        }
+        const el = scrollRef.current;
+        if (!el) {
+            return;
+        }
 
+        if (el.clientHeight- el.scrollTop +1>= el.scrollHeight) {
+            fetchOldMessages();
+        }
+    }
+    const fetchOldMessages = async () => {
+        try {
+            setLoadingOldChat(true);
+            const lastMessageDate = messagesList.length > 0 ? messagesList[messagesList.length - 1]?.message_date : null;
+
+            const result = await axios.post(
+                `${backend_url}/msg/get-messages`,
+                {
+                    lastMessageDate: lastMessageDate,
+                    userId: userData.id,
+                    limit: 2
+                },
+                {
+                    withCredentials: true
+                }
+            )
+            if (result?.data?.messagesList?.length < 2) {
+                setHasMore(false);
+            }
+
+            setMessagesList(prev => ([...prev, ...result?.data?.messagesList]));
+            setLoadingOldChat(false);
+        } catch (err) {
+            setLoadingOldChat(false);
+            dispatch(setState({ error: err?.response?.data?.error || "Something went wrong!" }));
+        }
+    }
     const emitTyping = () => {
 
         socket.emit('typing', { userId: userInfo?.id, receiverId: userData?.id });
@@ -213,15 +279,18 @@ function ChattingComponent({ username, getChatlist }) {
             const result = await axios.post(
                 `${backend_url}/msg/get-messages`,
                 {
-                    userId: userData.id
+                    userId: userData.id,
+                    limit: 2
 
                 },
                 {
                     withCredentials: true
                 }
             )
-
-            setMessagesList(result?.data?.messagesList);
+            if (result?.data?.messagesList?.length < 2) {
+                setHasMore(false);
+            }
+            setMessagesList(prev => ([...prev, ...result?.data?.messagesList]));
 
             getChatlist();
             setIsLoading(false);
@@ -296,26 +365,27 @@ function ChattingComponent({ username, getChatlist }) {
                     </Avatar>
                     <Box sx={{ width: 'calc(100% - 140px)', height: '50px' }} >
                         {isLoading ? <Skeleton width={'120px'} /> : <Typography variant="body1" color="text.primary" component={'div'} noWrap textOverflow={'ellipsis'}>{userData?.name}</Typography>}
-                        {isLoading ? <Skeleton width={'45px'} /> : <Typography variant="body2" color={`${isTyping ? 'secondary.main' : isOnline ? "#2fa500" : '#fff'}`} fontSize={{xs:'10px',sm:'13px'}} component={'div'} noWrap textOverflow={'ellipsis'}>{isTyping ? 'typing...' : (isOnline) ? "Online" : (lastOnline) ? `last seen ${formatDate(lastOnline)} ${formatTime(lastOnline)}` : `last seen ${formatDate(userData?.last_login)} ${formatTime(userData?.last_login)}`} </Typography>}
+                        {isLoading ? <Skeleton width={'45px'} /> : <Typography variant="body2" color={`${isTyping ? 'secondary.main' : isOnline ? "#2fa500" : '#fff'}`} fontSize={{ xs: '10px', sm: '13px' }} component={'div'} noWrap textOverflow={'ellipsis'}>{isTyping ? 'typing...' : (isOnline) ? "Online" : (lastOnline) ? `last seen ${formatDate(lastOnline)} ${formatTime(lastOnline)}` : `last seen ${formatDate(userData?.last_login)} ${formatTime(userData?.last_login)}`} </Typography>}
                     </Box>
                     <ChatOptionsComponent userData={userData} getUserData={getUserData} />
                 </Box>
 
-                {isLoading ? <Stack width={'100%'} height={'calc(100% - 70px)'} direction={'column-reverse'} sx={{ overflowY: 'scroll' }} spacing={2} pb={'55px'}>
-                    <Stack width={'100%'} spacing={2}>
-                        <Box width={'100%'} pt={1} sx={{ display: 'flex', justifyContent: 'center' }}>
-                            <Skeleton variant="rounded" animation="pulse" width={'100px'} height={'25px'} />
-                        </Box>
-                        <Box width={'100%'} sx={{ display: 'flex', justifyContent: 'start', px: '8px' }}>
-                            <Skeleton variant="rounded" animation="wave" width={'40%'} height={'55px'} sx={{ background: "linear-gradient(135deg, #2b2b2bff, #444346ff)", borderRadius: 3 }} />
-                        </Box>
-                        <Box width={'100%'} sx={{ display: 'flex', justifyContent: 'end', px: '8px' }}>
-                            <Skeleton variant="rounded" animation="wave" width={'30%'} height={'55px'} sx={{ background: "linear-gradient(135deg, #6b2b6bff, #290938ff)", borderRadius: 3 }} />
-                        </Box>
-
-                    </Stack>
-                </Stack> :
+                {isLoading ?
                     <Stack width={'100%'} height={'calc(100% - 70px)'} direction={'column-reverse'} sx={{ overflowY: 'scroll' }} spacing={2} pb={'55px'}>
+                        <Stack width={'100%'} spacing={2}>
+                            <Box width={'100%'} pt={1} sx={{ display: 'flex', justifyContent: 'center' }}>
+                                <Skeleton variant="rounded" animation="pulse" width={'100px'} height={'25px'} />
+                            </Box>
+                            <Box width={'100%'} sx={{ display: 'flex', justifyContent: 'start', px: '8px' }}>
+                                <Skeleton variant="rounded" animation="wave" width={'40%'} height={'55px'} sx={{ background: "linear-gradient(135deg, #2b2b2bff, #444346ff)", borderRadius: 3 }} />
+                            </Box>
+                            <Box width={'100%'} sx={{ display: 'flex', justifyContent: 'end', px: '8px' }}>
+                                <Skeleton variant="rounded" animation="wave" width={'30%'} height={'55px'} sx={{ background: "linear-gradient(135deg, #6b2b6bff, #290938ff)", borderRadius: 3 }} />
+                            </Box>
+
+                        </Stack>
+                    </Stack> :
+                    <Stack width={'100%'} height={'calc(100% - 70px)'} direction={'column-reverse'} ref={scrollRef} sx={{ overflowY: 'scroll' }} spacing={2} pb={'55px'}>
                         {isTyping && (
                             <Box width="100%" sx={{ display: 'flex', justifyContent: 'start', px: '8px' }}>
                                 <Box
@@ -334,7 +404,7 @@ function ChattingComponent({ username, getChatlist }) {
                                 </Box>
                             </Box>
                         )}
-                        {!isLoading && messagesList?.map((m, i) => <Stack key={i} width={'100%'} spacing={2}>
+                        {messagesList?.map((m, i) => <Stack key={i} width={'100%'} spacing={2}>
                             <Box width={'100%'} pt={1} sx={{ display: 'flex', justifyContent: 'center' }}>
                                 <Chip label={formatDate(m.message_date)} size="small" />
                             </Box>
@@ -353,7 +423,7 @@ function ChattingComponent({ username, getChatlist }) {
 
                         </Stack>)
                         }
-                        {!isLoading && messagesList.length == 0 && <Stack width={'100%'} height={'100%'} justifyContent={'center'} alignItems={'center'}>
+                        {messagesList.length == 0 && <Stack width={'100%'} height={'100%'} justifyContent={'center'} alignItems={'center'}>
                             <Box width={'90%'} maxWidth={{ xs: '320px', sm: '450px' }} >
                                 <img src="https://res.cloudinary.com/dns5lxuvy/image/upload/v1768276563/uof3wqwlmc9tojb6yfk9.png" style={{ width: '100%', objectFit: 'contain' }} alt="" />
                             </Box>
@@ -364,6 +434,12 @@ function ChattingComponent({ username, getChatlist }) {
                                 Send a message to start a conversation.
                             </Typography>
                         </Stack>}
+                        {
+                            loadingOldChat &&
+                            <Box width={'100%'} sx={{ display: 'flex', justifyContent: 'center' }}>
+                                <CircularProgress color="secondary" size={'30px'} />
+                            </Box>
+                        }
 
 
                     </Stack>}

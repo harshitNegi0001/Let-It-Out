@@ -157,6 +157,7 @@ class Messages {
     getMessages = async (req, res) => {
         const user1 = req.id;
         const user2 = req.body?.userId;
+        const {limit,lastMessageDate} = req.body;
         try {
 
             const result = await db.query(
@@ -183,9 +184,11 @@ class Messages {
                    OR
                    (sender_id = $2 AND receiver_id = $1)
                 ) t
+                WHERE ($3 ::TIMESTAMPTZ IS NULL OR t.msg_date < $3)
                 GROUP BY msg_date
-                ORDER BY msg_date DESC;`,
-                [user1, user2]
+                ORDER BY msg_date DESC
+                LIMIT $4;`,
+                [user1, user2,lastMessageDate,limit]
             );
 
             await db.query(

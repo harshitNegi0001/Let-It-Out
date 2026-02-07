@@ -7,6 +7,7 @@ class Notification {
     // controller function to get notifications.
     getNotification = async (req, res) => {
         const receiver_id = req.id;
+        const {limit,lastNotifTime} = req.query;
         try {
             const result = await db.query(
                 `SELECT n.*,
@@ -34,8 +35,10 @@ class Notification {
 				ON n.target_type='comment'
 					AND n.target_id=c.id
                 WHERE n.receiver_id=$1
-                ORDER BY n.updated_at DESC`,
-                [receiver_id]
+                    AND ($2 :: TIMESTAMPTZ IS NULL OR n.updated_at<$2)
+                ORDER BY n.updated_at DESC
+                LIMIT $3`,
+                [receiver_id,lastNotifTime,limit]
             );
             if (result.rows.length == 0) {
                 return returnRes(res, 200, { notifications: [] });
