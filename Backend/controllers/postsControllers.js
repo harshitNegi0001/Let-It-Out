@@ -67,11 +67,39 @@ class Post {
         }
     };
 
+    // Controller function to repost an existing post.
+    repostPost = async (req, res) => {
+        const { content, mood, parent_id } = req.body;
+        const userId = req.id;
+        try {
+            // parent_post validation here.
+            await db.query(
+                `INSERT INTO posts
+                (
+                    user_id, 
+                    content,
+                    parent_id,
+                    mood_tag
+                )
+                VALUES(
+                    $1,$2,$3,$4
+                )`,
+                [userId, content, parent_id, mood]
+            );
+
+            return returnRes(res, 200, { message: 'post live.' });
+
+        } catch (err) {
+            console.error(err);
+            return returnRes(res, 500, { error: "Internal Server Error!" });
+        }
+    }
+
     // controller function to get posts of a specific profile
     getProfilePost = async (req, res) => {
 
         const visiterId = req.id;
-        const { userId, limit, currPage, reqType = "posts",lastFeedId } = req.query;
+        const { userId, limit, currPage, reqType = "posts", lastFeedId } = req.query;
 
         try {
 
@@ -156,34 +184,62 @@ class Post {
                 if (reqType == 'posts') {
                     const result = await db.query(
                         `SELECT 
-                    p.*
-                    ,count(l.id) AS likes_count,
-                    (
-                        SELECT COUNT(c.id)
-                        FROM comments AS c
-                        WHERE c.post_id=p.id
-                    ) AS comments_count,
-                    EXISTS(
-                        SELECT 1
-                        FROM likes AS l2
-                        WHERE l2.target_type = 'post'
-                            AND l2.target_id = p.id
-                            AND l2.user_id = $1
-                    ) AS is_liked,
-					EXISTS(
-						SELECT 1
-						FROM bookmarks as b
-						WHERE b.user_id = $1
-							AND b.post_id=p.id
-					) AS is_saved
-                    FROM posts AS p
-                    LEFT JOIN likes AS l
-                    ON p.id=l.target_id AND l.target_type='post'
-                    WHERE p.user_id = $1
-                        AND ($2 :: BIGINT IS NULL OR p.id < $2)
-                    GROUP BY p.id
-                    ORDER BY id DESC
-                    LIMIT $3`
+                            p.*,
+                            (
+                                SELECT COUNT(id)
+                                FROM posts AS p2
+                                WHERE p2.parent_id = p.id
+                            ) AS reposts_count,
+                            count(l.id) AS likes_count,
+                            (
+                                SELECT COUNT(c.id)
+                                FROM comments AS c
+                                WHERE c.post_id=p.id
+                            ) AS comments_count,
+                            EXISTS(
+                                SELECT 1
+                                FROM likes AS l2
+                                WHERE l2.target_type = 'post'
+                                    AND l2.target_id = p.id
+                                    AND l2.user_id = $1
+                            ) AS is_liked,
+					        EXISTS(
+						        SELECT 1
+						        FROM bookmarks as b
+						        WHERE b.user_id = $1
+							        AND b.post_id=p.id
+					        ) AS is_saved,
+                            (
+                                SELECT 
+                                json_build_object(
+                                    'post_data', json_build_object(
+                                        'id', pp.id,
+                                        'content', pp.content,
+                                        'media_url', pp.media_url,
+                                        'mood_tag', pp.mood_tag,
+                                        'post_type', pp.post_type,
+                                        'created_at', pp.created_at
+                                    ),
+                                    'user_data', json_build_object(
+                                        'id', pu.id,
+                                        'name', COALESCE(NULLIF(pu.fake_name,''), pu.first_name),
+                                        'username', pu.lio_userid,
+                                        'image', pu.image
+                                    )
+                                )
+                                FROM posts pp
+                                JOIN users pu ON pu.id = pp.user_id
+                                WHERE pp.id = p.parent_id
+                            ) AS parent_post_data
+                        FROM posts AS p
+                        LEFT JOIN likes AS l
+                        ON p.id=l.target_id AND l.target_type='post'
+                        
+                        WHERE p.user_id = $1
+                            AND ($2 :: BIGINT IS NULL OR p.id < $2)
+                        GROUP BY p.id
+                        ORDER BY id DESC
+                        LIMIT $3`
                         , [userId, lastFeedId, limit]
                     );
 
@@ -222,7 +278,34 @@ class Post {
                                 SELECT COUNT(c.id)
                                 FROM comments AS c
                                 WHERE c.post_id=p.id
-                            ) 
+                            ) ,
+                            'reposts_count',(
+                                SELECT COUNT(id)
+                                FROM posts AS p2
+                                WHERE p2.parent_id = p.id
+                            ) ,
+                            'parent_post_data',
+                            CASE 
+                                WHEN p.parent_id IS NOT NULL
+                                THEN 
+                                    json_build_object(
+                                        'post_data',json_build_object(
+                                            'id',pp.id,
+                                            'content',pp.content,
+                                            'media_url',pp.media_url,
+                                            'post_type',pp.post_type,
+                                            'created_at',pp.created_at,
+                                            'mood_tag',pp.mood_tag
+                                        ),
+                                        'user_data',json_build_object(
+                                            'id',pu.id,
+                                            'name',COALESCE(NULLIF(pu.fake_name,''),pu.first_name),
+                                            'image',pu.image,
+                                            'username',pu.lio_userid
+                                        )
+                                    )
+                                ELSE NULL
+                            END
                         ) AS post_data, 
                         json_build_object(
                             'id', u.id,
@@ -239,8 +322,12 @@ class Post {
                         ON u.id = p.user_id 
                         LEFT JOIN likes AS l
                         ON l.target_id = p.id AND l.target_type ='post'
+                        LEFT JOIN posts AS pp
+                        ON pp.id=p.parent_id
+                        LEFT JOIN users AS pu
+                        ON pu.id=pp.user_id
                         WHERE ($2 :: BIGINT IS NULL OR p.id < $2)
-                        GROUP BY p.id,u.id
+                        GROUP BY p.id,u.id,pp.id,pu.id
                         ORDER BY p.id DESC
                         limit $3;`
                         , [visiterId, lastFeedId, limit]
@@ -250,8 +337,8 @@ class Post {
                     return returnRes(res, 200, { message: 'Success', posts: result.rows });
                 }
                 else if (reqType == 'replied_post') {
-                const result = await db.query(
-                    `SELECT 
+                    const result = await db.query(
+                        `SELECT 
                     json_build_object(
                     'id', p.id,
                     'user_id', p.user_id,
@@ -284,7 +371,34 @@ class Post {
                         SELECT COUNT(c.id)
                         FROM comments AS c
                         WHERE c.post_id=p.id
-                    )
+                    ),
+                            'reposts_count',(
+                                SELECT COUNT(id)
+                                FROM posts AS p2
+                                WHERE p2.parent_id = p.id
+                            ) ,
+                            'parent_post_data',
+                            CASE 
+                                WHEN p.parent_id IS NOT NULL
+                                THEN 
+                                    json_build_object(
+                                        'post_data',json_build_object(
+                                            'id',pp.id,
+                                            'content',pp.content,
+                                            'media_url',pp.media_url,
+                                            'post_type',pp.post_type,
+                                            'created_at',pp.created_at,
+                                            'mood_tag',pp.mood_tag
+                                        ),
+                                        'user_data',json_build_object(
+                                            'id',pu.id,
+                                            'name',COALESCE(NULLIF(pu.fake_name,''),pu.first_name),
+                                            'image',pu.image,
+                                            'username',pu.lio_userid
+                                        )
+                                    )
+                                ELSE NULL
+                            END
                 ) AS post_data, 
                 json_build_object(
                     'id', u.id,
@@ -297,16 +411,20 @@ class Post {
                 ON c.post_id =p.id AND c.user_id = $4
                 JOIN users AS u
                 ON u.id = p.user_id AND u.acc_type = 'public'
+                LEFT JOIN posts AS pp
+                        ON pp.id=p.parent_id
+                        LEFT JOIN users AS pu
+                        ON pu.id=pp.user_id
                 WHERE  ($2 :: BIGINT IS NULL OR p.id < $2)
-                GROUP BY p.id,u.id
+                GROUP BY p.id,u.id,pp.id,pu.id
                 ORDER BY p.id DESC
                 limit $3;`
-                    , [visiterId, lastFeedId, limit, userId]
-                );
+                        , [visiterId, lastFeedId, limit, userId]
+                    );
 
 
-                return returnRes(res, 200, { message: 'Success', posts: result.rows });
-            }
+                    return returnRes(res, 200, { message: 'Success', posts: result.rows });
+                }
 
             }
 
@@ -345,6 +463,11 @@ class Post {
                 const result = await db.query(
                     `SELECT 
                 p.* ,
+                (
+                                SELECT COUNT(id)
+                                FROM posts AS p2
+                                WHERE p2.parent_id = p.id
+                            ) AS reposts_count,
                 count(l.id) AS likes_count,
                 EXISTS(
                     SELECT 1
@@ -363,7 +486,29 @@ class Post {
 					FROM bookmarks AS b
 					WHERE b.user_id = $4
 						AND b.post_id=p.id
-				) AS is_saved
+				) AS is_saved,
+                 (
+                                SELECT 
+                                json_build_object(
+                                    'post_data', json_build_object(
+                                        'id', pp.id,
+                                        'content', pp.content,
+                                        'media_url', pp.media_url,
+                                        'mood_tag', pp.mood_tag,
+                                        'post_type', pp.post_type,
+                                        'created_at', pp.created_at
+                                    ),
+                                    'user_data', json_build_object(
+                                        'id', pu.id,
+                                        'name', COALESCE(NULLIF(pu.fake_name,''), pu.first_name),
+                                        'username', pu.lio_userid,
+                                        'image', pu.image
+                                    )
+                                )
+                                FROM posts pp
+                                JOIN users pu ON pu.id = pp.user_id
+                                WHERE pp.id = p.parent_id
+                            ) AS parent_post_data
                 FROM posts AS p
                 LEFT JOIN likes AS l
                 ON p.id=l.target_id AND l.target_type='post'
@@ -411,7 +556,34 @@ class Post {
                         SELECT COUNT(c.id)
                         FROM comments AS c
                         WHERE c.post_id=p.id
-                    )
+                    ),
+                            'reposts_count',(
+                                SELECT COUNT(id)
+                                FROM posts AS p2
+                                WHERE p2.parent_id = p.id
+                            ) ,
+                            'parent_post_data',
+                            CASE 
+                                WHEN p.parent_id IS NOT NULL
+                                THEN 
+                                    json_build_object(
+                                        'post_data',json_build_object(
+                                            'id',pp.id,
+                                            'content',pp.content,
+                                            'media_url',pp.media_url,
+                                            'post_type',pp.post_type,
+                                            'created_at',pp.created_at,
+                                            'mood_tag',pp.mood_tag
+                                        ),
+                                        'user_data',json_build_object(
+                                            'id',pu.id,
+                                            'name',COALESCE(NULLIF(pu.fake_name,''),pu.first_name),
+                                            'image',pu.image,
+                                            'username',pu.lio_userid
+                                        )
+                                    )
+                                ELSE NULL
+                            END
                 ) AS post_data, 
                 json_build_object(
                     'id', u.id,
@@ -424,9 +596,12 @@ class Post {
                 ON b.post_id =p.id AND b.user_id = $4
                 JOIN users AS u
                 ON u.id = p.user_id AND u.acc_type = 'public'
-                
+                LEFT JOIN posts AS pp
+                        ON pp.id=p.parent_id
+                        LEFT JOIN users AS pu
+                        ON pu.id=pp.user_id
                 WHERE  ($2 :: BIGINT IS NULL OR p.id < $2)
-                GROUP BY p.id,u.id
+                GROUP BY p.id,u.id,pp.id,pu.id
                 ORDER BY p.id DESC
                 limit $3;`
                     , [visiterId, lastFeedId, limit, userId]
@@ -470,7 +645,34 @@ class Post {
                         SELECT COUNT(c.id)
                         FROM comments AS c
                         WHERE c.post_id=p.id
-                    )
+                    ),
+                            'reposts_count',(
+                                SELECT COUNT(id)
+                                FROM posts AS p2
+                                WHERE p2.parent_id = p.id
+                            ) ,
+                            'parent_post_data',
+                            CASE 
+                                WHEN p.parent_id IS NOT NULL
+                                THEN 
+                                    json_build_object(
+                                        'post_data',json_build_object(
+                                            'id',pp.id,
+                                            'content',pp.content,
+                                            'media_url',pp.media_url,
+                                            'post_type',pp.post_type,
+                                            'created_at',pp.created_at,
+                                            'mood_tag',pp.mood_tag
+                                        ),
+                                        'user_data',json_build_object(
+                                            'id',pu.id,
+                                            'name',COALESCE(NULLIF(pu.fake_name,''),pu.first_name),
+                                            'image',pu.image,
+                                            'username',pu.lio_userid
+                                        )
+                                    )
+                                ELSE NULL
+                            END
                 ) AS post_data, 
                 json_build_object(
                     'id', u.id,
@@ -483,8 +685,12 @@ class Post {
                 ON c.post_id =p.id AND c.user_id = $4
                 JOIN users AS u
                 ON u.id = p.user_id AND u.acc_type = 'public'
+                LEFT JOIN posts AS pp
+                        ON pp.id=p.parent_id
+                        LEFT JOIN users AS pu
+                        ON pu.id=pp.user_id
                 WHERE ($2 :: BIGINT IS NULL OR p.id < $2)
-                GROUP BY p.id,u.id
+                GROUP BY p.id,u.id,pp.id,pu.id
                 ORDER BY p.id DESC
                 limit $3;`
                     , [visiterId, lastFeedId, limit, userId]
@@ -560,7 +766,7 @@ class Post {
                 [userId]
             );
 
-            const blocked_id = blocklist_result.rows.map(r=>r.user_id);
+            const blocked_id = blocklist_result.rows.map(r => r.user_id);
 
             if (reqFollowing) {
                 const followingResult = await db.query(
@@ -574,7 +780,7 @@ class Post {
                         AND f.status = 'accepted' 
                         AND u.acc_status = 'active'
                         AND NOT (u.id = ANY($2))`,
-                    [userId,blocked_id]
+                    [userId, blocked_id]
                 );
                 if (followingResult.rows.length == 0) {
                     return returnRes(res, 200, { message: 'Follow someone to get following feed.', postsList: [] });
@@ -610,7 +816,34 @@ class Post {
                             SELECT COUNT(c.id)
                             FROM comments AS c
                             WHERE c.post_id=p.id
-                        )
+                        ),
+                            'reposts_count',(
+                                SELECT COUNT(id)
+                                FROM posts AS p2
+                                WHERE p2.parent_id = p.id
+                            ) ,
+                            'parent_post_data',
+                            CASE 
+                                WHEN p.parent_id IS NOT NULL
+                                THEN 
+                                    json_build_object(
+                                        'post_data',json_build_object(
+                                            'id',pp.id,
+                                            'content',pp.content,
+                                            'media_url',pp.media_url,
+                                            'post_type',pp.post_type,
+                                            'created_at',pp.created_at,
+                                            'mood_tag',pp.mood_tag
+                                        ),
+                                        'user_data',json_build_object(
+                                            'id',pu.id,
+                                            'name',COALESCE(NULLIF(pu.fake_name,''),pu.first_name),
+                                            'image',pu.image,
+                                            'username',pu.lio_userid
+                                        )
+                                    )
+                                ELSE NULL
+                            END
                     ) AS post_data, 
                     json_build_object(
                         'id', u.id,
@@ -630,9 +863,13 @@ class Post {
                     ON u.id = p.user_id
                     LEFT JOIN likes AS l
                     ON l.target_id = p.id AND l.target_type ='post'
+                    LEFT JOIN posts AS pp
+                        ON pp.id=p.parent_id
+                        LEFT JOIN users AS pu
+                        ON pu.id=pp.user_id
                     WHERE p.user_id = ANY($1)
                         AND ($2 :: BIGINT IS NULL OR p.id < $2)
-                    GROUP BY p.id,u.id
+                    GROUP BY p.id,u.id,pp.id,pu.id
                     ORDER BY p.id DESC
                     limit  $3
                     ;`,
@@ -674,7 +911,34 @@ class Post {
                         SELECT COUNT(c.id)
                         FROM comments AS c
                         WHERE c.post_id=p.id
-                    )
+                    ),
+                            'reposts_count',(
+                                SELECT COUNT(id)
+                                FROM posts AS p2
+                                WHERE p2.parent_id = p.id
+                            ) ,
+                            'parent_post_data',
+                            CASE 
+                                WHEN p.parent_id IS NOT NULL
+                                THEN 
+                                    json_build_object(
+                                        'post_data',json_build_object(
+                                            'id',pp.id,
+                                            'content',pp.content,
+                                            'media_url',pp.media_url,
+                                            'post_type',pp.post_type,
+                                            'created_at',pp.created_at,
+                                            'mood_tag',pp.mood_tag
+                                        ),
+                                        'user_data',json_build_object(
+                                            'id',pu.id,
+                                            'name',COALESCE(NULLIF(pu.fake_name,''),pu.first_name),
+                                            'image',pu.image,
+                                            'username',pu.lio_userid
+                                        )
+                                    )
+                                ELSE NULL
+                            END
                 ) AS post_data, 
                 json_build_object(
                     'id', u.id,
@@ -694,13 +958,17 @@ class Post {
                 ON u.id = p.user_id AND u.acc_type ='public'
                 LEFT JOIN likes AS l
                 ON l.target_id = p.id AND l.target_type ='post'
+                LEFT JOIN posts AS pp
+                        ON pp.id=p.parent_id
+                        LEFT JOIN users AS pu
+                        ON pu.id=pp.user_id
                 WHERE p.mood_tag =ANY($1::varchar[])
                     AND NOT (u.id=ANY($5))
                     AND ($2 :: BIGINT IS NULL OR p.id < $2)
-                GROUP BY p.id,u.id
+                GROUP BY p.id,u.id,pp.id,pu.id
                 ORDER BY p.id DESC
                 limit $3;`
-                    , [reqMood, lastFeedId, limit, userId,blocked_id]
+                    , [reqMood, lastFeedId, limit, userId, blocked_id]
                 );
                 return returnRes(res, 200, { message: 'Following feed successfully fetched.', postsList: result.rows });
             }
@@ -734,7 +1002,34 @@ class Post {
                         SELECT COUNT(c.id)
                         FROM comments AS c
                         WHERE c.post_id=p.id
-                    )
+                    ),
+                            'reposts_count',(
+                                SELECT COUNT(id)
+                                FROM posts AS p2
+                                WHERE p2.parent_id = p.id
+                            ) ,
+                            'parent_post_data',
+                            CASE 
+                                WHEN p.parent_id IS NOT NULL
+                                THEN 
+                                    json_build_object(
+                                        'post_data',json_build_object(
+                                            'id',pp.id,
+                                            'content',pp.content,
+                                            'media_url',pp.media_url,
+                                            'post_type',pp.post_type,
+                                            'created_at',pp.created_at,
+                                            'mood_tag',pp.mood_tag
+                                        ),
+                                        'user_data',json_build_object(
+                                            'id',pu.id,
+                                            'name',COALESCE(NULLIF(pu.fake_name,''),pu.first_name),
+                                            'image',pu.image,
+                                            'username',pu.lio_userid
+                                        )
+                                    )
+                                ELSE NULL
+                            END
                 ) AS post_data, 
                 json_build_object(
                     'id', u.id,
@@ -755,12 +1050,16 @@ class Post {
                 ON u.id = p.user_id AND u.acc_type ='public'
                 LEFT JOIN likes AS l
                 ON l.target_id = p.id AND l.target_type ='post'
+                LEFT JOIN posts AS pp
+                        ON pp.id=p.parent_id
+                        LEFT JOIN users AS pu
+                        ON pu.id=pp.user_id
                 WHERE NOT(u.id=ANY($4))
                     AND ($1 :: BIGINT IS NULL OR p.id < $1)
-                GROUP BY p.id,u.id
+                GROUP BY p.id,u.id,pp.id,pu.id
                 ORDER BY p.id DESC
                 limit $2;`
-                    , [lastFeedId, limit, userId,blocked_id]
+                    , [lastFeedId, limit, userId, blocked_id]
                 );
                 return returnRes(res, 200, { message: 'Following feed successfully fetched.', postsList: result.rows });
             }
@@ -854,7 +1153,34 @@ class Post {
                                 SELECT COUNT(c.id)
                                 FROM comments AS c
                                 WHERE c.post_id=p.id
-                            )
+                            ),
+                            'reposts_count',(
+                                SELECT COUNT(id)
+                                FROM posts AS p2
+                                WHERE p2.parent_id = p.id
+                            ) ,
+                            'parent_post_data',
+                            CASE 
+                                WHEN p.parent_id IS NOT NULL
+                                THEN 
+                                    json_build_object(
+                                        'post_data',json_build_object(
+                                            'id',pp.id,
+                                            'content',pp.content,
+                                            'media_url',pp.media_url,
+                                            'post_type',pp.post_type,
+                                            'created_at',pp.created_at,
+                                            'mood_tag',pp.mood_tag
+                                        ),
+                                        'user_data',json_build_object(
+                                            'id',pu.id,
+                                            'name',COALESCE(NULLIF(pu.fake_name,''),pu.first_name),
+                                            'image',pu.image,
+                                            'username',pu.lio_userid
+                                        )
+                                    )
+                                ELSE NULL
+                            END
                         ) AS post_data,
                         json_build_object(  
                             'id', u.id,
@@ -869,12 +1195,16 @@ class Post {
                         AND l.target_id=p.id
                     LEFT JOIN users AS u
                     ON u.id=p.user_id
+                    LEFT JOIN posts AS pp
+                        ON pp.id=p.parent_id
+                        LEFT JOIN users AS pu
+                        ON pu.id=pp.user_id
                     WHERE l.user_id=$1
                     ORDER BY l.id DESC
                     OFFSET $2
                     LIMIT $3
                     `,
-                    [userId,(limit*(currPage-1)),limit]
+                    [userId, (limit * (currPage - 1)), limit]
 
                 );
                 return returnRes(res, 200, { message: 'Success', postsList: result.rows });
@@ -908,7 +1238,34 @@ class Post {
                                 SELECT COUNT(c.id)
                                 FROM comments AS c
                                 WHERE c.post_id=p.id
-                            )
+                            ),
+                            'reposts_count',(
+                                SELECT COUNT(id)
+                                FROM posts AS p2
+                                WHERE p2.parent_id = p.id
+                            ) ,
+                            'parent_post_data',
+                            CASE 
+                                WHEN p.parent_id IS NOT NULL
+                                THEN 
+                                    json_build_object(
+                                        'post_data',json_build_object(
+                                            'id',pp.id,
+                                            'content',pp.content,
+                                            'media_url',pp.media_url,
+                                            'post_type',pp.post_type,
+                                            'created_at',pp.created_at,
+                                            'mood_tag',pp.mood_tag
+                                        ),
+                                        'user_data',json_build_object(
+                                            'id',pu.id,
+                                            'name',COALESCE(NULLIF(pu.fake_name,''),pu.first_name),
+                                            'image',pu.image,
+                                            'username',pu.lio_userid
+                                        )
+                                    )
+                                ELSE NULL
+                            END
                         ) AS post_data,
                         json_build_object(
                             'id', u.id,
@@ -922,11 +1279,15 @@ class Post {
                     ON b.post_id=p.id
                     LEFT JOIN users AS u
                     ON u.id=p.user_id
+                    LEFT JOIN posts AS pp
+                        ON pp.id=p.parent_id
+                        LEFT JOIN users AS pu
+                        ON pu.id=pp.user_id
                     WHERE b.user_id=$1
                     ORDER BY b.id DESC
                     OFFSET $2
                     LIMIT $3`,
-                    [userId,(limit*(currPage-1)),limit]
+                    [userId, (limit * (currPage - 1)), limit]
 
                 );
                 return returnRes(res, 200, { message: 'Success', postsList: result.rows });
@@ -964,7 +1325,34 @@ class Post {
                                 SELECT COUNT(c.id)
                                 FROM comments AS c
                                 WHERE c.post_id=p.id
-                            )
+                            ),
+                            'reposts_count',(
+                                SELECT COUNT(id)
+                                FROM posts AS p2
+                                WHERE p2.parent_id = p.id
+                            ) ,
+                            'parent_post_data',
+                            CASE 
+                                WHEN p.parent_id IS NOT NULL
+                                THEN 
+                                    json_build_object(
+                                        'post_data',json_build_object(
+                                            'id',pp.id,
+                                            'content',pp.content,
+                                            'media_url',pp.media_url,
+                                            'post_type',pp.post_type,
+                                            'created_at',pp.created_at,
+                                            'mood_tag',pp.mood_tag
+                                        ),
+                                        'user_data',json_build_object(
+                                            'id',pu.id,
+                                            'name',COALESCE(NULLIF(pu.fake_name,''),pu.first_name),
+                                            'image',pu.image,
+                                            'username',pu.lio_userid
+                                        )
+                                    )
+                                ELSE NULL
+                            END
                         ) AS post_data,
                         json_build_object(
                             'id', u.id,
@@ -978,12 +1366,16 @@ class Post {
                     ON c.post_id = p.id
                     JOIN users AS u
                     ON p.user_id = u.id
+                    LEFT JOIN posts AS pp
+                        ON pp.id=p.parent_id
+                        LEFT JOIN users AS pu
+                        ON pu.id=pp.user_id
                     WHERE c.user_id = $1
-                    GROUP BY p.id, u.id
+                    GROUP BY p.id, u.id,pp.id,pu.id
                     ORDER BY p.id DESC
                     OFFSET $2
                     LIMIT $3`,
-                    [userId,(limit*(currPage-1)),limit]
+                    [userId, (limit * (currPage - 1)), limit]
 
                 );
 
@@ -1023,7 +1415,34 @@ class Post {
                                 SELECT COUNT(c.id)
                                 FROM comments AS c
                                 WHERE c.post_id=p.id
-                            )
+                            ),
+                            'reposts_count',(
+                                SELECT COUNT(id)
+                                FROM posts AS p2
+                                WHERE p2.parent_id = p.id
+                            ) ,
+                            'parent_post_data',
+                            CASE 
+                                WHEN p.parent_id IS NOT NULL
+                                THEN 
+                                    json_build_object(
+                                        'post_data',json_build_object(
+                                            'id',pp.id,
+                                            'content',pp.content,
+                                            'media_url',pp.media_url,
+                                            'post_type',pp.post_type,
+                                            'created_at',pp.created_at,
+                                            'mood_tag',pp.mood_tag
+                                        ),
+                                        'user_data',json_build_object(
+                                            'id',pu.id,
+                                            'name',COALESCE(NULLIF(pu.fake_name,''),pu.first_name),
+                                            'image',pu.image,
+                                            'username',pu.lio_userid
+                                        )
+                                    )
+                                ELSE NULL
+                            END
                         ) AS post_data,
                         json_build_object(
                             'id', u.id,
@@ -1037,12 +1456,16 @@ class Post {
                     ON ni.post_id = p.id
                     JOIN users AS u
                     ON p.user_id = u.id
+                    LEFT JOIN posts AS pp
+                        ON pp.id=p.parent_id
+                        LEFT JOIN users AS pu
+                        ON pu.id=pp.user_id
                     WHERE ni.user_id = $1
-                    GROUP BY p.id, u.id
+                    GROUP BY p.id, u.id,pp.id,pu.id
                     ORDER BY p.id DESC
                     OFFSET $2
                     LIMIT $3`,
-                    [userId,(limit*(currPage-1)),limit]
+                    [userId, (limit * (currPage - 1)), limit]
 
                 );
 
@@ -1081,7 +1504,34 @@ class Post {
                                 SELECT COUNT(c.id)
                                 FROM comments AS c
                                 WHERE c.post_id=p.id
-                            )
+                            ),
+                            'reposts_count',(
+                                SELECT COUNT(id)
+                                FROM posts AS p2
+                                WHERE p2.parent_id = p.id
+                            ) ,
+                            'parent_post_data',
+                            CASE 
+                                WHEN p.parent_id IS NOT NULL
+                                THEN 
+                                    json_build_object(
+                                        'post_data',json_build_object(
+                                            'id',pp.id,
+                                            'content',pp.content,
+                                            'media_url',pp.media_url,
+                                            'post_type',pp.post_type,
+                                            'created_at',pp.created_at,
+                                            'mood_tag',pp.mood_tag
+                                        ),
+                                        'user_data',json_build_object(
+                                            'id',pu.id,
+                                            'name',COALESCE(NULLIF(pu.fake_name,''),pu.first_name),
+                                            'image',pu.image,
+                                            'username',pu.lio_userid
+                                        )
+                                    )
+                                ELSE NULL
+                            END
                         ) AS post_data,
                         json_build_object(
                             'id', u.id,
@@ -1096,12 +1546,16 @@ class Post {
                         AND r.target_type = 'post'
                     JOIN users AS u
                     ON p.user_id = u.id
+                    LEFT JOIN posts AS pp
+                        ON pp.id=p.parent_id
+                        LEFT JOIN users AS pu
+                        ON pu.id=pp.user_id
                     WHERE r.reporter_id = $1
-                    GROUP BY p.id, u.id
+                    GROUP BY p.id, u.id,pp.id,pu.id
                     ORDER BY p.id DESC
                     OFFSET $2
                     LIMIT $3`,
-                    [userId,(limit*(currPage-1)),limit]
+                    [userId, (limit * (currPage - 1)), limit]
 
                 );
 
@@ -1153,7 +1607,34 @@ class Post {
                         SELECT 1 
                             FROM bookmarks AS b
                             WHERE b.user_id=$2 AND b.post_id = p.id
-                    ) AS is_saved   
+                    ) AS is_saved  ,
+                     (
+                                SELECT COUNT(id)
+                                FROM posts AS p2
+                                WHERE p2.parent_id = p.id
+                            ) AS reposts_count,
+                            (
+                                SELECT 
+                                json_build_object(
+                                    'post_data', json_build_object(
+                                        'id', pp.id,
+                                        'content', pp.content,
+                                        'media_url', pp.media_url,
+                                        'mood_tag', pp.mood_tag,
+                                        'post_type', pp.post_type,
+                                        'created_at', pp.created_at
+                                    ),
+                                    'user_data', json_build_object(
+                                        'id', pu.id,
+                                        'name', COALESCE(NULLIF(pu.fake_name,''), pu.first_name),
+                                        'username', pu.lio_userid,
+                                        'image', pu.image
+                                    )
+                                )
+                                FROM posts pp
+                                JOIN users pu ON pu.id = pp.user_id
+                                WHERE pp.id = p.parent_id
+                            ) AS parent_post_data
                 FROM posts AS p 
                 WHERE p.id = $1`,
                 [post_id, visitorId]

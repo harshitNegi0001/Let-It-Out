@@ -6,6 +6,8 @@ import Post from '../controllers/postsControllers.js';
 const router = express.Router();
 
 router.post('/create-post',authMiddleware,upload.array('images', 5),Post.createPost);
+router.post('/repost-post',authMiddleware,Post.repostPost);
+
 
 router.get('/post/profile',authMiddleware,Post.getProfilePost);
 router.get('/get-posts',authMiddleware,Post.getPosts);

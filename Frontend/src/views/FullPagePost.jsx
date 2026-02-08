@@ -11,6 +11,7 @@ import PostUIHeader from "./components/PostUIHeader";
 import PostUIBottom from "./components/PostUIBottom";
 import ImageGrid from "./components/ImageGrid";
 import FullPageImage from "./components/FullPageImage";
+import RepostedParent from "./components/RepostedParent";
 
 
 function FullPagePost() {
@@ -121,9 +122,14 @@ function FullPagePost() {
                                                 {postData.content}
                                             </Typography>}
                                             {postData?.media_url?.length > 0 && <ImageGrid images={postData?.media_url} setImages={setImages} />}
-
+                                            {
+                                                postData?.parent_post_data &&
+                                                <>
+                                                    <RepostedParent userData={postData?.parent_post_data?.user_data} postData={postData?.parent_post_data?.post_data} />
+                                                </>
+                                            }
                                         </Box>
-                                        <PostUIBottom postData={postData} />
+                                        <PostUIBottom postData={postData} userData={userData}/>
                                         {images.length > 0 && <FullPageImage images={images} setImages={setImages} />}
                                         <CommentSection postId={postId} />
                                     </Stack>

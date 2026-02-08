@@ -5,7 +5,10 @@ function ImageGrid({ images = [], setImages }) {
     const countImg = images?.length || 0;
     const handleImageClick = (e) => {
         e.stopPropagation();
-        setImages(images);
+        if (setImages) {
+            setImages(images);
+
+        }
     }
 
     if (countImg == 0) {
@@ -30,9 +33,9 @@ function ImageGrid({ images = [], setImages }) {
 
     if (countImg == 2) {
         return (
-            <Box display="flex" gap={0.5} height={{xs:'200px',sm:'400px'}} borderRadius={2} overflow="hidden" onClick={handleImageClick}>
+            <Box display="flex" gap={0.5} height={{ xs: '200px', sm: '400px' }} borderRadius={2} overflow="hidden" onClick={handleImageClick}>
                 {images.map((img, i) => (
-                    <Box key={i} flex={1}  height={'100%'}>
+                    <Box key={i} flex={1} height={'100%'}>
                         <img
                             src={img}
                             alt=""
@@ -46,7 +49,7 @@ function ImageGrid({ images = [], setImages }) {
     if (countImg == 3) {
         return (
             <Box display="flex" flexDirection="column" gap={0.5} borderRadius={2} overflow={'hidden'} onClick={handleImageClick}>
-                <Box height={{xs:'140px',sm:'250px'}} overflow="hidden">
+                <Box height={{ xs: '140px', sm: '250px' }} overflow="hidden">
                     <img
                         src={images[0]}
                         alt=""
@@ -55,7 +58,7 @@ function ImageGrid({ images = [], setImages }) {
                 </Box>
                 <Box display="flex" gap={0.5}>
                     {images.slice(1).map((img, i) => (
-                        <Box key={i} flex={1} height={{xs:'140px',sm:'250px'}} overflow="hidden">
+                        <Box key={i} flex={1} height={{ xs: '140px', sm: '250px' }} overflow="hidden">
                             <img
                                 src={img}
                                 alt=""
@@ -73,7 +76,7 @@ function ImageGrid({ images = [], setImages }) {
             <Box
                 display="grid"
                 gridTemplateColumns="1fr 1fr"
-                gridAutoRows={{xs:'130px',sm:'200px'}}
+                gridAutoRows={{ xs: '130px', sm: '200px' }}
                 gap={0.5}
                 onClick={handleImageClick}
                 overflow={'hidden'}

@@ -1,4 +1,4 @@
-import { Stack, Box, IconButton, Typography } from "@mui/material";
+import { Stack, Box, IconButton, Typography, Backdrop } from "@mui/material";
 import { deleteLikeTarget, likeTarget } from "../../utils/postOperations";
 import LikeEmptyButton from '@mui/icons-material/FavoriteBorder';
 import LikeFilledButton from '@mui/icons-material/Favorite';
@@ -8,13 +8,15 @@ import RepostIcon from '@mui/icons-material/Repeat';
 import { useState, useEffect } from "react";
 import { useDispatch } from "react-redux";
 import { useLocation, useNavigate } from "react-router-dom";
+import RepostComponent from "./RepostComponent";
 
 
-function PostUIBottom({ postData }) {
+function PostUIBottom({ postData,userData }) {
     const [likeCount, setLikeCount] = useState({
         is_liked: false,
         count: 0
     });
+    const [openRepost,setOpenRepost] = useState(false);
 
     const dispatch = useDispatch();
 
@@ -29,6 +31,10 @@ function PostUIBottom({ postData }) {
     const navigate = useNavigate();
     const location = useLocation();
 
+    const closeRepost = ()=>{
+        document.activeElement?.blur();
+        setOpenRepost(false);
+    }
 
     const handleLikeBtn = () => {
         if (likeCount.is_liked) {
@@ -68,12 +74,17 @@ function PostUIBottom({ postData }) {
                 </Box>
 
                 <Box display={'flex'} justifyContent={'center'} alignItems={'center'}>
-                    <IconButton title="repost">
+                    <IconButton title="repost" disabled={postData?.parent_post_data} onClick={()=>setOpenRepost(true)}>
                         <RepostIcon />
 
                     </IconButton>
-                    <Typography variant="body2" fontSize={12} component={'span'}>0</Typography>
+                    <Typography variant="body2" fontSize={12} component={'span'}>{postData?.reposts_count||0}</Typography>
                 </Box>
+                <Backdrop open={openRepost} 
+                onClick={closeRepost} 
+                sx={{ zIndex: 9999, bgcolor: '#ffffff25',backdropFilter:'blur(2px)', position: 'fixed', top: 0, left: 0  }} >
+                    <RepostComponent closeRepost={closeRepost} postData={postData} userData={userData}/>
+                </Backdrop>
             </Stack>
         </>
     )
