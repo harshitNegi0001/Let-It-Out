@@ -90,7 +90,7 @@ class Comment {
     // controller function to get comments.
     getComments = async (req, res) => {
         const visitorId = req.id;
-        const { post_id, parent_id } = req.query;
+        const { post_id, parent_id,limit,lastCommentId } = req.query;
 
         try {
             if (parent_id) {
@@ -142,8 +142,11 @@ class Comment {
                     c.created_at AS created_at
 
                     FROM comments AS c
-                    WHERE c.parent_id = $1`,
-                    [parent_id, visitorId]
+                    WHERE c.parent_id = $1
+                        AND ($3 :: BIGINT IS NULL OR c.id<$3)
+                    ORDER BY c.id DESC
+                    LIMIT $4`,
+                    [parent_id, visitorId,lastCommentId,limit]
                 );
                 return returnRes(res, 200, { commentsList: result.rows });
 
@@ -198,8 +201,11 @@ class Comment {
 
                     FROM comments AS c
                     WHERE c.post_id = $1
-                        AND c.parent_id IS NULL`,
-                    [post_id, visitorId]
+                        AND c.parent_id IS NULL
+                        AND ($3 :: BIGINT IS NULL OR c.id<$3)
+                    ORDER BY c.id DESC
+                    LIMIT $4`,
+                    [post_id, visitorId,lastCommentId,limit]
                 );
                 return returnRes(res, 200, { commentsList: result.rows });
             }

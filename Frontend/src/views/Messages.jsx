@@ -209,7 +209,7 @@ function Messages() {
                                                     typing...
                                                 </Typography>
                                             </>}
-                                        <Badge badgeContent={parseInt(u?.unread_count)} color="secondary" sx={{ width: '5px', ml: 1, height: '5px', mt: '6px' }} max={99}></Badge>
+                                        <Badge badgeContent={parseInt(u?.unread_count)} color="secondary" sx={{ width: '5px', height: '5px' }} max={99}></Badge>
                                         <Typography variant="body2" width={'55px'} fontSize={10} color="text.secondary">{formatTime(u?.last_message?.created_at)}</Typography>
                                     </Box>
 

@@ -124,7 +124,7 @@ function Explore() {
 
     return (
         <>
-            <Stack width={'100%'} height={'100%'} ref={scrollRef} spacing={2} alignItems={'center'} overflow={'scroll'} p={{ xs: 1, sm: 2, lg: 3 }} pb={{ xs: '60px', sm: 1 }}>
+            <Stack width={'100%'} height={'100%'} ref={scrollRef} spacing={2} alignItems={'center'} overflow={'scroll'} p={{ xs: 1, sm: 2, lg: 3 }} pb={{ xs: '70px', sm: 1 }}>
                 <Box width={'100%'}  >
                     <form onSubmit={handleSearch} style={{ width: '100%' }}>
                         <Box width={'100%'} p={1} height={'45px'} sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-evenly', borderRadius: 1 }} bgcolor={'primary.light'}>
@@ -182,7 +182,7 @@ function Explore() {
                 <Stack width={'100%'} pt={2}>
                     <ExploreFeed moods={selectedMood} postslist={postslist} isLoading={isLoading} />
                     {
-                        !hasmore &&
+                        postslist.length != 0 && hasmore &&
                         <Box width={'100%'} sx={{ display: 'flex', justifyContent: 'center' }}>
                             <Typography variant="body2" color="text.secondary" component={'span'} fontSize={{ xs: '10px', sm: '13px' }}>
                                 ( ︶︵︶ ) No more posts ( ︶︵︶ )

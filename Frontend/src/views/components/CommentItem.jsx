@@ -18,6 +18,7 @@ function CommentItem({ commentData, level, setCommentList, setOpenCommentReply, 
     const [openComment, setOpenComment] = useState(false);
     const [isLoading, setIsLoading] = useState(false);
     const [childComment, setChildComment] = useState([]);
+    const [hasMore, setHasMore] = useState(true);
     const [likeCount, setLikeCount] = useState({
         is_liked: false,
         count: 0
@@ -55,14 +56,19 @@ function CommentItem({ commentData, level, setCommentList, setOpenCommentReply, 
     const getChildComments = async () => {
         try {
             setIsLoading(true);
-
+            const lastCommentId = childComment?.length == 0 ? null : childComment[childComment?.length - 1]?.id;
+            const url = lastCommentId ?
+                `${backend_url}/cmnt/get-comments?parent_id=${commentData.id}&&limit=${10}&&lastCommentId=${lastCommentId}` :
+                `${backend_url}/cmnt/get-comments?parent_id=${commentData.id}&&limit=${10}`
             const result = await axios.get(
-                `${backend_url}/cmnt/get-comments?parent_id=${commentData.id}`,
+                url,
                 {
                     withCredentials: true
                 }
             );
-
+            if (result?.data?.commentsList?.length < 10) {
+                setHasMore(false);
+            }
             setChildComment(prev => ([...prev, ...result?.data?.commentsList]));
             setIsLoading(false);
 
@@ -153,7 +159,14 @@ function CommentItem({ commentData, level, setCommentList, setOpenCommentReply, 
                                 {childComment.map(c =>
                                     <CommentItem key={c.id} commentData={c} level={2} setOpenCommentReply={setOpenCommentReply} setReplyCmntData={setReplyCmntData} setCommentList={setChildComment} />
                                 )}
-
+                                {
+                                    !isLoading && hasMore &&
+                                    <Box width={'100%'} sx={{ display: 'flex', justifyContent: 'center' }}>
+                                        <Button onClick={getChildComments} size="small" sx={{ color: 'text.secondary' }}>
+                                            See More...
+                                        </Button>
+                                    </Box>
+                                }
                                 {
                                     isLoading && [1, 2, 3].map(i => <LoadingComment key={i} />)
                                 }
@@ -181,6 +194,14 @@ function CommentItem({ commentData, level, setCommentList, setOpenCommentReply, 
                         {childComment.map(c =>
                             <CommentItem key={c.id} commentData={c} level={3} setOpenCommentReply={setOpenCommentReply} setReplyCmntData={setReplyCmntData} setCommentList={setChildComment} />
                         )}
+                        {
+                            !isLoading && hasMore &&
+                            <Box width={'100%'} sx={{ display: 'flex', justifyContent: 'center' }}>
+                                <Button onClick={getChildComments} size="small" sx={{ color: 'text.secondary' }}>
+                                    See More...
+                                </Button>
+                            </Box>
+                        }
                         {
                             isLoading && [1, 2, 3].map(i => <LoadingComment key={i} />)
                         }
