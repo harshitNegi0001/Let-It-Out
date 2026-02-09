@@ -172,6 +172,7 @@ class UserProfile {
                 FROM users
                 WHERE 
                 NOT (id = ANY($1)) AND acc_status = 'active'
+                    AND lio_userid IS NOT NULL
                 ORDER BY id DESC
                 LIMIT $2`,
                 [userFollowing, 10]
@@ -188,7 +189,7 @@ class UserProfile {
             return returnRes(res, 200, { usersList });
 
         } catch (err) {
-            // console.log(err);
+            console.log(err);
             return returnRes(res, 500, { error: 'Internal Server Error!' });
         }
     }
