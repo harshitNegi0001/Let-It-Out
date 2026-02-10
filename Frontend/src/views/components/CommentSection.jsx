@@ -25,7 +25,7 @@ function CommentSection({ postId }) {
         if (postId) {
             getComments();
         }
-    }, [postId])
+    }, [postId]);
 
     const getComments = async () => {
         try {

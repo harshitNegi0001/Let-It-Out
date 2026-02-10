@@ -1,6 +1,6 @@
 import appLogo from '../../assets/letitout_logo.png';
-import { Button, Divider, IconButton, InputAdornment, Slide, Stack, TextField, Typography } from '@mui/material';
-import { Link, useNavigate } from 'react-router-dom';
+import { Button, Divider, IconButton, InputAdornment, Slide, Stack, TextField, Typography, Link } from '@mui/material';
+import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import { useState } from 'react';
 import { useDispatch } from 'react-redux';
@@ -95,6 +95,14 @@ function Login() {
                                     )
                                 }
                             }} />
+                        <Typography variant="body2"
+                            fontSize={{ xs: '10px', sm: '12px' }}
+                            color="text.secondary">
+                            <Link onClick={() => navigate('/forgot-password')}
+                                sx={{ color: '#fff', cursor: 'pointer' }}>
+                                Forgot Password?
+                            </Link>
+                        </Typography>
                         <Button loading={loadingBtn == 'loginBtn'} variant='contained' type='submit' sx={{ textTransform: 'none' }}>Login</Button>
                     </Stack>
                 </form>

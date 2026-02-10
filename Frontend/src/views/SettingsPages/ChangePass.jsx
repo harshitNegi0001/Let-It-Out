@@ -1,4 +1,4 @@
-import { Box, Button, Divider, IconButton, InputAdornment, Stack, TextField, Typography } from "@mui/material";
+import { Box, Button,Link, Divider, IconButton, InputAdornment, Stack, TextField, Typography } from "@mui/material";
 import { useNavigate } from "react-router-dom";
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import axios from 'axios';
@@ -97,9 +97,17 @@ function ChangePass() {
                                     }}
                                 />
                             </Box>
+                            <Typography variant="body2"
+                                fontSize={{ xs: '10px', sm: '12px' }}
+                                color="text.secondary">
+                                <Link onClick={() => navigate('/forgot-password')}
+                                    sx={{ color: '#fff', cursor: 'pointer' }}>
+                                    Forgot Password?
+                                </Link>
+                            </Typography>
                             <Divider />
                             <Box width={'100%'} >
-                                <TextField label="New password" value={newPass} autoComplete="old-pass" onChange={(e) => setNewPass(e.target.value)} fullWidth color="secondary" type={showPass.new ? 'text' : 'password'}
+                                <TextField label="New password" value={newPass} autoComplete="new-pass" onChange={(e) => setNewPass(e.target.value)} fullWidth color="secondary" type={showPass.new ? 'text' : 'password'}
                                     sx={{
                                         '& input::-ms-reveal, & input::-ms-clear': {
                                             display: 'none',

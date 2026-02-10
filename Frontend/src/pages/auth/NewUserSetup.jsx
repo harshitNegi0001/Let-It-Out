@@ -17,7 +17,7 @@ function NewUserSetup() {
     const [username, setUsername] = useState("");
     const [usernameStatus, setUsernameStatus] = useState({
         loading: false,
-        available: null, // true | false | null
+        available: null, 
         error: ""
     });
     const [showPass, setShowPass] = useState({

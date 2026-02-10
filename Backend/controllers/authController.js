@@ -6,6 +6,8 @@ import db from '../utils/db.js';
 import createToken from '../utils/createToken.js';
 import bcrypt from 'bcrypt';
 import dotenv from 'dotenv';
+import { sendEmail } from '../config/nodemailer.js';
+import { createOtpMessage } from '../utils/optMsg.js';
 
 dotenv.config();
 
@@ -167,14 +169,14 @@ class Auth {
         FROM followers
         WHERE following_id = $1 AND status ='accepted'`,
         [userId]
-      )
+      );
       const countFollowings = await db.query(
         `SELECT
         COUNT(id)
         FROM followers
         WHERE follower_id = $1 AND status ='accepted'`,
         [userId]
-      )
+      );
       const user = result.rows[0];
       const user_info = {
         id: user.id,
@@ -264,7 +266,6 @@ class Auth {
 
       if (isMatched) {
         const newHashedPass = await bcrypt.hash(newPass, 10);
-
         await db.query(`
           UPDATE users
           SET password = $1
@@ -380,17 +381,172 @@ class Auth {
           sameSite: 'none',
           maxAge: 0
         });
-        
+
         return returnRes(res, 200, { message: 'Account deleted!' });
       }
       return returnRes(res, 401, { error: 'Invalid credentials!' });
 
     } catch (err) {
-      console.log(err);
+      // console.log(err);
       return returnRes(res, 500, { error: 'Internal server error!' });
     }
   }
 
+  // Controller function to generate and send otp
+  handleForgotPassword = async (req, res) => {
+    const { email } = req.body;
+    try {
+      // check email exists.
+      const result = await db.query(
+        `SELECT 
+          1
+        FROM users
+        WHERE email=$1`,
+        [email]
+      );
+
+      const isExists = result.rows.length > 0;
+      if (isExists) {
+        // otp limit check here.
+        const otp_limit = await db.query(
+          `SELECT 
+            sent_count
+          FROM otp_table
+          WHERE email =$1
+            AND created_at :: DATE = CURRENT_DATE`,
+          [email]
+        );
+        if (otp_limit.rows.length > 0) {
+          const { sent_count } = otp_limit.rows[0];
+          if (sent_count >= 10) {
+            return returnRes(res, 400, { error: "You’ve reached today’s OTP request limit. Please try again tomorrow." });
+          }
+        }
+
+        const otp = Math.floor(100000 + Math.random() * 900000);
+        const otp_hash = await bcrypt.hash(String(otp), 10);
+        await db.query(
+          `INSERT INTO otp_table
+          (
+            email,otp_hash,expires_at,sent_count
+          )
+          VALUES(
+            $1,$2, now() + interval '10 minutes',1
+          )
+          ON CONFLICT(email)
+          DO UPDATE
+          SET 
+            otp_hash = EXCLUDED.otp_hash,
+            expires_at = EXCLUDED.expires_at,
+            created_at = now(),
+            sent_count = 
+            CASE 
+              WHEN otp_table.created_at :: DATE = CURRENT_DATE
+              THEN otp_table.sent_count+1
+              ELSE 1
+            END`,
+          [email, otp_hash]
+        );
+        const message = createOtpMessage(otp);
+        await sendEmail(email, 'Reset Password', message);
+        return returnRes(res, 200, { message: 'Otp sent to your email.' });
+      }
+      else {
+        return returnRes(res, 404, { error: 'No user found with this email.' });
+      }
+
+    } catch (err) {
+      // console.log(err);
+      return returnRes(res, 500, { error: 'Internal server error!' });
+    }
+  }
+
+  // controller function to verify otp.
+
+  verifyOtp = async (req, res) => {
+    const { email, otp } = req.body;
+    try {
+      // otp validation here.
+
+      const otp_check = await db.query(
+        `SELECT *
+        FROM otp_table
+        WHERE email = $1`,
+        [email]
+      );
+
+      if (otp_check.rows.length == 0) {
+        return returnRes(res, 400, { error: 'OTP expired or something went wrong.' });
+      }
+
+      const { otp_hash, expires_at } = otp_check.rows[0];
+      if (expires_at.getTime() < Date.now()) {
+        return returnRes(res, 400, { error: 'OTP expired' });
+      }
+      const isMatched = await bcrypt.compare(otp, otp_hash);
+      if (isMatched) {
+        return returnRes(res, 200, { message: 'OTP verified.' });
+      }
+      return returnRes(res, 400, { error: 'Wrong OTP.' });
+    } catch (err) {
+      // console.log(err);
+      return returnRes(res, 500, { error: 'Internal server error!' });
+    }
+  }
+
+  // Controller function to reset password with the help of OTP.
+  resetPassword = async (req, res) => {
+    const { email, newPassword, otp } = req.body;
+    try {
+      const otp_check = await db.query(
+        `SELECT *
+        FROM otp_table
+        WHERE email = $1`,
+        [email]
+      );
+
+      if (otp_check.rows.length == 0) {
+        return returnRes(res, 400, { error: 'OTP expired or something went wrong.' });
+      }
+
+      const { otp_hash, expires_at } = otp_check.rows[0];
+      if (expires_at.getTime() < Date.now()) {
+        return returnRes(res, 400, { error: 'OTP expired' });
+      }
+      const isMatched = await bcrypt.compare(otp, otp_hash);
+      if (isMatched) {
+        const hashed_pass = await bcrypt.hash(newPassword, 10);
+        const result = await db.query(
+          `UPDATE users
+          SET password =$1
+          WHERE email =$2
+          
+          RETURNING 
+          id `,
+          [hashed_pass, email]
+        );
+        if (result.rows.length == 0) {
+          return returnRes(res, 404, { error: 'User not found.' });
+        }
+        const userId = result.rows[0].id;
+        const userInfo = await this.getUserDetail(userId);
+        const token = createToken({ id: userId });
+        res.cookie('authToken', token, {
+          httpOnly: true,
+          maxAge: 1000 * 60 * 60 * 24 * 7,
+          sameSite: 'none',
+          secure: true
+        });
+        return returnRes(res, 200, { message: 'Password updated', userInfo: userInfo });
+
+      }
+      return returnRes(res, 400, { error: 'Wrong OTP.' });
+
+    } catch (err) {
+      // console.log(err);
+      return returnRes(res, 500, { error: 'Internal server error!' });
+    }
+  }
 }
 
 
