@@ -28,9 +28,6 @@ function App() {
 
         if (userInfo?.id) {
 
-
-
-
             socket.auth = {
                 userId: userInfo.id
             }

@@ -2,6 +2,7 @@ import { Box, Divider, IconButton, Stack, Typography } from "@mui/material";
 import { useNavigate } from "react-router-dom";
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import { useSelector } from 'react-redux';
+import { formatDate, formatTime } from "../../utils/formatDateTime";
 // import EditIcon from '@mui/icons-material/Edit';
 
 function AccInfo() {
@@ -24,7 +25,7 @@ function AccInfo() {
                     </Box>
 
 
-                    <Stack width={'100%'} spacing={2} px={3}>
+                    <Stack width={'100%'} spacing={2} px={{xs:1,sm:3}}>
                         <Box width={'100%'} sx={{ display: 'flex', justifyContent: 'space-between' }} >
                             <Typography variant="body1" fontWeight={'400'}>Name</Typography>
 
@@ -57,7 +58,7 @@ function AccInfo() {
                         <Divider />
                         <Box width={'100%'} sx={{ display: 'flex', justifyContent: 'space-between' }} >
                             <Typography variant="body1" fontWeight={'400'}>Account created</Typography>
-                            <Typography variant="body2" pl={1} color="text.secondary">{userInfo?.created_at ?? 'not availible'}</Typography>
+                            <Typography variant="body2" pl={1} color="text.secondary">{`${formatDate(userInfo?.created_at)} - ${formatTime(userInfo?.created_at)}`}</Typography>
                         </Box>
                         <Divider />
                     </Stack>
