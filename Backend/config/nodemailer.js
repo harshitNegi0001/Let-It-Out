@@ -19,9 +19,10 @@ export const sendEmail = async (email, subject, message) => {
                 rejectUnauthorized: false
             }
         });
-
+console.log('transppporter created');
         // verify transporter (helps surface auth/connection errors early)
         await transporter.verify();
+console.log('transporter verified');
 
         const info = await transporter.sendMail({
             from: process.env.OTP_SENDER_EMAIL,
@@ -29,11 +30,12 @@ export const sendEmail = async (email, subject, message) => {
             subject: subject,
             html: message
         });
-
+console.log('email,send');
         console.log('Email sent:', info.messageId);
         return info;
     } catch (err) {
         // log detailed error for server logs (Render logs will capture this)
+        console.log(err);
         console.error('sendEmail error:', err && err.message ? err.message : err);
         throw err;
     }
