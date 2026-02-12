@@ -410,21 +410,21 @@ class Auth {
       if (isExists) {
         // otp limit check here.
 
-        // const otp_limit = await db.query(
-        //   `SELECT 
-        //     sent_count
-        //   FROM otp_table
-        //   WHERE email =$1
-        //     AND created_at :: DATE = CURRENT_DATE`,
-        //   [email]
-        // );
+        const otp_limit = await db.query(
+          `SELECT 
+            sent_count
+          FROM otp_table
+          WHERE email =$1
+            AND created_at :: DATE = CURRENT_DATE`,
+          [email]
+        );
 
-        // if (otp_limit.rows.length > 0) {
-        //   const { sent_count } = otp_limit.rows[0];
-        //   if (sent_count >= 10) {
-        //     return returnRes(res, 400, { error: "You’ve reached today’s OTP request limit. Please try again tomorrow." });
-        //   }
-        // }
+        if (otp_limit.rows.length > 0) {
+          const { sent_count } = otp_limit.rows[0];
+          if (sent_count >= 10) {
+            return returnRes(res, 400, { error: "You’ve reached today’s OTP request limit. Please try again tomorrow." });
+          }
+        }
 
         const otp = Math.floor(100000 + Math.random() * 900000);
         const otp_hash = await bcrypt.hash(String(otp), 10);
