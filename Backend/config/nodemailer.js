@@ -3,22 +3,39 @@ import dotenv from 'dotenv'
 
 dotenv.config();
 
+// sendEmail will create a transporter, verify connection and send mail.
+// It logs and rethrows errors so callers can see what failed (useful on Render).
 export const sendEmail = async (email, subject, message) => {
-    const transporter = nodemailer.createTransport({
-        host:'smtp.gmail.com',
-        port:587,
-        secure:false,
-        auth:{
-            user:process.env.OTP_SENDER_EMAIL,
-            pass:process.env.OTP_SENDER_PASSWORD
-        }
-    });
+    try {
+        const transporter = nodemailer.createTransport({
+            host: 'smtp.gmail.com',
+            port: 587,
+            secure: false, // use STARTTLS
+            auth: {
+                user: process.env.OTP_SENDER_EMAIL,
+                pass: process.env.OTP_SENDER_PASSWORD
+            },
+            tls: {
+                rejectUnauthorized: false
+            }
+        });
 
-    await transporter.sendMail({
-        from:process.env.OTP_SENDER_EMAIL,
-        to:email,
-        subject:subject,
-        html:message
-    })
+        // verify transporter (helps surface auth/connection errors early)
+        await transporter.verify();
+
+        const info = await transporter.sendMail({
+            from: process.env.OTP_SENDER_EMAIL,
+            to: email,
+            subject: subject,
+            html: message
+        });
+
+        console.log('Email sent:', info.messageId);
+        return info;
+    } catch (err) {
+        // log detailed error for server logs (Render logs will capture this)
+        console.error('sendEmail error:', err && err.message ? err.message : err);
+        throw err;
+    }
 }
 
