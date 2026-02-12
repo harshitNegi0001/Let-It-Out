@@ -6,7 +6,8 @@ import db from '../utils/db.js';
 import createToken from '../utils/createToken.js';
 import bcrypt from 'bcrypt';
 import dotenv from 'dotenv';
-import { sendEmail } from '../config/nodemailer.js';
+// import { sendEmail } from '../config/nodemailer.js';
+import { sendEmail } from '../config/send_email.js';
 import { createOtpMessage } from '../utils/optMsg.js';
 
 dotenv.config();
