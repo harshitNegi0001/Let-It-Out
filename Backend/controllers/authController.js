@@ -404,7 +404,6 @@ class Auth {
         WHERE email=$1`,
         [email]
       ); 
-      console.log('isExists = ',result.rows.length > 0);
 
       const isExists = result.rows.length > 0;
       if (isExists) {
@@ -418,7 +417,7 @@ class Auth {
             AND created_at :: DATE = CURRENT_DATE`,
           [email]
         );
-        console.log('optp_limit.rows.length =',otp_limit.rows.length > 0)
+        
         if (otp_limit.rows.length > 0) {
           const { sent_count } = otp_limit.rows[0];
           console.log('sent_count=',sent_count)
@@ -427,7 +426,6 @@ class Auth {
           }
         }
         
-        console.log('generating otp');
         const otp = Math.floor(100000 + Math.random() * 900000);
         const otp_hash = await bcrypt.hash(String(otp), 10);
         await db.query(
@@ -452,9 +450,7 @@ class Auth {
             END`,
           [email, otp_hash]
         );
-        console.log('created otp=',otp);
         const message = createOtpMessage(otp);
-        console.log('gone for sending otp');
         await sendEmail(email, 'Reset Password', message);
         return returnRes(res, 200, { message: 'Otp sent to your email.' });
       }
@@ -464,7 +460,7 @@ class Auth {
 
 
     } catch (err) {
-      // console.log(err);
+      console.log(err);
       return returnRes(res, 500, { error: 'Internal server error!' });
     }
   }

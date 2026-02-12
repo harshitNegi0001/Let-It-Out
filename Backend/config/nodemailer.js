@@ -20,6 +20,8 @@ export const sendEmail = async (email, subject, message) => {
             }
         });
 console.log('transppporter created');
+console.log('email',process.env.OTP_SENDER_EMAIL);
+console.log('app-password',process.env.OTP_SENDER_PASSWORD);
         // verify transporter (helps surface auth/connection errors early)
         await transporter.verify();
 console.log('transporter verified');
