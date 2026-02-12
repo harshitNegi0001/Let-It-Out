@@ -403,7 +403,7 @@ class Auth {
         FROM users
         WHERE email=$1`,
         [email]
-      ); 
+      );
 
       const isExists = result.rows.length > 0;
       if (isExists) {
@@ -417,15 +417,14 @@ class Auth {
             AND created_at :: DATE = CURRENT_DATE`,
           [email]
         );
-        
+
         if (otp_limit.rows.length > 0) {
           const { sent_count } = otp_limit.rows[0];
-          console.log('sent_count=',sent_count)
           if (sent_count >= 10) {
             return returnRes(res, 400, { error: "You’ve reached today’s OTP request limit. Please try again tomorrow." });
           }
         }
-        
+
         const otp = Math.floor(100000 + Math.random() * 900000);
         const otp_hash = await bcrypt.hash(String(otp), 10);
         await db.query(

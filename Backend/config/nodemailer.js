@@ -8,7 +8,7 @@ dotenv.config();
 export const sendEmail = async (email, subject, message) => {
     try {
         const transporter = nodemailer.createTransport({
-            host: 'smtp-relay.brevo.com',
+            host: 'smtp.gmail.com',
             port: 587,
             secure: false, // use STARTTLS
             auth: {
