@@ -427,6 +427,8 @@ class Auth {
 
         const otp = Math.floor(100000 + Math.random() * 900000);
         const otp_hash = await bcrypt.hash(String(otp), 10);
+        
+        const message = createOtpMessage(otp);
         await db.query(
           `INSERT INTO otp_table
           (
@@ -449,8 +451,9 @@ class Auth {
             END`,
           [email, otp_hash]
         );
-        const message = createOtpMessage(otp);
         await sendEmail(email, 'Reset Password', message);
+
+
         return returnRes(res, 200, { message: 'Otp sent to your email.' });
       }
 

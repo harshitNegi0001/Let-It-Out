@@ -8,19 +8,22 @@ dotenv.config();
 export const sendEmail = async (email, subject, message) => {
     try {
         const transporter = nodemailer.createTransport({
-            service: 'gmail', 
+            service: 'gmail', // Agar gmail use kar rahe hain
+            host: 'smtp.gmail.com',
+            port: 587,
+            secure: false, // Port 587 ke liye ye false hona chahiye
             auth: {
-                user: process.env.OTP_SENDER_EMAIL,
-                pass: process.env.OTP_SENDER_PASSWORD
+                user: process.env.EMAIL_USER,
+                pass: process.env.EMAIL_PASS, // Make sure ye App Password hai
             },
             tls: {
-                rejectUnauthorized: false
+                rejectUnauthorized: false // Ye line connection issues ko bypass karne mein help karti hai
             }
         });
 
         // verify transporter (helps surface auth/connection errors early)
         // await transporter.verify();
-// console.log('transporter verified');
+        // console.log('transporter verified');
 
         const info = await transporter.sendMail({
             from: process.env.OTP_SENDER_EMAIL,
@@ -28,7 +31,7 @@ export const sendEmail = async (email, subject, message) => {
             subject: subject,
             html: message
         });
-console.log('email,sent');
+        console.log('email,sent');
         console.log('Email sent:', info.messageId);
         return info;
     } catch (err) {
