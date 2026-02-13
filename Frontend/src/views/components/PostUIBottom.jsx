@@ -9,14 +9,16 @@ import { useState, useEffect } from "react";
 import { useDispatch } from "react-redux";
 import { useLocation, useNavigate } from "react-router-dom";
 import RepostComponent from "./RepostComponent";
+import SharePostComponent from "./SharePostComponent";
 
 
-function PostUIBottom({ postData,userData }) {
+function PostUIBottom({ postData, userData }) {
     const [likeCount, setLikeCount] = useState({
         is_liked: false,
         count: 0
     });
-    const [openRepost,setOpenRepost] = useState(false);
+    const [openRepost, setOpenRepost] = useState(false);
+    const [openShare, setOpenShare] = useState(false);
 
     const dispatch = useDispatch();
 
@@ -31,9 +33,13 @@ function PostUIBottom({ postData,userData }) {
     const navigate = useNavigate();
     const location = useLocation();
 
-    const closeRepost = ()=>{
+    const closeRepost = () => {
         document.activeElement?.blur();
         setOpenRepost(false);
+    }
+    const closeShare = () => {
+        document.activeElement?.blur();
+        setOpenShare(false);
     }
 
     const handleLikeBtn = () => {
@@ -67,23 +73,29 @@ function PostUIBottom({ postData,userData }) {
                     </IconButton><Typography variant="body2" fontSize={12} component={'span'}>{postData?.comments_count || 0}</Typography>
                 </Box>
                 <Box display={'flex'} justifyContent={'center'} alignItems={'center'}>
-                    <IconButton title="shares">
+                    <IconButton title="shares" onClick={() => { setOpenShare(true) }} >
                         <ShareIcon />
 
                     </IconButton><Typography variant="body2" fontSize={12} component={'span'}>{postData?.shares_count || 0}</Typography>
                 </Box>
 
                 <Box display={'flex'} justifyContent={'center'} alignItems={'center'}>
-                    <IconButton title="repost" disabled={postData?.parent_post_data} onClick={()=>setOpenRepost(true)}>
+                    <IconButton title="repost" disabled={postData?.parent_post_data} onClick={() => setOpenRepost(true)}>
                         <RepostIcon />
 
                     </IconButton>
-                    <Typography variant="body2" fontSize={12} component={'span'}>{postData?.reposts_count||0}</Typography>
+                    <Typography variant="body2" fontSize={12} component={'span'}>{postData?.reposts_count || 0}</Typography>
                 </Box>
-                <Backdrop open={openRepost} 
-                onClick={closeRepost} 
-                sx={{ zIndex: 9999, bgcolor: '#ffffff25',backdropFilter:'blur(2px)', position: 'fixed', top: 0, left: 0  }} >
-                    <RepostComponent closeRepost={closeRepost} postData={postData} userData={userData}/>
+
+                <Backdrop open={openShare}
+                    onClick={closeRepost}
+                    sx={{ zIndex: 9999, bgcolor: '#ffffff25', backdropFilter: 'blur(2px)', position: 'fixed', top: 0, left: 0 }} >
+                    <SharePostComponent closeShare={closeShare} postData={postData} userData={userData} />
+                </Backdrop>
+                <Backdrop open={openRepost}
+                    onClick={closeRepost}
+                    sx={{ zIndex: 9999, bgcolor: '#ffffff25', backdropFilter: 'blur(2px)', position: 'fixed', top: 0, left: 0 }} >
+                    <RepostComponent closeRepost={closeRepost} postData={postData} userData={userData} />
                 </Backdrop>
             </Stack>
         </>
