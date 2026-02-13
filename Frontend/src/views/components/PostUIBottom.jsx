@@ -88,7 +88,7 @@ function PostUIBottom({ postData, userData }) {
                 </Box>
 
                 <Backdrop open={openShare}
-                    onClick={closeRepost}
+                    onClick={closeShare}
                     sx={{ zIndex: 9999, bgcolor: '#ffffff25', backdropFilter: 'blur(2px)', position: 'fixed', top: 0, left: 0 }} >
                     <SharePostComponent closeShare={closeShare} postData={postData} userData={userData} />
                 </Backdrop>

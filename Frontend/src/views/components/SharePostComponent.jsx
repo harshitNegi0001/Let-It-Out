@@ -1,13 +1,8 @@
-import { Avatar, Box, Button, Divider, FormControl, IconButton, InputLabel, MenuItem, Select, Stack, TextField, Typography } from "@mui/material";
+import { Box, Button, Divider, IconButton,  Stack,Typography } from "@mui/material";
 import CloseButton from '@mui/icons-material/Close';
-import { useDispatch, useSelector } from "react-redux";
-import { useState } from "react";
-import { timeCount } from "../../utils/formatDateTime";
-import { moods } from "../../utils/moods";
-import ImageGrid from "./ImageGrid";
-import { useEffect } from "react";
+import { useDispatch} from "react-redux";
+
 import { setState } from "../../store/authReducer/authReducer";
-import axios from "axios";
 import WhatsAppIcon from '@mui/icons-material/WhatsApp';
 import FacebookIcon from '@mui/icons-material/Facebook';
 import XIcon from '@mui/icons-material/X';
@@ -87,13 +82,15 @@ function SharePostComponent({ closeShare, postData }) {
                         border={1}
                         borderColor={'divider'}
                         bgcolor={'primary.main'} borderRadius={3}
-                        p={2}
+                        py={2}
+                        px={1}
                         sx={{
                             display: 'flex',
                             gap: 1,
-                            alignItems: 'center'
+                            alignItems: 'center',
+                            justifyContent:'center'
                         }}>
-                        <Box width={'80%'} >
+                        <Box width={'75%'} >
                             <Typography variant="body2"
                                 fontSize={{ xs: '13px', sm: '16px' }}
                                 fontWeight={'500'} color="#fff"
