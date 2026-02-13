@@ -20,6 +20,7 @@ router.post('/undo-save-post',authMiddleware,Post.undoSavePost);
 
 router.get('/get-post-info',authMiddleware,Post.getPostInfo);
 
+router.post('/increase-share-count',authMiddleware,Post.increaseShareCount);
 
 
 

@@ -19,13 +19,15 @@ function PostUIBottom({ postData, userData }) {
     });
     const [openRepost, setOpenRepost] = useState(false);
     const [openShare, setOpenShare] = useState(false);
-
+    const [shareCount,setShareCount]  = useState(0);
+    
     const dispatch = useDispatch();
 
     useEffect(() => {
 
         if (postData) {
             setLikeCount({ count: parseInt(postData?.likes_count), is_liked: postData?.is_liked });
+            setShareCount(postData?.shares_count||0);
         }
 
 
@@ -76,7 +78,7 @@ function PostUIBottom({ postData, userData }) {
                     <IconButton title="shares" onClick={() => { setOpenShare(true) }} >
                         <ShareIcon />
 
-                    </IconButton><Typography variant="body2" fontSize={12} component={'span'}>{postData?.shares_count || 0}</Typography>
+                    </IconButton><Typography variant="body2" fontSize={12} component={'span'}>{shareCount || 0}</Typography>
                 </Box>
 
                 <Box display={'flex'} justifyContent={'center'} alignItems={'center'}>
@@ -90,7 +92,7 @@ function PostUIBottom({ postData, userData }) {
                 <Backdrop open={openShare}
                     onClick={closeShare}
                     sx={{ zIndex: 9999, bgcolor: '#ffffff25', backdropFilter: 'blur(2px)', position: 'fixed', top: 0, left: 0 }} >
-                    <SharePostComponent closeShare={closeShare} postData={postData} userData={userData} />
+                    <SharePostComponent closeShare={closeShare} postData={postData} setShareCount={setShareCount} />
                 </Backdrop>
                 <Backdrop open={openRepost}
                     onClick={closeRepost}

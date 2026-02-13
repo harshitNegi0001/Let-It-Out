@@ -1,12 +1,11 @@
-import { generateCodeVerifier, generateState } from 'arctic';
-import { google } from '../utils/googleAuth.js';
-import { returnRes } from '../utils/returnRes.js';
 import axios from 'axios';
 import db from '../utils/db.js';
 import createToken from '../utils/createToken.js';
 import bcrypt from 'bcrypt';
 import dotenv from 'dotenv';
-// import { sendEmail } from '../config/nodemailer.js';
+import { generateCodeVerifier, generateState } from 'arctic';
+import { google } from '../utils/googleAuth.js';
+import { returnRes } from '../utils/returnRes.js';
 import { sendEmail } from '../config/send_email.js';
 import { createOtpMessage } from '../utils/optMsg.js';
 
@@ -20,13 +19,16 @@ class Auth {
     const { email, password } = req.body;
 
     try {
+
       const result = await db.query(`
         SELECT 
-        password,id 
+          password,
+          id 
         FROM users 
-        WHERE email=$1`
-        , [email]
+        WHERE email=$1`,
+        [email]
       );
+      
       if (result.rows.length > 0) {
         const storedPass = result.rows[0].password;
         const isValid = await bcrypt.compare(password, storedPass);
@@ -44,11 +46,9 @@ class Auth {
           return returnRes(res, 200, { message: 'Login Success', userInfo });
         }
 
-
         return returnRes(res, 401, { error: 'Wrong Email or Password' });
       }
       else {
-
         return returnRes(res, 401, { error: 'Wrong Email or Password' });
       }
     } catch (err) {
@@ -59,11 +59,10 @@ class Auth {
 
   // controller function for login through OAuth
   googleLogin = async (req, res) => {
-    // console.log('hereGoogleLogin');
     try {
-      const state = generateState();
-      const codeVerifier = generateCodeVerifier();
-      const url = google.createAuthorizationURL(state, codeVerifier, ["openid", "profile", "email"]);
+      const state = generateState(); // arctic function to generate state.
+      const codeVerifier = generateCodeVerifier(); // also an arctic function, which will generate verifier
+      const url = google.createAuthorizationURL(state, codeVerifier, ["openid", "profile", "email"]); //  
 
       res.cookie('state', state, {
         httpOnly: true,
@@ -432,7 +431,7 @@ class Auth {
         const message = createOtpMessage(otp);
 
         // await sendEmail(email, 'Reset Password', message);
-        await sendEmail(email,otp);
+        await sendEmail(email, otp);
 
         await db.query(
           `INSERT INTO otp_table

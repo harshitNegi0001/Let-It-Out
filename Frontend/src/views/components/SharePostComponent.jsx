@@ -1,16 +1,18 @@
-import { Box, Button, Divider, IconButton,  Stack,Typography } from "@mui/material";
+import { Box, Button, Divider, IconButton, Stack, Typography } from "@mui/material";
 import CloseButton from '@mui/icons-material/Close';
-import { useDispatch} from "react-redux";
+import { useDispatch } from "react-redux";
 
 import { setState } from "../../store/authReducer/authReducer";
 import WhatsAppIcon from '@mui/icons-material/WhatsApp';
 import FacebookIcon from '@mui/icons-material/Facebook';
 import XIcon from '@mui/icons-material/X';
 import MoreHorizIcon from '@mui/icons-material/MoreHoriz';
+import axios from "axios";
 
-function SharePostComponent({ closeShare, postData }) {
+function SharePostComponent({ closeShare, postData, setShareCount }) {
 
     const dispatch = useDispatch();
+    const backend_url = import.meta.env.VITE_BACKEND_URL;
     const postLink = `${window.location.origin}/p/${postData?.id}`;
     const whatsappUrl = `https://wa.me/?text=${encodeURIComponent(postLink)}`;
 
@@ -21,6 +23,7 @@ function SharePostComponent({ closeShare, postData }) {
     const copyURL = async () => {
         try {
             await navigator.clipboard.writeText(postLink);
+            increaseShare();
             dispatch(setState({ success: 'Link copied.' }));
         } catch (err) {
             // console.log(err);
@@ -35,6 +38,8 @@ function SharePostComponent({ closeShare, postData }) {
                     title: 'Check this post',
                     url: postLink
                 })
+                increaseShare();
+
             } catch (err) {
                 console.log(err);
                 dispatch(setState({ error: err?.message || 'Something went wrong.' }));
@@ -45,10 +50,33 @@ function SharePostComponent({ closeShare, postData }) {
         }
 
     }
+    const openInNewTab = (url) => {
+        window.open(url, "_blank", "noopener,noreferrer");
+        increaseShare();
+    }
 
     const closeShareComponent = () => {
 
         closeShare();
+    }
+    const increaseShare = async () => {
+        try {
+            
+            const result = await axios.post(
+                `${backend_url}/api/increase-share-count`,
+                {
+                    postId: postData?.id
+                },
+                {
+                    withCredentials: true
+                }
+            );
+
+            setShareCount(result?.data?.shares_count || 0);
+        } catch (err) {
+            console.log(err);
+
+        }
     }
 
     return (
@@ -88,7 +116,7 @@ function SharePostComponent({ closeShare, postData }) {
                             display: 'flex',
                             gap: 1,
                             alignItems: 'center',
-                            justifyContent:'center'
+                            justifyContent: 'center'
                         }}>
                         <Box width={'75%'} >
                             <Typography variant="body2"
@@ -113,9 +141,7 @@ function SharePostComponent({ closeShare, postData }) {
                                 color: '#63e73a'
                             }
                         }}
-                            component="a"
-                            href={whatsappUrl}
-                            target="_blank"
+                            onClick={() => openInNewTab(whatsappUrl)}
                         >
                             <WhatsAppIcon fontSize="large" />
                         </IconButton>
@@ -124,26 +150,18 @@ function SharePostComponent({ closeShare, postData }) {
                                 color: '#0b69f7'
                             }
                         }}
-                            component="a"
-                            href={facebookUrl}
-                            target="_blank">
+                            onClick={() => openInNewTab(facebookUrl)}
+                        >
                             <FacebookIcon fontSize="large" />
                         </IconButton>
-                        <IconButton title="X" sx={{
-                            '&:hover': {
-                                color: '#fff'
-                            }
-                        }}
-                            component="a"
-                            href={twitterUrl}
-                            target="_blank">
+                        <IconButton title="X"
+                            onClick={() => openInNewTab(twitterUrl)}
+                        >
                             <XIcon fontSize="large" />
                         </IconButton>
                         <IconButton title="More options"
                             onClick={nativeShare}
-                            sx={{
-
-                            }}>
+                        >
                             <MoreHorizIcon fontSize="large" />
                         </IconButton>
                     </Stack>

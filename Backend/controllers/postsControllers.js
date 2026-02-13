@@ -258,7 +258,7 @@ class Post {
                             'media_url', p.media_url,
                             'post_type', p.post_type,
                             'likes_count',count(l.id),
-                            'share_count', p.shares_count,
+                            'shares_count', p.shares_count,
                             'created_at', p.created_at,
                             'is_liked', EXISTS(
                                 SELECT 1
@@ -352,7 +352,7 @@ class Post {
                     WHERE l1.target_id=p.id
                         AND l1.target_type='post'
                     ),
-                    'share_count', p.shares_count,
+                    'shares_count', p.shares_count,
                     'created_at', p.created_at,
                     'is_liked', EXISTS(
                         SELECT 1
@@ -537,7 +537,7 @@ class Post {
                     WHERE l1.target_id=p.id
                         AND l1.target_type='post'
                     ),
-                    'share_count', p.shares_count,
+                    'shares_count', p.shares_count,
                     'created_at', p.created_at,
                     'is_liked', EXISTS(
                         SELECT 1
@@ -626,7 +626,7 @@ class Post {
                     WHERE l1.target_id=p.id
                         AND l1.target_type='post'
                     ),
-                    'share_count', p.shares_count,
+                    'shares_count', p.shares_count,
                     'created_at', p.created_at,
                     'is_liked', EXISTS(
                         SELECT 1
@@ -797,7 +797,7 @@ class Post {
                         'media_url', p.media_url,
                         'post_type', p.post_type,
                         'likes_count',count(l.id),
-                        'share_count', p.shares_count,
+                        'shares_count', p.shares_count,
                         'created_at', p.created_at,
                         'is_liked', EXISTS(
                             SELECT 1
@@ -892,7 +892,7 @@ class Post {
                     'media_url', p.media_url,
                     'post_type', p.post_type,
                     'likes_count',count(l.id),
-                    'share_count', p.shares_count,
+                    'shares_count', p.shares_count,
                     'created_at', p.created_at,
                     'is_liked', EXISTS(
                         SELECT 1
@@ -983,7 +983,7 @@ class Post {
                     'media_url', p.media_url,
                     'post_type', p.post_type,
                     'likes_count',count(l.id),
-                    'share_count', p.shares_count,
+                    'shares_count', p.shares_count,
                     'created_at', p.created_at,
                     'is_liked', EXISTS(
                         SELECT 1
@@ -1712,6 +1712,24 @@ class Post {
         } catch (err) {
             // console.log(err);
             return returnRes(res, 500, { error: 'Internal Server Error!' });
+        }
+    }
+
+    increaseShareCount = async(req,res)=>{
+        const {postId} = req.body;
+        try {
+            const result = await db.query(
+                `UPDATE posts
+                SET shares_count = shares_count + 1
+                WHERE id =  $1
+                RETURNING shares_count`,
+                [postId]
+            );
+            
+            return returnRes(res,200,{message:'Success',shares_count : result?.rows[0]?.shares_count});
+        } catch (err) {
+            console.log(err);
+            returnRes(res,500,{error:'Internal Server Error!'});
         }
     }
 }
