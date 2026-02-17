@@ -10,8 +10,8 @@ export const createDiaryNotesTable = async (pool) => {
                 content TEXT NOT NULL,
                 emoji_key VARCHAR(50) NOT NULL,
                 creation_date DATE NOT NULL DEFAULT CURRENT_DATE,
-                created_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMPTZ,
-                updated_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMPTZ,
+                created_at TIMESTAMPTZ DEFAULT NOW(),
+                updated_at TIMESTAMPTZ DEFAULT NOW(),
                 CONSTRAINT fk_user
                     FOREIGN KEY (user_id)
                     REFERENCES users(id)
