@@ -36,6 +36,38 @@ export const customTheme = createTheme({
             }
 
         },
+        MuiPickersDay: {
+            styleOverrides: {
+                root: ({ theme }) => ({
+                    '&.Mui-selected': {
+                        backgroundColor: theme.palette.secondary.main + ' !important',
+                        color: theme.palette.text.primary + ' !important',
+                    },
+                    '&.Mui-selected:hover': {
+                        backgroundColor: theme.palette.secondary.light + ' !important',
+                    },
+                }),
+            }
+
+        },
+        MuiDialogActions: {
+            styleOverrides: {
+                root: {
+                    '& .MuiButton-root': {
+                        color: '#6E5FAE',
+                    }
+                }
+            }
+        },
+        MuiIconButton: {
+            styleOverrides: {
+                root: {
+                    '&.MuiPickersArrowSwitcher-button': {
+                        color: '#6E5FAE',
+                    }
+                }
+            }
+        },
     }
 
 

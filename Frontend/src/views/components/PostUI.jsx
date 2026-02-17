@@ -1,13 +1,9 @@
-import { Avatar, Backdrop, Box, Button, IconButton, ListItemIcon, ListItemText, Menu, MenuItem, Stack, Typography } from "@mui/material";
+import { Box, Stack, Typography } from "@mui/material";
 
 import ImageGrid from "./ImageGrid";
 import { useState, useRef, useEffect } from "react";
 
-import { requiredAction } from "../../store/authReducer/authReducer";
 import { useLocation, useNavigate } from "react-router-dom";
-import { moods } from "../../utils/moods";
-import { deleteLikeTarget, likeTarget, savePost, undoSavedPost } from "../../utils/postOperations";
-import { timeCount } from "../../utils/formatDateTime";
 import PostUIHeader from "./PostUIHeader";
 import PostUIBottom from "./PostUIBottom";
 import FullPageImage from "./FullPageImage";
@@ -18,7 +14,7 @@ import RepostedParent from "./RepostedParent";
 
 
 
-function PostUI({ followed = false, postData, userData }) {
+function PostUI({ postData, userData }) {
 
     const [hidePost, setHidePost] = useState({
         isHidden: false,
@@ -93,7 +89,7 @@ function PostUI({ followed = false, postData, userData }) {
                         {
                             postData?.parent_post_data &&
                             <>
-                                <RepostedParent userData={postData?.parent_post_data?.user_data } postData={postData?.parent_post_data?.post_data }/>
+                                <RepostedParent userData={postData?.parent_post_data?.user_data} postData={postData?.parent_post_data?.post_data} />
                             </>
                         }
                     </Box>

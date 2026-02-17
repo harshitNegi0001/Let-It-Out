@@ -9,12 +9,12 @@ import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
 import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
 import { DatePicker } from '@mui/x-date-pickers/DatePicker';
 import axios from 'axios';
-import {  setState } from "../store/authReducer/authReducer";
+import { setState } from "../store/authReducer/authReducer";
 import { useNavigate } from "react-router-dom";
 
 function EditProfile() {
     const { userInfo } = useSelector(state => state.auth);
-    const [isLoading,setIsLoading] = useState(false);
+    const [isLoading, setIsLoading] = useState(false);
     const coverImgInput = useRef(null);
     const navigate = useNavigate();
     const dispatch = useDispatch();
@@ -23,15 +23,15 @@ function EditProfile() {
     const [profileImage, setProfileImage] = useState(userInfo?.image || "");
     const backend_url = import.meta.env.VITE_BACKEND_URL;
     const [progressUpload, setProgressUpload] = useState(0);
-    const [userBasicDetail,setUserBasicDetail] = useState({
-        fake_name:userInfo?.fake_name??userInfo?.name,
-        bio:userInfo?.bio??"",
-        dob:userInfo?.dob??""
+    const [userBasicDetail, setUserBasicDetail] = useState({
+        fake_name: userInfo?.fake_name ?? userInfo?.name,
+        bio: userInfo?.bio ?? "",
+        dob: userInfo?.dob ?? ""
     });
-    
 
-    const handleUserInfoChange = async(event)=>{
-        setUserBasicDetail(prev=>({...prev,[event.target.name]:event.target.value}));
+
+    const handleUserInfoChange = async (event) => {
+        setUserBasicDetail(prev => ({ ...prev, [event.target.name]: event.target.value }));
     }
     const handleImageChange = async (file, type) => {
 
@@ -43,8 +43,8 @@ function EditProfile() {
             setProgressUpload(40);
             setIsLoading(true);
             const result = await axios.post(`${backend_url}/api/upload/image`, formData, {
-                
-                withCredentials:true,
+
+                withCredentials: true,
                 onUploadProgress: (progressEvent) => {
                     const precent = Math.round((progressEvent.loaded * 100) / progressEvent.total);
                     setProgressUpload(precent);
@@ -61,32 +61,32 @@ function EditProfile() {
         }
         catch (err) {
             setIsLoading(false);
-            dispatch(setState({error:err?.response?.data?.error||'Something Went Wrong, please try again.'}));
+            dispatch(setState({ error: err?.response?.data?.error || 'Something Went Wrong, please try again.' }));
             console.log(err?.response?.data?.error);
         }
     }
 
-    const handleSubmit = async()=>{
+    const handleSubmit = async () => {
         //validation and error handling here....
 
-        try{
+        try {
             setIsLoading(true);
 
-            const result = await axios.post(`${backend_url}/api/update/my-profile`,{coverImage,profileImage,userBasicDetail},{
-                withCredentials:true,
-                headers:{"Content-Type":"application/json"}
+            const result = await axios.post(`${backend_url}/api/update/my-profile`, { coverImage, profileImage, userBasicDetail }, {
+                withCredentials: true,
+                headers: { "Content-Type": "application/json" }
             });
 
             setIsLoading(false);
-            
-            dispatch(setState({userInfo:result.data.userInfo,success:"Profile updated."}));
+
+            dispatch(setState({ userInfo: result.data.userInfo, success: "Profile updated." }));
             navigate('/settings');
-            
+
 
         }
-        catch(err){
+        catch (err) {
             setIsLoading(false);
-            dispatch(setState({error:err?.response?.data?.error||"Something went wrong!"}));
+            dispatch(setState({ error: err?.response?.data?.error || "Something went wrong!" }));
             console.log(err?.response?.data?.error);
         }
     }
@@ -98,10 +98,10 @@ function EditProfile() {
 
                     <Box position={'relative'} width={'100%'} sx={{ aspectRatio: '3/1' }}>
                         {Boolean(coverImage) ? <img src={coverImage} style={{ width: '100%', aspectRatio: '3/1', objectFit: 'cover' }} alt="" /> : <Box width={'100%'} sx={{ aspectRatio: '3/1' }}></Box>}
-                        {!Boolean(coverImage)&&<Divider />}
+                        {!Boolean(coverImage) && <Divider />}
                         <input type="file" ref={coverImgInput} name="" id="change-cover-img" hidden accept='image/*' onChange={(e) => handleImageChange(e.target.files[0], "cover")} />
 
-                        <IconButton sx={{ position: 'absolute', top: '0', right: '0', width: '45px', height: '45px' ,bgcolor:'#221c387e','&:hover':{bgcolor:'#221c389f'}}} title="Add image" onClick={() => coverImgInput.current.click()}> <EditIcon fontSize="small" /> </IconButton>
+                        <IconButton sx={{ position: 'absolute', top: '0', right: '0', width: '45px', height: '45px', bgcolor: '#221c387e', '&:hover': { bgcolor: '#221c389f' } }} title="Add image" onClick={() => coverImgInput.current.click()}> <EditIcon fontSize="small" /> </IconButton>
                         <Box sx={{ width: { sm: '150px', xs: '70px' }, height: { sm: '150px', xs: '70px' }, bottom: { sm: '-60px', xs: '-30px' }, borderRadius: '90px', position: 'absolute', zIndex: '1', display: 'flex', justifyContent: 'center', alignItems: 'center', overflow: 'hidden', left: '20px', border: '3px solid #1E1B29' }}>
                             <Box sx={{ width: '100%', height: '100%', position: 'relative' }}>
                                 {Boolean(profileImage) ? <img src={profileImage} style={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: '90px' }} alt="" /> : <Avatar sx={{ width: '100%', height: '100%' }}></Avatar>}
@@ -124,7 +124,14 @@ function EditProfile() {
                             </Box>
                             <LocalizationProvider dateAdapter={AdapterDayjs}>
                                 <DemoContainer components={['DatePicker']}>
-                                    <DatePicker value={ userBasicDetail?.dob? dayjs(userBasicDetail.dob, "YYYY-MM-DD"):null} onChange={(newValue)=>setUserBasicDetail(prev=>({...prev,dob:newValue?newValue.format("YYYY-MM-DD"):null}))} name="dob" slotProps={{ textField: { color: 'secondary', fullWidth: true, helperText: 'Enter your date of birth' } }} label="Date of Birth" />
+                                    <DatePicker
+                                        value={userBasicDetail?.dob ? dayjs(userBasicDetail.dob, "YYYY-MM-DD") : null}
+                                        onChange={(newValue) => setUserBasicDetail(prev => ({ ...prev, dob: newValue ? newValue.format("YYYY-MM-DD") : null }))}
+                                        name="dob"
+                                        format="DD/MM/YYYY"
+
+                                        slotProps={{ textField: { color: 'secondary', fullWidth: true, helperText: 'Enter your date of birth' } }}
+                                        label="Date of Birth" />
                                 </DemoContainer>
                             </LocalizationProvider>
                         </Box>

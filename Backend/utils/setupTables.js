@@ -2,6 +2,7 @@ import { createBlockedAccTable } from "../schema/blockedTable.js";
 import { createBookmarksTable } from "../schema/bookmarkTable.js";
 import { createCommentsTable } from "../schema/commentsTable.js";
 import { createUsersTable } from "../schema/createUsers.js";
+import { createDiaryNotesTable } from "../schema/diaryNotesTable.js";
 import { createFollowersTable } from "../schema/FollowersTable.js";
 import { createLikesTable } from "../schema/likesTable.js";
 import { createMessagesTable } from "../schema/messagesTable.js";
@@ -28,4 +29,5 @@ export default async function setupTables() {
     await createNotInterestedPostTable(pool);
     await createNotificationTable(pool);
     await createOtpTable(pool);
+    await createDiaryNotesTable(pool);
 }

@@ -160,7 +160,7 @@ export default function Bookmarked({ userData, scrollRef }) {
                             No posts yet.
                         </Typography>
                         <Typography variant="body2" fontSize={{ xs: '13px', sm: '16px' }} color="text.primary" textAlign={'center'}>
-                            There are no posts saved from this profile yet.y
+                            There are no posts saved from this profile yet.
                         </Typography>
 
                         <Box sx={{ display: 'flex', flexDirection: "column", gap: 1 }} >
