@@ -7,20 +7,24 @@ import axios from "axios";
 import { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import ChevronRightIcon from '@mui/icons-material/ChevronRight';
-
+import { emojis } from "../utils/emoji.js";
+import { formatDate } from "../utils/formatDateTime.js";
 
 
 function LayoutExplore() {
 
     const [isLoading, setIsLoading] = useState(false);
+    const [loadingDiary, setLoadingDiary] = useState(false);
     const [newUsersList, setNewUsersList] = useState([]);
     const [searchValue, setSearchValue] = useState('');
+    const [notesList, setNotesList] = useState([]);
     const backend_url = import.meta.env.VITE_BACKEND_URL;
     const navigate = useNavigate();
     const dispatch = useDispatch();
 
     useEffect(() => {
         getNewUsers();
+        getDiaryNotes();
     }, [])
 
     const handleSearch = (e) => {
@@ -29,6 +33,12 @@ function LayoutExplore() {
             return;
         }
         navigate(`/search/${searchValue}`);
+    }
+    const createEmoji = (key) => {
+        const emojiObj = emojis.find(e => e.key == key);
+        if (emojiObj) {
+            return emojiObj.value;
+        }
     }
     const getNewUsers = async () => {
         try {
@@ -45,6 +55,24 @@ function LayoutExplore() {
         } catch (err) {
             // console.log(err);
             setIsLoading(false);
+            dispatch(setState({ error: err?.response?.data?.error || 'Something went wrong!' }));
+        }
+    }
+    const getDiaryNotes = async () => {
+        try {
+            setLoadingDiary(true);
+            const result = await axios.get(
+                `${backend_url}/diary/get-my-diary?limit=5`,
+                {
+                    withCredentials: true
+                }
+            );
+
+            setLoadingDiary(false);
+            setNotesList(result?.data?.notesList || []);
+        }
+        catch (err) {
+            setLoadingDiary(false);
             dispatch(setState({ error: err?.response?.data?.error || 'Something went wrong!' }));
         }
     }
@@ -143,13 +171,84 @@ function LayoutExplore() {
                         }}>
                         <Typography variant='body1' fontSize={'18px'} color="text.primary" component={'div'}>Your diary</Typography>
                         <Button size="small"
-                        endIcon={<ChevronRightIcon sx={{fontSize:'16px'}} />}
-                         variant="text" color="secondary" onClick={() => navigate('/personal-diary')}>
+                            endIcon={<ChevronRightIcon sx={{ fontSize: '16px' }} />}
+                            variant="text" color="secondary" onClick={() => navigate('/personal-diary')}>
                             View
-                            </Button>
+                        </Button>
                     </Box>
                     <Stack direction={'column'} width={'100%'} spacing={1}>
-                        <Box width={'100%'}
+                        {
+                            loadingDiary ? [1, 2, 3].map(i =>
+                                <Box key={i}
+                                    width={'100%'} height={'40px'} >
+                                    <Skeleton width={'100%'}
+                                        variant="rounded"
+                                        height={'100%'}>
+
+                                    </Skeleton>
+                                </Box>
+                            ) :
+                                notesList?.slice(0, 3)?.map(n =>
+                                    <Box key={n.id}
+                                        width={'100%'}
+                                        border={'1px solid white'}
+                                        bgcolor={'divider'}
+                                        borderRadius={2}
+                                        p={1} px={2}
+                                        onClick={() => navigate(`/personal-diary/note/${n.id}`)}
+                                        sx={{
+                                            display: 'flex',
+                                            gap: 1,
+                                            alignItems: 'center',
+                                            cursor: 'pointer',
+                                            '&:hover': {
+                                                bgcolor: '#322d4b80',
+                                                borderColor:'#322d4b'
+                                            },
+                                        }}>
+                                        <Box width={'calc(100% - 40px)'}
+                                            sx={{
+                                                display: 'flex',
+                                                flexDirection: 'column',
+                                                gap: '4px',
+                                            }}>
+                                            <Typography variant="body2"
+                                                color="text.secondary"
+                                                width={'100%'}
+                                                noWrap textOverflow={'ellipsis'}
+                                                fontSize={'11px'}
+                                                >
+                                                {formatDate(n.creation_date)}
+                                            </Typography>
+                                            <Typography variant="body2"
+                                                color="text.primary"
+                                                width={'100%'}
+                                                noWrap textOverflow={'ellipsis'}
+                                                fontSize={'14px'}
+                                                fontWeight={'500'}>
+                                                {n.title}
+                                            </Typography>
+                                            <Typography variant="body2"
+                                                color="text.secondary"
+                                                width={'100%'}
+                                                noWrap textOverflow={'ellipsis'}
+                                                fontSize={'11px'}
+                                                >
+                                                {n.content}
+                                            </Typography>
+
+                                        </Box>
+
+                                        <img src={createEmoji(n.emoji_key)} alt=""
+                                            style={{
+                                                width: '25px',
+                                                objectFit: 'contain'
+                                            }} />
+                                    </Box>
+                                )
+
+                        }
+                        {!loadingDiary && notesList.length === 0 && <Box width={'100%'}
                             sx={{
                                 display: 'flex',
                                 flexDirection: 'column',
@@ -172,7 +271,7 @@ function LayoutExplore() {
                             <Typography variant="body2" fontSize={'12px'} color="text.secondary" textAlign={'center'} >
                                 Start writing your thoughts and feelings, and they will appear here.
                             </Typography>
-                        </Box>
+                        </Box>}
 
                     </Stack>
                 </Box>

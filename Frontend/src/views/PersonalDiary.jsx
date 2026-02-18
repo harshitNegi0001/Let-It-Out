@@ -6,6 +6,7 @@ import { useEffect, useRef, useState } from "react";
 import { useDispatch } from "react-redux";
 import { setState } from "../store/authReducer/authReducer";
 import axios from "axios";
+import { formatDate } from "../utils/formatDateTime";
 
 function PersonalDiary() {
 
@@ -126,7 +127,11 @@ function PersonalDiary() {
                             {
                                 notesList.map((n) =>
                                     <Box width={'100%'} key={n.id}
-                                        onClick={() => navigate(`/personal-diary/note/${n.id}`)}
+                                        onClick={() => navigate(`/personal-diary/note/${n.id}`, {
+                                            state: {
+                                                noteData: n
+                                            }
+                                        })}
                                         sx={{
                                             display: 'flex',
                                             justifyContent: 'space-between',
@@ -135,11 +140,14 @@ function PersonalDiary() {
                                             borderRadius: 3,
                                             p: { xs: 1, sm: 2 },
                                             bgcolor: 'divider',
-                                            border:'2px solid #fff',
+                                            border: '2px solid #fff',
                                             '&:hover': {
-                                                bgcolor: '#31236e80',
+                                                bgcolor: '#322d4b80',
+                                                borderColor:'#322d4b'
+
                                             },
-                                            
+                                            cursor: 'pointer',
+
 
                                         }}>
                                         <Box width={'calc(100% - 65px)'} sx={{ display: 'flex', flexDirection: "column", gap: '4px' }}  >
@@ -153,7 +161,7 @@ function PersonalDiary() {
                                                     fontSize={{ xs: '16px', sm: '20px' }} color="#fff"
                                                     fontWeight={'bold'} width={'100%'}
                                                     noWrap textOverflow={'ellipsis'} >
-                                                    {n.creation_date}
+                                                    {formatDate(n.creation_date)}
                                                 </Typography>
 
                                             </Box>

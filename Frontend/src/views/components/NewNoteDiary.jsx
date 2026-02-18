@@ -14,7 +14,7 @@ import { setState } from "../../store/authReducer/authReducer";
 import axios from "axios";
 
 export default function NewNoteDiary() {
-    const [date, setDate] = useState('');
+    const [date, setDate] = useState(new Date().toISOString().split('T')[0]);
     const [selectedEmoji, setSelectedEmoji] = useState(emojis[0].key);
     const [noteTitle, setNoteTitle] = useState('');
     const [noteContent, setNoteContent] = useState('');
@@ -34,7 +34,7 @@ export default function NewNoteDiary() {
             )
             return;
         }
-       
+
         try {
             setIsLoading(true);
             const result = await axios.post(
@@ -50,7 +50,7 @@ export default function NewNoteDiary() {
             )
             setIsLoading(false);
             dispatch(setState({
-                success:'Note created successfully!'
+                success: 'Note created successfully!'
             }));
             navigate('/personal-diary')
         } catch (err) {
@@ -101,7 +101,7 @@ export default function NewNoteDiary() {
                             alignItems: 'end',
                         }}>
                         <LocalizationProvider dateAdapter={AdapterDayjs}>
-                            <DatePicker value={date ? dayjs(date, "DD-MM-YYYY") : null} onChange={(newValue) => setDate(newValue ? newValue.format("DD-MM-YYYY") : null)} name="not-date"
+                            <DatePicker value={date ? dayjs(date, "YYYY-MM-DD") : null} onChange={(newValue) => setDate(newValue ? newValue.format("YYYY-MM-DD") : null)} name="not-date"
                                 format="DD/MM/YYYY"
                                 slotProps={{
                                     textField: {
@@ -153,7 +153,25 @@ export default function NewNoteDiary() {
                         onChange={(e) => setNoteTitle(e.target.value)}
                         variant="standard"
                         color="secondary"
-                        label="Title">
+                        label="Title"
+                        helperText={`${noteTitle.length}/200`}
+                        slotProps={{
+                            htmlInput: {
+                                maxLength: 255
+                            }
+                        }}
+                        sx={{
+                            '& input': {
+                                fontSize: { xs: '14px', sm: '18px' }
+                            },
+                            '& .MuiFormHelperText-root': {
+                                fontSize: { xs: '8px', sm: '10px' },
+                                lineHeight: 1,
+                                marginTop: '4px',
+                                textAlign: 'end'
+                            }
+                        }}
+                    >
 
                     </TextField>
                     <TextField fullWidth
@@ -163,7 +181,25 @@ export default function NewNoteDiary() {
                         multiline
                         color="secondary"
                         label="Content"
-                        placeholder="Write your thoughts here...">
+                        placeholder="Write your thoughts here..."
+
+                        helperText={`${noteContent.length}/3000`}
+                        slotProps={{
+                            htmlInput: {
+                                maxLength: 3000
+                            }
+                        }}
+                        sx={{
+                            '& input': {
+                                fontSize: { xs: '14px', sm: '18px' }
+                            },
+                            '& .MuiFormHelperText-root': {
+                                fontSize: { xs: '8px', sm: '10px' },
+                                lineHeight: 1,
+                                marginTop: '4px',
+                                textAlign: 'end'
+                            }
+                        }}>
 
                     </TextField>
                 </Box>
