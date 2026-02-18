@@ -42,9 +42,10 @@ export const customTheme = createTheme({
                     '&.Mui-selected': {
                         backgroundColor: theme.palette.secondary.main + ' !important',
                         color: theme.palette.text.primary + ' !important',
+                        
                     },
                     '&.Mui-selected:hover': {
-                        backgroundColor: theme.palette.secondary.light + ' !important',
+                        backgroundColor: theme.palette.secondary.dark + ' !important',
                     },
                 }),
             }

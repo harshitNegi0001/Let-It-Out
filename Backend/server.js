@@ -4,6 +4,7 @@ import authRoute from './routes/authRoute.js';
 import postRoute from './routes/postRoute.js';
 import likeRoute from './routes/likesRoute.js';
 import commentRoute from './routes/commentRoute.js';
+import diaryRoute from './routes/diaryRoute.js';
 import reportRoute from './routes/reportRoute.js';
 import connectionRoute from './routes/ConnectionRoute.js';
 import msgRoute from './routes/messagesRoute.js';
@@ -35,6 +36,8 @@ app.use('/report', reportRoute);
 app.use('/msg', msgRoute);
 app.use('/api', postRoute);
 app.use('/api', connectionRoute);
+app.use('/diary', diaryRoute);
+
 
 
 app.use('/api', userProfileRoute);

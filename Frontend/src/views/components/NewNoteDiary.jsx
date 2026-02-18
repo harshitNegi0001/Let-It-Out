@@ -9,15 +9,60 @@ import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
 import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
 import { DatePicker } from '@mui/x-date-pickers/DatePicker';
 import dayjs from "dayjs";
+import { useDispatch } from "react-redux";
+import { setState } from "../../store/authReducer/authReducer";
+import axios from "axios";
 
 export default function NewNoteDiary() {
-    const [date, setDate] = useState(new Date().toISOString().split('T')[0]);
+    const [date, setDate] = useState('');
     const [selectedEmoji, setSelectedEmoji] = useState(emojis[0].key);
     const [noteTitle, setNoteTitle] = useState('');
     const [noteContent, setNoteContent] = useState('');
     const [isLoading, setIsLoading] = useState(false);
 
     const navigate = useNavigate();
+    const backend_url = import.meta.env.VITE_BACKEND_URL;
+    const dispatch = useDispatch();
+
+
+    const saveNote = async () => {
+        if (!noteTitle.trim() || !noteContent.trim()) {
+            dispatch(
+                setState({
+                    error: 'Title and content cannot be empty!'
+                })
+            )
+            return;
+        }
+       
+        try {
+            setIsLoading(true);
+            const result = await axios.post(
+                `${backend_url}/diary/create-note`,
+                {
+                    title: noteTitle.trim(),
+                    content: noteContent.trim(),
+                    emoji_key: selectedEmoji,
+                    date: date
+                }, {
+                withCredentials: true,
+            }
+            )
+            setIsLoading(false);
+            dispatch(setState({
+                success:'Note created successfully!'
+            }));
+            navigate('/personal-diary')
+        } catch (err) {
+            setIsLoading(false);
+            dispatch(
+                setState({
+                    error: err?.response?.data?.error || 'Failed to create note. Please try again.'
+                })
+            );
+            console.log(err);
+        }
+    }
 
     return (
         <Stack width={'100%'}
@@ -34,7 +79,8 @@ export default function NewNoteDiary() {
                         <ArrowBackIcon />
                     </IconButton>
                     <Button variant="contained"
-                    loading={isLoading}
+                        onClick={saveNote}
+                        loading={isLoading}
                         color="secondary" size="small">
                         Save
                     </Button>
@@ -55,8 +101,7 @@ export default function NewNoteDiary() {
                             alignItems: 'end',
                         }}>
                         <LocalizationProvider dateAdapter={AdapterDayjs}>
-                            {/* <DemoContainer components={['DatePicker']}> */}
-                            <DatePicker value={date ? dayjs(date, "YYYY-MM-DD") : null} onChange={(newValue) => setDate(newValue ? newValue.format("YYYY-MM-DD") : null)} name="not-date"
+                            <DatePicker value={date ? dayjs(date, "DD-MM-YYYY") : null} onChange={(newValue) => setDate(newValue ? newValue.format("DD-MM-YYYY") : null)} name="not-date"
                                 format="DD/MM/YYYY"
                                 slotProps={{
                                     textField: {
@@ -73,8 +118,6 @@ export default function NewNoteDiary() {
                                 slots={{
                                     openPickerIcon: KeyboardArrowDownIcon
                                 }} />
-                            {/* </DemoContainer> */}
-                            {/* mood */}
                         </LocalizationProvider>
                         < Box width={'70px'}>
                             <FormControl fullWidth>

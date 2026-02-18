@@ -9,7 +9,7 @@ export const createDiaryNotesTable = async (pool) => {
                 title VARCHAR(255) NOT NULL,
                 content TEXT NOT NULL,
                 emoji_key VARCHAR(50) NOT NULL,
-                creation_date DATE NOT NULL DEFAULT CURRENT_DATE,
+                creation_date TEXT NOT NULL ,
                 created_at TIMESTAMPTZ DEFAULT NOW(),
                 updated_at TIMESTAMPTZ DEFAULT NOW(),
                 CONSTRAINT fk_user
