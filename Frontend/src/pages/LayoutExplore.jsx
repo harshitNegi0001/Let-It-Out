@@ -117,7 +117,6 @@ function LayoutExplore() {
                                     </Box>
                                     <Box width={'50px'} sx={{ display: 'flex', alignItems: 'center' }}>
                                         <Skeleton variant="rounded" width={'100%'} />
-
                                     </Box>
                                 </Box>
 
@@ -195,7 +194,7 @@ function LayoutExplore() {
                                         bgcolor={'divider'}
                                         borderRadius={2}
                                         p={1} px={2}
-                                        onClick={() => navigate(`/personal-diary/note/${n.id}`)}
+                                        onClick={() => navigate(`/personal-diary/note/${n.id}`,{state:{noteData:n}})}
                                         sx={{
                                             display: 'flex',
                                             gap: 1,
