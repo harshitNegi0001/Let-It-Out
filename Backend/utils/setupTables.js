@@ -1,5 +1,6 @@
 import { createBlockedAccTable } from "../schema/blockedTable.js";
 import { createBookmarksTable } from "../schema/bookmarkTable.js";
+import { createChatWithSIATable } from "../schema/chatWithSIATable.js";
 import { createCommentsTable } from "../schema/commentsTable.js";
 import { createUsersTable } from "../schema/createUsers.js";
 import { createDiaryNotesTable } from "../schema/diaryNotesTable.js";
@@ -30,4 +31,5 @@ export default async function setupTables() {
     await createNotificationTable(pool);
     await createOtpTable(pool);
     await createDiaryNotesTable(pool);
+    await createChatWithSIATable(pool);
 }

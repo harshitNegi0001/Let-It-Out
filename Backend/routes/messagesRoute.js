@@ -13,5 +13,6 @@ router.post('/send-message',authMiddleware,Messages.sendMessage);
 router.get('/get-unread-chatid',authMiddleware,Messages.getUnreadChatId);
 
 router.post('/chat-with-sia',authMiddleware,Messages.chatWithSia);
+router.get('/get-messages-with-sia',authMiddleware,Messages.getMessagesWithSia);
 
 export default router;

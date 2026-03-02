@@ -65,7 +65,7 @@ function Messages() {
     const [isLoading, setIsLoading] = useState(false);
 
     const backend_url = import.meta.env.VITE_BACKEND_URL;
-    
+
 
     useEffect(() => {
         dispatch(setPage('chat'));
@@ -176,13 +176,17 @@ function Messages() {
                     <IconButton onClick={() => navigate('/new-chat')} size="large" title="New chat" sx={{ bgcolor: 'secondary.main', position: 'absolute', zIndex: 99, bottom: '15px', right: '15px', '&:hover': { bgcolor: 'secondary.dark', color: 'text.secondary' } }}>
                         <AddCommentIcon />
                     </IconButton>
-                    <IconButton onClick={() => navigate(`/personal-diary`)} size="large" title="Personal Diary" sx={{ bgcolor: 'secondary.main', position: 'absolute', zIndex: 99, bottom: '75px', right: '15px', '&:hover': { bgcolor: 'secondary.dark', color: 'text.secondary' } }}>
-                        <img src="https://res.cloudinary.com/dns5lxuvy/image/upload/v1771324805/akguodlvbcxd9m9byllq.png" alt="Personal-diary" 
-                        style={{
-                            width:'24px',
-                            height:'24px',
-                        }}/>
+                    <IconButton onClick={() => navigate('/chat-with-SIA')} size="small" title="Chat with SIA" sx={{ bgcolor: 'secondary.main', position: 'absolute', zIndex: 99, bottom: '70px', right: '15px', '&:hover': { bgcolor: 'secondary.dark', color: 'text.secondary' } }}>
+                      <Avatar sx={{ width: '40px', height: '40px',color:'text.primary',bgcolor:'#00000000',fontFamily:'Winky Rough' }}   alt="SIA" > Sia </Avatar>
                     </IconButton>
+                    <IconButton onClick={() => navigate(`/personal-diary`)} size="large" title="Personal Diary" sx={{ bgcolor: 'secondary.main', position: 'absolute', zIndex: 99, bottom: '130px', right: '15px', '&:hover': { bgcolor: 'secondary.dark', color: 'text.secondary' } }}>
+                        <img src="https://res.cloudinary.com/dns5lxuvy/image/upload/v1771324805/akguodlvbcxd9m9byllq.png" alt="Personal-diary"
+                            style={{
+                                width: '24px',
+                                height: '24px',
+                            }} />
+                    </IconButton>
+                    
                     <Box width={'100%'} sx={{ display: 'flex', flexDirection: "column", gap: '4px' }} p={1} pb={2} >
                         <Typography variant="h6" fontSize={{ xs: '24px', sm: '28px' }} color="#fff">
                             Messages

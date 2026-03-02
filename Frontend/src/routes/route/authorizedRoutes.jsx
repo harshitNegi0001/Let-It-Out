@@ -27,6 +27,7 @@ const FullPagePost = lazy(() => import('../../views/FullPagePost.jsx'));
 const PersonalDiary = lazy(() => import('../../views/PersonalDiary.jsx'));
 const NewNoteDiary = lazy(() => import('../../views/components/NewNoteDiary.jsx'));
 const NotePageDiary = lazy(() => import('../../views/components/NotePageDiary.jsx'));
+const ChatWithSia = lazy(() => import('../../views/ChatWithSia.jsx'));
 
 
 
@@ -51,6 +52,11 @@ export const authorizedRoutes = [
     {
         path: '/chats/:username',
         element: <Messages />,
+        needAuth: true
+    },
+    {
+        path: '/chat-with-SIA',
+        element: <ChatWithSia />,
         needAuth: true
     },
     {

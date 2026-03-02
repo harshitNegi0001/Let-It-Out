@@ -1,7 +1,7 @@
 import { returnRes } from "../utils/returnRes.js";
 import db from '../utils/db.js';
 import { io, userSocketMap } from '../utils/io.js';
-import { generativeModel } from "../config/gemini_setup.js";
+import {  getSiaResponse } from "../config/gemini_setup.js";
 
 
 class Messages {
@@ -321,18 +321,85 @@ class Messages {
         const { message } = req.body;
         const userId = req.id;
         try {
-            // await db.query(
-            //     ``,
-            //     []
-            // );
-            const result = await generativeModel.generateContent(message);
-            const response = await result.response;
+            const historyData = await db.query(
+                `SELECT
+                    wrote_by,
+                    message,
+                    created_at
+                FROM chat_with_sia
+                WHERE user_id = $1
+                ORDER BY id DESC
+                LIMIT 50`,
+                [userId]
+            );
+            const chatHistory = historyData.rows.reverse().map(msg=>({
+                role:msg.wrote_by === 'user' ? 'user' : 'model',
+                parts:[{ text: msg.message }]
+            }))
+            // const chat =  generativeModel.startChat({
+            //     history:chatHistory
+            // });
+            // const result = await chat.sendMessage(message)
+            // const response = await result.response;
+            
+            const response = await getSiaResponse(message,chatHistory);
 
+            await db.query(
+                `INSERT INTO chat_with_sia
+                (
+                    user_id,
+                    wrote_by,
+                    message
+                )
+                
+                VALUES
+                    (
+                        $1,'user',$2
+                    ),
+                    (
+                        $1,'sia',$3
+                    )
+                ;
+                `,
+                [userId,message,response]
+            );
+
+            const replyMessage={
+                id : `temp-id-${Date.now()}`,
+                message:response,
+                wrote_by:'sia',
+                created_at: new Date().toISOString()
+            }
             return returnRes(res, 200, {
-                reply: response.text(),
+                reply: response,
+                replyMessage,
                 message: 'success'
             })
 
+        } catch (err) {
+            console.log(err);
+            return returnRes(res, 500, { error: 'Internal Server Error!' });
+        }
+    }
+
+
+    getMessagesWithSia =async (req,res)=>{
+        const userId = req.id;
+        const {lastMessageId,limit} = req.query;
+
+        try {
+            const result =await db.query(
+                `SELECT *
+                FROM chat_with_sia
+                WHERE user_id =$1
+                    AND ($2::BIGINT IS NULL OR id<$2)
+                ORDER BY id DESC
+                LIMIT $3
+                `,
+                [userId,lastMessageId,limit]
+            )
+
+            return returnRes(res, 200, { messagesList: result.rows });
         } catch (err) {
             console.log(err);
             return returnRes(res, 500, { error: 'Internal Server Error!' });
