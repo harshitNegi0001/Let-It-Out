@@ -174,7 +174,7 @@ function NewUserSetup() {
     }
     return (
         <>
-            <Stack width={'100vw'} height={'100vh'} sx={{ justifyContent: 'center', position: 'relative', alignItems: 'center' }} >
+            <Stack width={'100vw'} height={'100dvh'} sx={{ justifyContent: 'center', position: 'relative', alignItems: 'center' }} >
                 {(progressUpload > 0 && progressUpload < 100) && <LinearProgress color="info" variant='determinate' sx={{ position: 'absolute', top: 0 }} value={progressUpload}></LinearProgress>}
                 <Stack width={'100%'} height={'100%'} overflow={'scroll'} p={2} alignItems={'center'}>
                     <Box width={'100%'} maxWidth={'450px'} mb={3} sx={{ display: 'flex', flexDirection: 'column', alignItems: 'start' }}>

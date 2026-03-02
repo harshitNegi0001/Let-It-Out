@@ -47,7 +47,7 @@ function DeactiveAccount() {
     return (
 
 
-        <Stack width={'100vw'} height={'100vh'} alignItems={'center'} p={2} overflow={'scroll'}>
+        <Stack width={'100vw'} height={'100dvh'} alignItems={'center'} p={2} overflow={'scroll'}>
 
             <Stack width={'100%'} maxWidth={'600px'} alignItems={'center'} spacing={1} >
                 <Box sx={{ display: 'flex', alignItems: 'center' }}>

@@ -12,6 +12,6 @@ router.get('/get-connected-users',authMiddleware,Messages.getConnectedUsers);
 router.post('/send-message',authMiddleware,Messages.sendMessage);
 router.get('/get-unread-chatid',authMiddleware,Messages.getUnreadChatId);
 
-
+router.post('/chat-with-sia',authMiddleware,Messages.chatWithSia);
 
 export default router;

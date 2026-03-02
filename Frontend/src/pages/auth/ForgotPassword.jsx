@@ -18,7 +18,7 @@ function ForgotPassword() {
     }, []);
 
     return (
-        <Stack width={'100vw'} height={'100vh'} overflow={'scroll'} sx={{ justifyContent: 'center', position: 'relative', alignItems: 'center', p: 2 }} >
+        <Stack width={'100vw'} height={'100dvh'} overflow={'scroll'} sx={{ justifyContent: 'center', position: 'relative', alignItems: 'center', p: 2 }} >
 
             {
                 page == 'ENTER_EMAIL' ?

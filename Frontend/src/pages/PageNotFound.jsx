@@ -7,7 +7,7 @@ function PageNotFound() {
 
     return (
         <>
-            <Stack width={'100vw'} height={'100vh'} spacing={1} sx={{ justifyContent: "center", alignItems: "center", p: 1 }}>
+            <Stack width={'100vw'} height={'100dvh'} spacing={1} sx={{ justifyContent: "center", alignItems: "center", p: 1 }}>
                 <Box width={'100%'} maxWidth={{ xs: '300px', sm: '450px' }}>
                     <img src="https://res.cloudinary.com/dns5lxuvy/image/upload/v1768114434/nbbj6vdpb8rahvsejoiz.png" style={{ width: '100%', objectFit: 'contain' }} alt="" />
                 </Box>

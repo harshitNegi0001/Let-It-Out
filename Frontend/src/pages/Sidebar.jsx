@@ -33,7 +33,7 @@ function Sidebar() {
         setOpenBackdrop(false);
     }
     return (
-        <Drawer variant='permanent' open sx={{ width: 240, height: '100vh' }}>
+        <Drawer variant='permanent' open sx={{ width: 240, height: '100dvh' }}>
 
             <Stack bgcolor={'primary.main'} gap={2} height={'100%'} alignItems={'center'} width={240} position={'relative'} >
                 <Box width={'100%'} height={100} alignItems={'center'} display={'flex'} marginTop={'8px'} flexDirection={'column'} justifyContent={'center'}>

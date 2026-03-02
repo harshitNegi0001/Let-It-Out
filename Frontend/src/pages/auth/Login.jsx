@@ -59,7 +59,7 @@ function Login() {
 
 
     return (
-        <Stack direction={'column'} justifyContent={'center'} alignItems={'center'} height={'100vh'} width={'100vw'}>
+        <Stack direction={'column'} justifyContent={'center'} alignItems={'center'} height={'100dvh'} width={'100vw'}>
             <Stack justifyContent={'center'} alignContent={'center'} width={290} p={'20px'} spacing={2} border={'2px solid #F3ECFF'} bgcolor={'#ffffff15'} sx={{ borderRadius: 2 }}>
                 <Stack width={'100%'} direction={'column'} alignItems={'center'} justifyContent={'center'} spacing={1}>
                     <img src={appLogo} style={{ width: '55px', objectFit: 'contain' }} alt="" />

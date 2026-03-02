@@ -1,6 +1,7 @@
 import { returnRes } from "../utils/returnRes.js";
 import db from '../utils/db.js';
 import { io, userSocketMap } from '../utils/io.js';
+import { generativeModel } from "../config/gemini_setup.js";
 
 
 class Messages {
@@ -157,7 +158,7 @@ class Messages {
     getMessages = async (req, res) => {
         const user1 = req.id;
         const user2 = req.body?.userId;
-        const {limit,lastMessageDate} = req.body;
+        const { limit, lastMessageDate } = req.body;
         try {
 
             const result = await db.query(
@@ -188,7 +189,7 @@ class Messages {
                 GROUP BY msg_date
                 ORDER BY msg_date DESC
                 LIMIT $4;`,
-                [user1, user2,lastMessageDate,limit]
+                [user1, user2, lastMessageDate, limit]
             );
 
             await db.query(
@@ -291,7 +292,7 @@ class Messages {
     // controller function to help getting unread messages/notification count
     getUnreadChatId = async (req, res) => {
         const userId = req.id;
-        try {   
+        try {
             const result = await db.query(
                 `SELECT
                 sender_id
@@ -301,15 +302,36 @@ class Messages {
                 GROUP BY sender_id`,
                 [userId]
             );
-            const notifications=await db.query(
+            const notifications = await db.query(
                 `SELECT COUNT(id)
                 FROM notifications
                 WHERE is_read=FALSE
                     AND receiver_id=$1`,
                 [userId]
             )
-            const chatIds = result.rows.map(r=>r.sender_id);
-            return returnRes(res,200,{notifData:{chatIds,notificationCount:notifications.rows?.[0].count||0}});
+            const chatIds = result.rows.map(r => r.sender_id);
+            return returnRes(res, 200, { notifData: { chatIds, notificationCount: notifications.rows?.[0].count || 0 } });
+
+        } catch (err) {
+            // console.log(err);
+            return returnRes(res, 500, { error: 'Internal Server Error!' });
+        }
+    }
+    chatWithSia = async (req, res) => {
+        const { message } = req.body;
+        const userId = req.id;
+        try {
+            // await db.query(
+            //     ``,
+            //     []
+            // );
+            const result = await generativeModel.generateContent(message);
+            const response = await result.response;
+
+            return returnRes(res, 200, {
+                reply: response.text(),
+                message: 'success'
+            })
 
         } catch (err) {
             console.log(err);
@@ -317,6 +339,8 @@ class Messages {
         }
     }
 }
+
+
 
 
 export default new Messages();
