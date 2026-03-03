@@ -217,7 +217,7 @@ function ChattingComponent({ username, getChatlist }) {
             return;
         }
 
-        if (el.clientHeight- el.scrollTop +1>= el.scrollHeight) {
+        if (el.clientHeight - el.scrollTop + 1 >= el.scrollHeight) {
             fetchOldMessages();
         }
     }
@@ -445,7 +445,22 @@ function ChattingComponent({ username, getChatlist }) {
                     </Stack>}
                 {!userData?.is_blocked && !userData?.blocked_me && <Box width={'100%'} position={'absolute'} display={'flex'} bottom={'5px'} gap={1} px={1} alignItems={'end'} >
                     <Box width={'calc(100% - 50px)'} sx={{ bgcolor: '#3f3f3fff' }} borderRadius={1}>
-                        <TextField onFocus={() => emitTyping()} onBlur={() => emitStopTyping()} fullWidth value={sendMessageBox} onChange={(e) => { setSendMessageBox(e.target.value) }} multiline minRows={1} maxRows={3} onKeyDown={(e) => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); sendMessage() } }} placeholder="write message..." color="secondary" size="small" />
+                        <TextField
+                            onFocus={() => emitTyping()}
+                            onBlur={() => emitStopTyping()}
+                            fullWidth value={sendMessageBox}
+                            onChange={(e) => { setSendMessageBox(e.target.value) }}
+                            multiline minRows={1} maxRows={3}
+                            onKeyDown={(e) => {
+                                if (e.key === "Enter") {
+                                    const isMobile = window.matchMedia("(pointer: coarse)").matches;
+                                    if (!isMobile && !e.shiftKey) {
+                                        e.preventDefault();
+                                        sendMessage();
+                                    }
+                                }
+                            }}
+                            placeholder="write message..." color="secondary" size="small" />
                     </Box>
                     <IconButton loading={sendingMsg} size="small" disabled={!sendMessageBox?.trim()} onClick={() => sendMessage()}>
                         <SendIcon color={(sendMessageBox?.trim()) ? "secondary" : ""} fontSize="large" />

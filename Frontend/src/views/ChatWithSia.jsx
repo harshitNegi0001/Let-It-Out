@@ -70,7 +70,7 @@ function ChatWithSia() {
         if (!el) {
             return;
         }
-        
+
 
         el.addEventListener('scroll', handleScroll);
 
@@ -122,8 +122,8 @@ function ChatWithSia() {
             dispatch(setState({ error: err?.response?.data?.error || "Something went wrong!" }));
         }
     }
-    
-    
+
+
     const getMessages = async () => {
         try {
             setIsLoading(true);
@@ -153,15 +153,15 @@ function ChatWithSia() {
             }
             setIsTyping(true);
             setSendingMsg(true);
-            const sentMsg={
+            const sentMsg = {
                 id: `temp-id-${Date.now()}`,
-                message:sendMessageBox.trim(),
-                wrote_by:'user',
+                message: sendMessageBox.trim(),
+                wrote_by: 'user',
                 created_at: new Date().toISOString(),
             };
             setSendMessageBox('');
             setMessagesList(prev => (
-                [sentMsg,...prev]
+                [sentMsg, ...prev]
             ));
 
             const result = await axios.post(
@@ -178,7 +178,7 @@ function ChatWithSia() {
             setSendingMsg(false);
 
             setMessagesList(prev => (
-                [result?.data?.replyMessage,...prev]
+                [result?.data?.replyMessage, ...prev]
             ));
 
 
@@ -243,12 +243,12 @@ function ChatWithSia() {
                         {messagesList?.map((msg) => <Box key={msg.id} width={'100%'} sx={{ display: 'flex', justifyContent: `${(msg.wrote_by == 'sia') ? 'start' : 'end'}`, px: '8px' }}>
                             {(msg.wrote_by != 'user') ? <Box maxWidth={'70%'} boxShadow={2} position={'relative'} minWidth={'70px'} borderRadius={'5px'} bgcolor={'#474747'} p={'4px 10px'} pb={2} sx={{ background: "linear-gradient(135deg, #2b2b2bff, #444346ff)" }}>
                                 <Typography variant="body2" color="text.primary" component={'span'} sx={{ whiteSpace: 'pre-wrap' }}><ReactMarkdown>{msg.message}</ReactMarkdown></Typography>
-                                
+
                             </Box> :
                                 <Box maxWidth={'70%'} boxShadow={2} minWidth={'70px'} position={'relative'} borderRadius={'8px'} p={'4px 10px'} pb={2} sx={{ background: "linear-gradient(135deg, #6b2b6bff, #290938ff)" }}>
 
                                     <Typography variant="body2" color="text.primary" sx={{ whiteSpace: 'pre-wrap' }}>{msg.message}</Typography>
-                                    
+
                                 </Box>}
                         </Box>)
                         }
@@ -272,20 +272,27 @@ function ChatWithSia() {
 
 
                     </Stack>}
-                 
+
                 <Box width={'100%'} position={'absolute'} display={'flex'} bottom={'5px'} gap={1} px={1} alignItems={'end'} >
                     <Box width={'calc(100% - 50px)'} sx={{ bgcolor: '#3f3f3fff' }} borderRadius={1}>
-                        <TextField fullWidth value={sendMessageBox} 
-                        onChange={(e) => { setSendMessageBox(e.target.value) }} 
-                        multiline minRows={1} 
-                        maxRows={5} 
-                        onKeyDown={(e) => { if (e.key === "Enter" && !e.shiftKey) 
-                        { e.preventDefault(); sendMessage() } }} 
-                        placeholder="write message..." 
-                        color="secondary" 
-                        size="small" />
+                        <TextField fullWidth value={sendMessageBox}
+                            onChange={(e) => { setSendMessageBox(e.target.value) }}
+                            multiline minRows={1}
+                            maxRows={5}
+                            onKeyDown={(e) => {
+                                if (e.key === "Enter") {
+                                    const isMobile = window.matchMedia("(pointer: coarse)").matches;
+                                    if (!isMobile && !e.shiftKey) {
+                                        e.preventDefault();
+                                        sendMessage();
+                                    }
+                                }
+                            }}
+                            placeholder="write message..."
+                            color="secondary"
+                            size="small" />
                     </Box>
-                    <IconButton  size="small" disabled={!sendMessageBox?.trim() || sendingMsg} onClick={() => sendMessage()}>
+                    <IconButton size="small" disabled={!sendMessageBox?.trim() || sendingMsg} onClick={() => sendMessage()}>
                         <SendIcon color={(sendMessageBox?.trim()) ? "secondary" : ""} fontSize="large" />
                     </IconButton>
                 </Box>
