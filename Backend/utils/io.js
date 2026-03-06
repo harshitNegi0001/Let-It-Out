@@ -11,7 +11,7 @@ const userSocketMap = new Map();
 export const initSocket = (server) => {
     io = new Server(server, {
         cors: {
-            origin: ["https://let-it-out-omega.vercel.app", "http://localhost:5173"],
+            origin: ["https://let-it-out-feel-free.vercel.app", "http://localhost:5173"],
             credentials: true
         }
     });
