@@ -25,6 +25,7 @@ body{
   width: 100%;
   height: 100vh;
   display: flex;
+  flex-direction: column;
   justify-content: center;
   align-items: center;
   background-color: #1E1B29; /* Ya aapka background color */
@@ -45,26 +46,25 @@ body{
 .main-logo {
   width: 100%;
   z-index: 2;
-  object-position: 0px -10px;
-  animation: heartBeat 1.5s ease-in-out infinite;
+  object-position: center;
+  animation: fadeInOut 1.5s ease-in-out infinite;
+
 }
 
-@keyframes heartBeat {
-  0% { transform: scale(1); }
-  15% { transform: scale(1.15); }
-  30% { transform: scale(1); }
-  45% { transform: scale(1.2); }
-  70% { transform: scale(1); }
+@keyframes fadeInOut {
+  0% { opacity: 1; }
+  
+  70% {opacity: 0.4;  }
 }
 
 /* Circular Ripple Animation */
-.ripple {
+/* .ripple {
   position: absolute;
-  border: 2px solid #6E5FAE; /* Flame ke color se match karein */
+  border: 2px solid #6E5FAE; 
   border-radius: 50%;
   animation: rippleEffect 2s linear infinite;
   opacity: 0;
-}
+} */
 
 @keyframes rippleEffect {
   0% {
