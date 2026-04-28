@@ -47,7 +47,7 @@ export default function LoadingAppComponent() {
                         fontFamily:'Poppins'
                     }}>
                     <CircularProgress color="secondary" size={'35px'} />
-                    <span>Connection{dots}</span>
+                    <span>Connecting{dots}</span>
                 </div>
 
             </div>
