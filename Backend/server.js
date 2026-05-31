@@ -14,7 +14,7 @@ import cors from 'cors';
 import setupTables from './utils/setupTables.js';
 import http from 'http';
 import { initSocket } from './utils/io.js';
-
+import axios from 'axios';
 export const app = express();
 dotenv.config();
 export const server = http.createServer(app);
@@ -22,7 +22,7 @@ const frontend_url = process.env.FRONTEND_URL;
 const port = process.env.PORT || 5000
 
 initSocket(server);
-
+const backend_url = 'https://restrostack-web-app.onrender.com';
 app.use(cors({
     origin: ["https://let-it-out-feel-free.vercel.app", "http://localhost:5173"],
     credentials: true
@@ -45,12 +45,18 @@ app.get('/', (req, res) => {
     res.end("Hello World!");
 });
 
+
 async function startServer() {
 
     try {
         await setupTables();
         server.listen(port, () => {
             console.log(`Server running on port ${port} !`);
+            setInterval(() => {
+                axios.get(backend_url)
+                    .then(() => console.log('Self-ping successful! Server kept awake.'))
+                    .catch(err => console.error('Self-ping failed:', err.message));
+            }, 10 * 60 * 1000)
         });
     } catch (err) {
         console.error(' Failed to setup DB:', err);
