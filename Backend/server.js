@@ -22,7 +22,7 @@ const frontend_url = process.env.FRONTEND_URL;
 const port = process.env.PORT || 5000
 
 initSocket(server);
-const backend_url = 'https://restrostack-web-app.onrender.com';
+const backend_url = 'https://let-it-out.onrender.com';
 app.use(cors({
     origin: ["https://let-it-out-feel-free.vercel.app", "http://localhost:5173"],
     credentials: true
