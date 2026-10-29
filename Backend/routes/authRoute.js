@@ -6,6 +6,7 @@ const router = express.Router();
 
 router.post('/login',Auth.userLogin);
 router.post('/logout',authMiddleware,Auth.logout);
+router.get('/login-demo',Auth.loginDemo);
 
 router.get('/google-login',Auth.googleLogin);
 router.get('/google/fallback',Auth.googleFallback);

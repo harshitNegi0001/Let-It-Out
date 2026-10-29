@@ -28,7 +28,7 @@ class Auth {
         WHERE email=$1`,
         [email]
       );
-      
+
       if (result.rows.length > 0) {
         const storedPass = result.rows[0].password;
         const isValid = await bcrypt.compare(password, storedPass);
@@ -53,6 +53,24 @@ class Auth {
       }
     } catch (err) {
       // console.log(err);
+      return returnRes(res, 500, { error: 'Internal server error!' });
+    }
+  }
+
+  // Controller function to login into demo account.
+  loginDemo = async (req, res) => {
+    try {
+      const userInfo = await this.getUserDetail(11);
+      const token = createToken({ id: 11 });
+      res.cookie('authToken', token, {
+        httpOnly: true,
+        maxAge: 1000 * 60 * 60 * 24 * 7,
+        sameSite: 'none',
+        secure: true
+      });
+      return returnRes(res, 200, { message: 'Login Success', userInfo });
+    } catch (err) {
+      console.log(err.message);
       return returnRes(res, 500, { error: 'Internal server error!' });
     }
   }

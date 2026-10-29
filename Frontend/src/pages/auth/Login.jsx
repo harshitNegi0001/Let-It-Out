@@ -1,4 +1,7 @@
 import appLogo from '../../assets/letitout_logo.png';
+import CardGiftcardOutlinedIcon from '@mui/icons-material/CardGiftcardOutlined';
+import CloseIcon from '@mui/icons-material/Close';
+import VisibilityOutlinedIcon from '@mui/icons-material/VisibilityOutlined';
 import { Button, Divider, IconButton, InputAdornment, Slide, Stack, TextField, Typography, Link } from '@mui/material';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
@@ -12,6 +15,7 @@ import VisibilityOff from '@mui/icons-material/VisibilityOff';
 function Login() {
     const backend_url = import.meta.env.VITE_BACKEND_URL;
     const dispatch = useDispatch();
+    const [showFreeTrialBtn, setFreeTrialBtn] = useState(true);
     const [showPass, setShowPass] = useState(false);
     const [state, setLoginState] = useState({
         email: '',
@@ -23,6 +27,24 @@ function Login() {
         setLoginState(prev => ({ ...prev, [e.target.name]: e.target.value }))
     }
 
+    const handleDemoClick = async (type) => {
+        try {
+            setloadingBtn(type);
+            const result = await axios.get(
+                `${backend_url}/api/login-demo`,
+                {
+                    withCredentials:true
+                }
+            )
+            dispatch(setState({ success: result.data.message }));
+            dispatch(login({ userInfo: result.data.userInfo }));
+            navigate('/')
+            setloadingBtn('');
+        } catch (err) {
+            setloadingBtn('');
+            dispatch(setState({ error: err?.response?.data?.error }));
+        }
+    }
     const handleLogin = async (e) => {
         e.preventDefault();
         const email = state.email;
@@ -60,6 +82,99 @@ function Login() {
 
     return (
         <Stack direction={'column'} justifyContent={'center'} alignItems={'center'} height={'100dvh'} width={'100vw'}>
+            {showFreeTrialBtn && <Stack
+                direction="row"
+                alignItems="center"
+                justifyContent="center"
+                spacing={2}
+                sx={{
+                    position: 'fixed',
+                    top: { xs: 12, sm: 20 },
+                    left: { xs: 12, sm: 24 },
+                    right: { xs: 12, sm: 24 },
+                    zIndex: 10,
+                    px: { xs: 0.2, sm: 0.5 },
+                    py: 0.5,
+                    border: '1px solid',
+                    borderColor: 'rgba(193, 181, 221, 0.3)',
+                    borderRadius: 2,
+                    bgcolor: 'rgba(42, 36, 57, 0.96)',
+                    boxShadow: '0 4px 20px rgba(0,0,0,0.15)',
+                    backdropFilter: 'blur(12px)',
+                    flexWrap: 'wrap',
+                    gap: 1,
+                }}
+            >
+                <VisibilityOutlinedIcon
+                    sx={{ color: '#C1B5DD', fontSize: 23 }}
+                />
+
+                <Typography
+                    variant="body2"
+                    sx={{ color: '#F3ECFF', fontWeight: 600 }}
+                >
+                    Take a Quick Look
+                </Typography>
+
+                <Divider
+                    orientation="vertical"
+                    flexItem
+                    sx={{
+                        borderColor: 'rgba(193,181,221,0.35)',
+                        mx: 1,
+                        display: { xs: 'none', sm: 'block' },
+                    }}
+                />
+
+                <Typography
+                    variant="body2"
+                    sx={{
+                        color: 'text.secondary',
+                        display: { xs: 'none', md: 'block' },
+                    }}
+                >
+                    Explore the application using our demo account.
+                </Typography>
+
+                <Button
+                    variant="contained"
+                    onClick={()=>handleDemoClick('demo')}
+                    loading={loadingBtn=='demo'}
+                    endIcon={<span>→</span>}
+                    sx={{
+                        ml: { xs: 0, sm: 1 },
+                        px: 2.5,
+                        py: { xs: '5px', md: 0.5 },
+                        borderRadius: 1.5,
+                        bgcolor: '#7961D9',
+                        color: '#fff',
+                        textTransform: 'none',
+                        fontWeight: 600,
+                        boxShadow: 'none',
+                        '&:hover': {
+                            bgcolor: '#6B52C7',
+                            boxShadow: 'none',
+                        },
+                    }}
+                >
+                    Explore Demo
+                </Button>
+                <IconButton
+                    size="small"
+                    onClick={() => setFreeTrialBtn(false)}
+                    aria-label="Close free trial banner"
+                    sx={{
+                        color: '#C1B5DD',
+                        ml: 0.5,
+                        '&:hover': {
+                            bgcolor: 'rgba(193,181,221,0.12)',
+                            color: '#FFFFFF',
+                        },
+                    }}
+                >
+                    <CloseIcon fontSize="small" />
+                </IconButton>
+            </Stack>}
             <Stack justifyContent={'center'} alignContent={'center'} width={290} p={'20px'} spacing={2} border={'2px solid #F3ECFF'} bgcolor={'#ffffff15'} sx={{ borderRadius: 2 }}>
                 <Stack width={'100%'} direction={'column'} alignItems={'center'} justifyContent={'center'} spacing={1}>
                     <img src={appLogo} style={{ width: '55px', objectFit: 'contain' }} alt="" />
@@ -111,6 +226,34 @@ function Login() {
 
                     Log in with Google
                 </Button>
+                <Button
+                    fullWidth
+                    variant="outlined"
+                    onClick={()=>handleDemoClick('trial')}
+                    loading={loadingBtn=='trial'}
+                    startIcon={<CardGiftcardOutlinedIcon htmlColor='#8E7CC3' />}
+                    endIcon={<span>→</span>}
+                    sx={{
+                        mt: 1,
+                        py: 0.2,
+                        borderRadius: 1.5,
+                        borderColor: '#fff',
+                        color: '#F3ECFF',
+                        textTransform: 'none',
+                        fontWeight: 600,
+                        '&:hover': {
+                            borderColor: '#ffffff73',
+                            bgcolor: 'rgba(142,124,195,0.10)',
+                        },
+                    }}
+                >
+                    Start Free Trial
+                </Button>
+                {/* <Divider><Typography variant='body2' color='text.secondary' component={'span'}>or</Typography></Divider>
+                <Button loading={loadingBtn == 'googleBtn'} fullWidth onClick={handleGoogleLogin} variant='outlined' sx={{ color: 'secondary.light', borderColor: 'secondary.light', textTransform: 'none' }} startIcon={loadingBtn == 'googleBtn' ? null : <svg xmlns="http://www.w3.org/2000/svg" x="0px" y="0px" width="20" height="20" viewBox="0 0 48 48"><path fill="#FFC107" d="M43.611,20.083H42V20H24v8h11.303c-1.649,4.657-6.08,8-11.303,8c-6.627,0-12-5.373-12-12c0-6.627,5.373-12,12-12c3.059,0,5.842,1.154,7.961,3.039l5.657-5.657C34.046,6.053,29.268,4,24,4C12.955,4,4,12.955,4,24c0,11.045,8.955,20,20,20c11.045,0,20-8.955,20-20C44,22.659,43.862,21.35,43.611,20.083z"></path><path fill="#FF3D00" d="M6.306,14.691l6.571,4.819C14.655,15.108,18.961,12,24,12c3.059,0,5.842,1.154,7.961,3.039l5.657-5.657C34.046,6.053,29.268,4,24,4C16.318,4,9.656,8.337,6.306,14.691z"></path><path fill="#4CAF50" d="M24,44c5.166,0,9.86-1.977,13.409-5.192l-6.19-5.238C29.211,35.091,26.715,36,24,36c-5.202,0-9.619-3.317-11.283-7.946l-6.522,5.025C9.505,39.556,16.227,44,24,44z"></path><path fill="#1976D2" d="M43.611,20.083H42V20H24v8h11.303c-0.792,2.237-2.231,4.166-4.087,5.571c0.001-0.001,0.002-0.001,0.003-0.002l6.19,5.238C36.971,39.205,44,34,44,24C44,22.659,43.862,21.35,43.611,20.083z"></path></svg>}>
+
+                    Log in with Google
+                </Button> */}
                 {/* <Snackbar open={state.snackbarOpen} anchorOrigin={{ horizontal: 'center', vertical: 'top' }} slots={{ transition: Slide }} slotProps={{ transition: { direction: 'down', onExited: () => { setState(prev => ({ ...prev, error: '', success: '' })) } } }} autoHideDuration={4000} onClose={handleCloseSnackbar}>
                     <Alert severity={Boolean(state.success) ? 'success' : 'error'}>{state.success || state.error}</Alert>
                 </Snackbar> */}
