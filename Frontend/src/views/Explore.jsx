@@ -46,7 +46,7 @@ function Explore() {
 
 
         return (() => {
-            setPostslist([])
+            setPostslist([]);
         })
     }, [selectedMood]);
 
@@ -62,16 +62,16 @@ function Explore() {
 
         if (el.scrollTop + el.clientHeight + 1 >= el.scrollHeight) {
             const reqMood = selectedMood.map(m => m.value);
-            getPosts(reqMood);
+            const lastFeedId = postslist.length == 0 ? null : postslist[postslist.length - 1]?.post_data.id;
+            getPosts(reqMood, lastFeedId);
         }
     }
-    const getPosts = async (reqMood) => {
+    const getPosts = async (reqMood,lastFeedId) => {
         if (!reqMood || reqMood?.length == 0) {
             return;
         }
         setIsLoading(true);
         try {
-            const lastFeedId = postslist.length == 0 ? null : postslist[postslist.length - 1]?.post_data.id;
             const url = (lastFeedId) ?
                 `${backend_url}/api/get-posts?limit=${20}&&reqMood=${reqMood}&&lastFeedId=${lastFeedId}` :
                 `${backend_url}/api/get-posts?limit=${20}&&reqMood=${reqMood}`
@@ -104,6 +104,7 @@ function Explore() {
         const already = selectedMood.find(m => m.id == mood.id);
         if (!already) {
             setSelectedMood(prev => ([...prev, mood]));
+            
         }
 
     }
